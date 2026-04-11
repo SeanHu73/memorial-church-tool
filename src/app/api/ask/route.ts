@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-3-haiku-20240307',
         max_tokens: 300,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: question }],
@@ -57,8 +57,16 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const errBody = await response.text();
       console.error(`Anthropic API ${response.status}:`, errBody);
+      // Surface the actual error to help debug
+      let detail = '';
+      try {
+        const parsed = JSON.parse(errBody);
+        detail = parsed.error?.message || errBody;
+      } catch {
+        detail = errBody.slice(0, 200);
+      }
       return NextResponse.json(
-        { answer: `API error (${response.status}). Check that your ANTHROPIC_API_KEY is valid in Vercel environment variables.` },
+        { answer: `API error (${response.status}): ${detail}` },
         { status: 200 }
       );
     }
