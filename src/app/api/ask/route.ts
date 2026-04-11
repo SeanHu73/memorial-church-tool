@@ -1,17 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFileSync } from 'fs';
-import { join } from 'path';
-
-// Load the knowledge database at startup
-let knowledgeDB: string;
-try {
-  knowledgeDB = readFileSync(
-    join(process.cwd(), 'docs', 'Memorial_Church_Knowledge_Database.md'),
-    'utf-8'
-  );
-} catch {
-  knowledgeDB = '';
-}
+import knowledgeDB from '@/lib/knowledge-db';
 
 const SYSTEM_PROMPT = `You are a knowledgeable, warm guide to Stanford Memorial Church. You answer questions using ONLY the knowledge database provided below.
 
@@ -38,7 +26,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { question } = await req.json();
+  let question: string;
+  try {
+    const body = await req.json();
+    question = body.question;
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  }
 
   if (!question || typeof question !== 'string' || question.length > 500) {
     return NextResponse.json({ error: 'Invalid question' }, { status: 400 });
@@ -61,9 +55,12 @@ export async function POST(req: NextRequest) {
     });
 
     if (!response.ok) {
-      const errText = await response.text();
-      console.error('Anthropic API error:', errText);
-      throw new Error('API error');
+      const errBody = await response.text();
+      console.error(`Anthropic API ${response.status}:`, errBody);
+      return NextResponse.json(
+        { answer: `API error (${response.status}). Check that your ANTHROPIC_API_KEY is valid in Vercel environment variables.` },
+        { status: 200 }
+      );
     }
 
     const data = await response.json();
