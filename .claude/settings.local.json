@@ -11,7 +11,9 @@
       "Bash(node -e \"const L = require\\(''@googlemaps/js-api-loader''\\); const l = new L.Loader\\(\\); L.setOptions\\({key:''test''}\\); console.log\\(''works''\\)\")",
       "Bash(node -e \":*)",
       "Bash(grep -r \"mapId\\\\|Map3DElement\\\\|mapTypeId\" /d/Provenance/provenance/app --include=*.tsx --include=*.ts --include=*.jsx --include=*.js)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:web.dev)"
     ]
   }
 }
