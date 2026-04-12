@@ -43,12 +43,12 @@ export default function AskSheet({ initialQuestion, onClose }: Props) {
       const data = await res.json();
       setAnswer(data.answer || '');
       setObservation(data.observation || null);
-      // Always go to observe phase — attention outward first
-      setPhase('observe');
+      // If there's a natural observation, pause there first; otherwise go straight to answer
+      setPhase(data.observation ? 'observe' : 'answer');
     } catch {
       setAnswer("I wasn't able to answer that right now. Try asking about something you can see in or around the church — the mosaics, windows, carvings, or the people who built it.");
-      setObservation('Take a moment to look around the space you are in. What draws your attention?');
-      setPhase('observe');
+      setObservation(null);
+      setPhase('answer');
     }
   };
 
