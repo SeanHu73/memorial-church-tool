@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import knowledgeDB from '@/lib/knowledge-db';
+import { findRelevantHints, formatHintsForPrompt } from '@/lib/hint-matcher';
 
 const SYSTEM_PROMPT = `You are a knowledgeable, warm companion to people exploring Stanford Memorial Church. They are standing in or near the church right now, in pairs or small groups. They have asked you a question. You answer using ONLY the knowledge database provided below.
 
@@ -91,6 +92,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // Find contributor-authored observation hints relevant to this question
+    const hints = findRelevantHints(question);
+    const hintsSection = formatHintsForPrompt(hints);
+    const systemWithHints = SYSTEM_PROMPT + hintsSection;
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -101,7 +107,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 500,
-        system: SYSTEM_PROMPT,
+        system: systemWithHints,
         messages: [{ role: 'user', content: question }],
       }),
     });

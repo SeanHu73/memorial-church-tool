@@ -5,6 +5,13 @@ export interface ContextualPhoto {
   year: string;
 }
 
+export type QuestionCategory = 'who' | 'what' | 'when' | 'where' | 'why' | 'how';
+
+export interface ObservationHint {
+  lookAt: string;      // What to physically look at: "the stone plaque on the facade"
+  clue: string;        // How it helps answer this category of question
+}
+
 export interface Pin {
   id: string;
   title: string;
@@ -27,6 +34,7 @@ export interface Pin {
       teaser: string;
     } | null;
   };
+  observationHints: Partial<Record<QuestionCategory, ObservationHint>>;
   tags: string[];
   era: string;
   databaseEntryIds: string[];
