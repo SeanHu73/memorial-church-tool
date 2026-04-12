@@ -42,15 +42,13 @@ export default function AskSheet({ initialQuestion, onClose }: Props) {
       if (!res.ok) throw new Error();
       const data = await res.json();
       setAnswer(data.answer || '');
-      if (data.observation) {
-        setObservation(data.observation);
-        setPhase('observe');
-      } else {
-        setPhase('answer');
-      }
+      setObservation(data.observation || null);
+      // Always go to observe phase — attention outward first
+      setPhase('observe');
     } catch {
       setAnswer("I wasn't able to answer that right now. Try asking about something you can see in or around the church — the mosaics, windows, carvings, or the people who built it.");
-      setPhase('answer');
+      setObservation('Take a moment to look around the space you are in. What draws your attention?');
+      setPhase('observe');
     }
   };
 
@@ -162,12 +160,6 @@ export default function AskSheet({ initialQuestion, onClose }: Props) {
           {phase === 'answer' && (
             <div className="animate-fade-in">
               <p className="font-serif text-sm text-text-muted italic mb-3 leading-relaxed">&ldquo;{question}&rdquo;</p>
-
-              {observation && (
-                <p className="font-sans text-xs text-text-muted mb-3 leading-relaxed">
-                  You looked at: {observation}
-                </p>
-              )}
 
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex-1 h-px bg-sandstone-light/50" />
