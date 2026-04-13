@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import knowledgeDB from '@/lib/knowledge-db';
 import { findRelevantHints, formatHintsForPrompt } from '@/lib/hint-matcher';
+import { logQuestion } from '@/lib/firebase-admin';
 
 const SYSTEM_PROMPT = `You are a knowledgeable, warm companion to people exploring Stanford Memorial Church. They are standing in or near the church right now, in pairs or small groups. They have asked you a question. You answer using ONLY the knowledge database provided below.
 
@@ -142,16 +143,32 @@ export async function POST(req: NextRequest) {
 
     try {
       const parsed = JSON.parse(cleaned);
-      return NextResponse.json({
+      const result = {
         observation: parsed.observation || null,
         answer: parsed.answer || "I couldn't find an answer to that. Try asking about something you can see — the mosaics, windows, or architecture.",
+      };
+      // Log to Firestore (non-blocking)
+      logQuestion({
+        question,
+        observation: result.observation,
+        answer: result.answer,
+        hintsUsed: hints.length,
+        timestamp: new Date().toISOString(),
       });
+      return NextResponse.json(result);
     } catch {
-      // Model didn't return valid JSON — use raw text as answer, no observation
-      return NextResponse.json({
+      const result = {
         observation: null,
         answer: cleaned || "I couldn't find an answer to that.",
+      };
+      logQuestion({
+        question,
+        observation: null,
+        answer: result.answer,
+        hintsUsed: hints.length,
+        timestamp: new Date().toISOString(),
       });
+      return NextResponse.json(result);
     }
   } catch (err) {
     console.error('Ask route error:', err);
