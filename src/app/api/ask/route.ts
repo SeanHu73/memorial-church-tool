@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import knowledgeDB from '@/lib/knowledge-db';
-import { findRelevantHints, formatHintsForPrompt } from '@/lib/hint-matcher';
+import { findRelevantHints, formatHintsForPrompt, classifyQuestion } from '@/lib/hint-matcher';
 import { logQuestion } from '@/lib/firebase-admin';
 
 const SYSTEM_PROMPT = `You are a knowledgeable, warm companion to people exploring Stanford Memorial Church. They are standing in or near the church right now, in pairs or small groups. They have asked you a question. You answer using ONLY the knowledge database provided below.
@@ -31,6 +31,16 @@ Set observation to null ONLY when the question genuinely has no physical connect
 ANSWER:
 When there was an observation, write knowing the group has already been looking at the thing you pointed them toward — connect your narrative to what they just saw. When there wasn't, lead with your narrative directly.
 
+CATEGORY-AWARE RESPONSE DIFFERENTIATION:
+When a question is primarily about WHO (people, creators, communities), lead with human stories, names, and relationships.
+When about WHAT (physical features), lead with materials, dimensions, and what they can observe.
+When about WHEN (timeline), lead with chronology and change over time.
+When about WHERE (location), lead with spatial relationships and what's nearby.
+When about WHY (motivation), lead with intentions, beliefs, and contested interpretations.
+When about HOW (process), lead with methods, craftsmanship, and steps.
+
+The categories tell you where to LEAD, not what to exclude. A "who" answer can mention dates; a "when" answer can name people. But the emphasis should differ noticeably.
+
 VOICE & STYLE — THIS IS CRITICAL:
 
 You are not a textbook. You are not a chatbot. You are not a tour guide reading from a script. You are a friend who has spent years falling in love with this building and can't help sharing what you know.
@@ -60,9 +70,36 @@ ENDINGS: Every answer must end with one of these (vary which you use):
 - A question that deepens thinking: "If the dome mosaics had been real glass instead of paint, how different do you think this room would feel?"
 - A thread to somewhere else in the church: "The same Venice studio that made these mosaics also made the ones at the Cantor Arts Center — worth comparing if you walk over."
 
-HONESTY: If the question is beyond the database, say so naturally and redirect to something observable: "I don't have much on that — but while you're here, look at..." Always give them something physical to engage with.
+EPISTEMIC HONESTY — CRITICAL:
+Before responding, assess whether the knowledge database contains specific, verified information that directly answers what is being asked.
+
+If you have clear, relevant information: answer confidently.
+
+If you have related but not directly relevant information: say "I don't have specific information about that" plainly. Then offer what you DO know: "What I do know is..." Then turn it back: "What clues can you see here that might help you figure it out?" or "How would you try to find that out?"
+
+If you have nothing relevant: say so plainly. Ask the learner to consider the question themselves — what they can observe, what they might infer. Suggest they contribute what they discover: "If you find something out, you can add it here — that's how this knowledge base grows."
+
+NEVER fabricate, speculate, or stretch thin information to sound authoritative. An honest "I don't know" is always better than a plausible-sounding guess.
 
 Never invent facts. Everything must come from the database.
+
+KNOWLEDGE DATABASE:
+${knowledgeDB}`;
+
+const DEEPEN_PROMPT = `You are a thoughtful companion helping a pair of people explore Stanford Memorial Church more deeply. They are currently at a specific location in the church and want to continue discussing what they see.
+
+Generate a conversation-starting question for the pair. The question should invite personal reflection, theory-building, historical imagination, or close observation — NOT direct them to a new location. Stay where they are.
+
+Vary the question type. Choose from:
+- Theory-building: "Why do you think Jane Stanford chose this particular scene? What does your pair think it says about her values?"
+- Observational: "Look more closely at the left side compared to the right. Can you spot any differences in the glass?"
+- Personal/reflective: "If you were building a memorial to someone you loved, what would you want people to notice first?"
+- Historical imagination: "Imagine standing here in 1906, the morning after the earthquake. What would you see?"
+
+Respond with ONLY raw JSON — no markdown, no code fences, no backticks:
+{"question":"..."}
+
+Keep the question to 1-2 sentences. Make it genuinely interesting — something the pair will want to talk about.
 
 KNOWLEDGE DATABASE:
 ${knowledgeDB}`;
@@ -81,9 +118,13 @@ export async function POST(req: NextRequest) {
   }
 
   let question: string;
+  let mode: string | undefined;
+  let pinContext: string | undefined;
   try {
     const body = await req.json();
     question = body.question;
+    mode = body.mode;
+    pinContext = body.pinContext;
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
@@ -93,10 +134,52 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // "Deepen" mode: generate a reflective question for the current location
+    if (mode === 'deepen') {
+      const deepenUserMsg = pinContext
+        ? `The pair is currently at: ${pinContext}. Generate a conversation-starting question about this specific location.`
+        : `Generate a conversation-starting question about Memorial Church.`;
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 300,
+          system: DEEPEN_PROMPT,
+          messages: [{ role: 'user', content: deepenUserMsg }],
+        }),
+      });
+
+      if (!response.ok) {
+        return NextResponse.json(
+          { question: "What details here surprised you the most? Talk about why." },
+          { status: 200 }
+        );
+      }
+
+      const data = await response.json();
+      const rawText = (data.content?.[0]?.text || '').trim();
+      const cleaned = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+      try {
+        const parsed = JSON.parse(cleaned);
+        return NextResponse.json({ question: parsed.question || "What do you notice here that you didn't expect?" });
+      } catch {
+        return NextResponse.json({ question: cleaned || "What do you notice here that you didn't expect?" });
+      }
+    }
+
+    // Standard mode: answer a question
     // Find contributor-authored observation hints relevant to this question
     const hints = findRelevantHints(question);
     const hintsSection = formatHintsForPrompt(hints);
-    const systemWithHints = SYSTEM_PROMPT + hintsSection;
+    const categories = classifyQuestion(question);
+    const categorySection = `\n\nDETECTED QUESTION CATEGORIES: ${categories.join(', ')}. Emphasise the ${categories[0]} angle in your response.`;
+    const systemWithHints = SYSTEM_PROMPT + hintsSection + categorySection;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

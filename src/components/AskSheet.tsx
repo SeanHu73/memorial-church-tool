@@ -1,22 +1,33 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { Pin } from '@/lib/types';
+import { seedPins } from '@/lib/seed-pins';
 
 interface Props {
   initialQuestion?: string;
   onClose: () => void;
+  onNavigateToPin?: (pinId: string) => void;
 }
 
 type Phase = 'input' | 'loading' | 'observe' | 'answer';
 
-export default function AskSheet({ initialQuestion, onClose }: Props) {
+export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: Props) {
   const [question, setQuestion] = useState(initialQuestion || '');
   const [observation, setObservation] = useState<string | null>(null);
   const [answer, setAnswer] = useState('');
   const [phase, setPhase] = useState<Phase>(initialQuestion ? 'loading' : 'input');
   const [closing, setClosing] = useState(false);
+  const [ownQ, setOwnQ] = useState('');
+  const [deepenQ, setDeepenQ] = useState<string | null>(null);
+  const [deepenLoading, setDeepenLoading] = useState(false);
+  const [contributionText, setContributionText] = useState('');
+  const [contributionSent, setContributionSent] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Find a suggested next pin (pick a random one for free-form questions)
+  const suggestedPin: Pin | null = seedPins.length > 0 ? seedPins[Math.floor(Math.random() * seedPins.length)] : null;
 
   useEffect(() => {
     if (initialQuestion) ask(initialQuestion);
@@ -31,6 +42,8 @@ export default function AskSheet({ initialQuestion, onClose }: Props) {
     setObservation(null);
     setAnswer('');
     setQuestion(q);
+    setDeepenQ(null);
+    setContributionSent(false);
     scrollRef.current?.scrollTo(0, 0);
 
     try {
@@ -43,7 +56,6 @@ export default function AskSheet({ initialQuestion, onClose }: Props) {
       const data = await res.json();
       setAnswer(data.answer || '');
       setObservation(data.observation || null);
-      // If there's a natural observation, pause there first; otherwise go straight to answer
       setPhase(data.observation ? 'observe' : 'answer');
     } catch {
       setAnswer("I wasn't able to answer that right now. Try asking about something you can see in or around the church — the mosaics, windows, carvings, or the people who built it.");
@@ -62,12 +74,166 @@ export default function AskSheet({ initialQuestion, onClose }: Props) {
     setTimeout(() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 80);
   };
 
-  const askAnother = (q: string) => {
-    if (q.trim()) ask(q.trim());
+  const submitOwn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (ownQ.trim()) {
+      ask(ownQ.trim());
+      setOwnQ('');
+    }
   };
 
+  const handleDeepen = async () => {
+    setDeepenLoading(true);
+    try {
+      const res = await fetch('/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: 'deepen',
+          mode: 'deepen',
+          pinContext: `Memorial Church (general area)`,
+        }),
+      });
+      const data = await res.json();
+      setDeepenQ(data.question || "What details here surprised you the most?");
+    } catch {
+      setDeepenQ("What do you notice here that you didn't expect? Talk about it together.");
+    }
+    setDeepenLoading(false);
+  };
+
+  const submitContribution = async () => {
+    if (!contributionText.trim()) return;
+    try {
+      await fetch('/api/contribute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pinId: null,
+          question,
+          contribution: contributionText.trim(),
+        }),
+      });
+    } catch {
+      // Silent failure
+    }
+    setContributionSent(true);
+    setContributionText('');
+  };
+
+  const isIDontKnow = (text: string) => {
+    const lower = text.toLowerCase();
+    return lower.includes("i don't have specific information") ||
+           lower.includes("i don't have much on that") ||
+           lower.includes("i don't know") ||
+           lower.includes("beyond my knowledge") ||
+           lower.includes("not in my knowledge");
+  };
+
+  const renderThreeOptions = (showContributeOption?: boolean) => (
+    <div className="space-y-3 mt-6 animate-fade-in">
+      <p className="text-[11px] text-text-muted font-sans uppercase tracking-wider mb-2">What next?</p>
+
+      {/* Option 1: See something connected */}
+      {suggestedPin && onNavigateToPin && (
+        <button
+          onClick={() => { onNavigateToPin(suggestedPin.id); onClose(); }}
+          className="w-full text-left p-4 rounded-xl border border-sandstone-light/50 bg-warm-white hover:border-aged-gold/50 hover:bg-cream transition-all group"
+        >
+          <div className="flex items-start gap-3">
+            <span className="text-aged-gold mt-0.5 shrink-0 text-lg group-hover:translate-x-0.5 transition-transform">→</span>
+            <div>
+              <p className="text-xs font-sans font-medium text-text-muted mb-1 uppercase tracking-wider">See something connected</p>
+              <p className="font-serif text-sm text-text-secondary leading-relaxed group-hover:text-text-primary transition-colors">Explore {suggestedPin.title} — {suggestedPin.location.physicalArea.replace(/_/g, ' ')}</p>
+            </div>
+          </div>
+        </button>
+      )}
+
+      {/* Option 2: Keep talking about this */}
+      {!deepenQ ? (
+        <button
+          onClick={handleDeepen}
+          disabled={deepenLoading}
+          className="w-full text-left p-4 rounded-xl border border-sandstone-light/50 bg-warm-white hover:border-mosaic-blue/30 hover:bg-cream transition-all group"
+        >
+          <div className="flex items-start gap-3">
+            <span className="text-mosaic-blue mt-0.5 shrink-0 text-lg">💬</span>
+            <div>
+              <p className="text-xs font-sans font-medium text-text-muted mb-1 uppercase tracking-wider">Keep talking about this</p>
+              <p className="font-serif text-sm text-text-secondary leading-relaxed group-hover:text-text-primary transition-colors">
+                {deepenLoading ? 'Thinking...' : 'Get a question to discuss together right here'}
+              </p>
+            </div>
+          </div>
+        </button>
+      ) : (
+        <div className="p-4 rounded-xl border border-mosaic-blue/20 bg-warm-white animate-fade-in">
+          <div className="flex items-start gap-3 mb-2">
+            <span className="text-mosaic-blue text-lg mt-0.5 shrink-0">💬</span>
+            <p className="font-serif text-[1rem] leading-relaxed text-mosaic-blue">{deepenQ}</p>
+          </div>
+          <p className="text-xs text-text-muted font-sans mt-2">Talk it over together. There&apos;s no right answer.</p>
+        </div>
+      )}
+
+      {/* Option 3: Ask your own question */}
+      <div className="p-4 rounded-xl border border-sandstone-light/50 bg-warm-white">
+        <div className="flex items-start gap-3 mb-3">
+          <span className="text-mosaic-teal mt-0.5 shrink-0 text-lg">✦</span>
+          <p className="text-xs font-sans font-medium text-text-muted uppercase tracking-wider">Ask your own question</p>
+        </div>
+        <form onSubmit={submitOwn} className="flex gap-2">
+          <input
+            value={ownQ}
+            onChange={(e) => setOwnQ(e.target.value)}
+            placeholder="What are you curious about?"
+            className="flex-1 px-4 py-3 rounded-xl bg-cream border border-sandstone-light/50 text-sm font-sans text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-mosaic-blue/30 focus:ring-1 focus:ring-mosaic-blue/20 transition-all"
+          />
+          <button type="submit" disabled={!ownQ.trim()} className="px-4 py-3 rounded-xl bg-mosaic-blue text-cream text-sm font-sans font-medium disabled:opacity-40 hover:bg-mosaic-blue-light active:scale-[.98] transition-all">
+            Ask
+          </button>
+        </form>
+      </div>
+
+      {/* Contribution option — only when the model said "I don't know" */}
+      {showContributeOption && !contributionSent && (
+        <div className="p-4 rounded-xl border border-aged-gold/30 bg-warm-white">
+          <div className="flex items-start gap-3 mb-2">
+            <span className="text-aged-gold mt-0.5 shrink-0 text-lg">✍</span>
+            <div>
+              <p className="text-xs font-sans font-medium text-text-muted mb-1 uppercase tracking-wider">Share what you found</p>
+              <p className="font-serif text-xs text-text-secondary leading-relaxed">If you discovered something, add it here. Your contribution helps the knowledge base grow.</p>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-2">
+            <input
+              value={contributionText}
+              onChange={(e) => setContributionText(e.target.value)}
+              placeholder="What did you find out?"
+              className="flex-1 px-4 py-3 rounded-xl bg-cream border border-sandstone-light/50 text-sm font-sans text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-aged-gold/30 focus:ring-1 focus:ring-aged-gold/20 transition-all"
+            />
+            <button
+              onClick={submitContribution}
+              disabled={!contributionText.trim()}
+              className="px-4 py-3 rounded-xl bg-aged-gold text-warm-white text-sm font-sans font-medium disabled:opacity-40 hover:bg-aged-gold-light active:scale-[.98] transition-all"
+            >
+              Share
+            </button>
+          </div>
+        </div>
+      )}
+
+      {contributionSent && (
+        <div className="p-4 rounded-xl border border-mosaic-teal/30 bg-warm-white animate-fade-in">
+          <p className="font-serif text-sm text-mosaic-teal leading-relaxed">Thank you — your contribution has been saved for review.</p>
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <div className="absolute inset-x-0 bottom-0 z-30" style={{ height: '65%' }}>
+    <div className="absolute inset-x-0 bottom-0 z-30" style={{ height: '78%' }}>
       <div className="absolute inset-0 -top-[50vh]" onClick={close} />
       <div
         className={`relative h-full bg-cream rounded-t-3xl flex flex-col texture-linen ${closing ? 'animate-slide-down' : 'animate-slide-up'}`}
@@ -171,32 +337,7 @@ export default function AskSheet({ initialQuestion, onClose }: Props) {
                 {answer}
               </p>
 
-              {/* Ask another */}
-              <div className="mt-6 pt-4 border-t border-sandstone-light/30">
-                <p className="text-[11px] text-text-muted font-sans mb-2 uppercase tracking-wider">What else are you curious about?</p>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const inp = e.currentTarget.querySelector('input') as HTMLInputElement;
-                    if (inp.value.trim()) {
-                      askAnother(inp.value.trim());
-                      inp.value = '';
-                    }
-                  }}
-                  className="flex gap-2"
-                >
-                  <input
-                    placeholder="Ask something else..."
-                    className="flex-1 px-4 py-3 rounded-xl bg-warm-white border border-sandstone-light/50 text-sm font-sans text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-mosaic-blue/30 focus:ring-1 focus:ring-mosaic-blue/20"
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-3 rounded-xl bg-mosaic-blue text-cream text-sm font-sans font-medium hover:bg-mosaic-blue-light active:scale-[.98] transition-all"
-                  >
-                    Ask
-                  </button>
-                </form>
-              </div>
+              {renderThreeOptions(isIDontKnow(answer))}
             </div>
           )}
         </div>

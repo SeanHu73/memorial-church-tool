@@ -88,6 +88,10 @@ export default function Home() {
         <AskSheet
           initialQuestion={askQuestion || undefined}
           onClose={() => setAskQuestion(null)}
+          onNavigateToPin={(pinId) => {
+            setAskQuestion(null);
+            handleNavigateToPin(pinId);
+          }}
         />
       )}
     </div>

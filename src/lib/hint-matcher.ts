@@ -11,7 +11,7 @@ const CATEGORY_PATTERNS: Record<QuestionCategory, RegExp[]> = {
   how: [/\bhow\b/i, /\bprocess\b/i, /\btechni/i, /\bmethod\b/i, /\bconstruct/i, /\bmaterial/i, /\bwork[sed]*\b/i],
 };
 
-function classifyQuestion(question: string): QuestionCategory[] {
+export function classifyQuestion(question: string): QuestionCategory[] {
   const categories: QuestionCategory[] = [];
   for (const [category, patterns] of Object.entries(CATEGORY_PATTERNS)) {
     if (patterns.some((p) => p.test(question))) {

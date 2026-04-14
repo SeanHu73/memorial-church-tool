@@ -1,11 +1,23 @@
-export interface ContextualPhoto {
-  url: string;
+export type QuestionCategory = 'who' | 'what' | 'when' | 'where' | 'why' | 'how';
+
+export interface PhotoAnnotation {
+  x: number;             // percentage position (0-100)
+  y: number;
   caption: string;
-  source: string;
-  year: string;
+  categories: QuestionCategory[];
+  clues: Partial<Record<QuestionCategory, string>>;
 }
 
-export type QuestionCategory = 'who' | 'what' | 'when' | 'where' | 'why' | 'how';
+export interface PinPhoto {
+  url: string;
+  type: 'onsite' | 'archival' | 'contributor';
+  caption: string;
+  credit: string;
+  source: string | null;    // URL of the original archive source (for archival)
+  year: string | null;      // when the photo was taken (for archival)
+  license: string | null;   // licence status (for archival)
+  annotations: PhotoAnnotation[];
+}
 
 export interface ObservationHint {
   lookAt: string;      // What to physically look at: "the stone plaque on the facade"
@@ -20,15 +32,10 @@ export interface Pin {
     lng: number;
     physicalArea: string;
   };
-  photo: {
-    url: string;
-    caption: string;
-    credit: string;
-  };
+  photos: PinPhoto[];
   inquiry: {
     question: string;
     answer: string;
-    contextualPhoto: ContextualPhoto | null;
     suggestedNext: {
       pinId: string;
       teaser: string;
@@ -38,4 +45,13 @@ export interface Pin {
   tags: string[];
   era: string;
   databaseEntryIds: string[];
+}
+
+export interface Contribution {
+  id?: string;
+  pinId: string | null;
+  question: string;
+  contribution: string;
+  timestamp: string;
+  verified: boolean;
 }

@@ -12,6 +12,14 @@ interface QuestionLog {
   timestamp: string;
 }
 
+interface ContributionLog {
+  pinId: string | null;
+  question: string;
+  contribution: string;
+  timestamp: string;
+  verified: boolean;
+}
+
 export async function logQuestion(entry: QuestionLog): Promise<void> {
   if (!PROJECT_ID || !API_KEY) return;
 
@@ -36,5 +44,31 @@ export async function logQuestion(entry: QuestionLog): Promise<void> {
   } catch {
     // Logging failure shouldn't break the user experience
     console.error('Failed to log question to Firestore');
+  }
+}
+
+export async function logContribution(entry: ContributionLog): Promise<void> {
+  if (!PROJECT_ID || !API_KEY) return;
+
+  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/memorial-church-contributions?key=${API_KEY}`;
+
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fields: {
+          pinId: entry.pinId
+            ? { stringValue: entry.pinId }
+            : { nullValue: null },
+          question: { stringValue: entry.question },
+          contribution: { stringValue: entry.contribution },
+          timestamp: { stringValue: entry.timestamp },
+          verified: { booleanValue: false },
+        },
+      }),
+    });
+  } catch {
+    console.error('Failed to log contribution to Firestore');
   }
 }

@@ -1,6 +1,7 @@
 # Provenance — Stanford Memorial Church: Knowledge Database
 
-*Structured for language model retrieval. Each entry tagged with topic, location, era, and type.*
+*Structured for language model retrieval. Each entry tagged with topic, location, era, type, and inquiry categories.*
+*Inquiry categories: who | what | when | where | why | how*
 *Sources reference the References List by number (e.g., [Ref 1] = ORSL History page).*
 
 ---
@@ -12,7 +13,11 @@
 - **Location:** `general`
 - **Era:** 1868–1903
 - **Type:** `fact`, `narrative`
-- **Sources:** [Ref 6, 37, 79, 82, 85]
+- **Inquiry categories:** `who`, `why`, `when`
+  - **who:** The Stanford family — Leland Sr. (railroad magnate, governor, senator), Jane Lathrop Stanford, Leland Jr. (died at 15)
+  - **why:** Grief over their son's death transformed into a mission — "the children of California shall be our children." The church was Jane's memorial to her husband after his death in 1893.
+  - **when:** Son died 1884, university founded 1885, opened 1891, Leland Sr. died 1893, estate released 1898, church designs submitted 1898, dedicated 1903, Jane died 1905
+- **Sources:** [Ref 6, 37, 80, 82, 85]
 
 Leland Stanford Jr. was born on May 14, 1868 — the only child of Leland and Jane Stanford, who had endured eighteen childless years of marriage. His father was a railroad magnate, former California governor, and U.S. senator. In 1884, the family was on a Grand Tour of Europe when the boy fell ill in Athens. They rushed him to Italy — Naples, then Rome, then Florence — where he died of typhoid fever on March 13, 1884, two months before his sixteenth birthday.
 
@@ -29,6 +34,10 @@ When the estate was finally released in 1898, Jane turned her attention to the c
 - **Location:** `general`, `all_locations`
 - **Era:** 1828–1905
 - **Type:** `fact`, `anecdote`
+- **Inquiry categories:** `who`, `why`, `how`
+  - **who:** Jane Lathrop Stanford — not a passive patron but a hands-on builder who climbed scaffolding, measured carvings with her notched parasol, spent two months in Venice selecting mosaic designs, chose every window subject
+  - **why:** "While my whole heart is in the university, my soul is in that church." She insisted on equal representation of women in the mosaics, chose art for its humanitarian ethics rather than religious doctrine
+  - **how:** She personally examined construction, shipped modified mosaic designs back and forth across the Atlantic, obtained permission from Pope Leo XIII for the Last Supper reproduction
 - **Sources:** [Ref 1, 66, 81, 17]
 
 Jane Lathrop Stanford was not a passive patron. She was involved in every aspect of the church's design and construction. There is a legend — recounted by both former chaplain Robert Gregg and ceramic expert Joseph Taylor — that she notched the end of her parasol. For years, she and Leland had visited European churches, and she used the tip of her umbrella to check the depth of stone carvings. When Memorial Church was under construction, she would gauge the quality of the relief by inserting the same notched tip.
@@ -46,6 +55,10 @@ Her funeral, in March 1905, took place in the church she had created. Clergy fro
 - **Location:** `general`
 - **Era:** 1886–1903
 - **Type:** `fact`
+- **Inquiry categories:** `who`, `what`, `how`
+  - **who:** Charles Allerton Coolidge, 28-year-old protégé of Henry Hobson Richardson. Worked for Shepley, Rutan and Coolidge. Richardson died in 1886 before completing the designs.
+  - **what:** Romanesque in form, Byzantine in details. Inspired by churches in Venice and Ravenna. Exposed-timber ceilings modelled after Boston's Trinity Church. An eclectic mix of Renaissance, Byzantine, Medieval, Romanesque, and Pre-Raphaelite traditions.
+  - **how:** Original designs began with Richardson in 1886. After his death, Coolidge carried them forward. Design submissions to Jane Stanford and trustees in 1898.
 - **Sources:** [Ref 9, 12, 15, 35]
 
 The original designs for Memorial Church and much of the university were made in 1886 by the prominent American architect Henry Hobson Richardson. When Richardson died that same year, his firm — Shepley, Rutan and Coolidge — carried the work forward. Charles Allerton Coolidge, a 28-year-old protégé of Richardson, became the church's designer.
@@ -61,6 +74,11 @@ The church's style sits at the intersection of the Renaissance, Byzantine, Medie
 - **Location:** `general`
 - **Era:** 1883–1917
 - **Type:** `fact`, `narrative`
+- **Inquiry categories:** `who`, `when`, `why`, `how`
+  - **who:** Maurizio Camerino (managed Salviati studios, spoke fluent English, rushed to the Stanfords' side when their son died in Florence). Antonio Paoletti (66-year-old chief artist). Lorenzo Zampato (fabrication and installation supervisor). The firm had just restored St. Mark's Basilica mosaics.
+  - **when:** Stanfords met Camerino during 1883 European tour. Jane visited Camerino in Venice on May 17, 1890 to commission the mosaics. Project began 1900, took five years. Camerino restored mosaics 1913–1917 after earthquake. Camerino family donated three Paoletti watercolours to Stanford in 1992.
+  - **why:** The Stanfords befriended Camerino because of his reputation for the finest mosaics. The personal friendship deepened when Camerino helped them during their son's death. Jane Stanford chose mosaics partly because Northern California's climate (similar to Italy's) protects them.
+  - **how:** Over 20,000 shades of tesserae available. Cost $97,000 (approximately $3 million today). Shipped from Venice in coded sections. Original designs preserved in Venice, enabling restoration after 1906.
 - **Sources:** [Ref 1, 20, 22, 27, 66]
 
 During the Stanfords' 1883 European tour, they visited Byzantine churches in Constantinople and St. Mark's Basilica in Venice. There they met and befriended Maurizio Camerino, who managed the Antonio Salviati studios — the firm that had just finished restoring the mosaics at St. Mark's. This encounter would shape Memorial Church's entire aesthetic.
@@ -174,6 +192,13 @@ Memorial Church is not a freestanding building — it is part of a linked, compl
 - **Location:** `exterior_facade`
 - **Era:** 1900–1905, restored 1913–1917
 - **Type:** `fact`, `contested`, `observation_prompt`
+- **Inquiry categories:** `who`, `what`, `when`, `where`, `why`, `how`
+  - **who:** Designed by Antonio Paoletti (chief artist, age 66), commissioned by Jane Stanford through Maurizio Camerino, fabricated at the Salviati studios in Venice, 12 men spent 2 years installing it
+  - **what:** 84 feet wide, 30 feet tall, 47 figures (men, women, children) surrounding Christ, landscape of waving palms and gleaming sky, made of smalti glass tesserae
+  - **when:** Mosaic project began 1900, took five years, destroyed in 1906 earthquake, restored 1913–1917 using original designs preserved in Venice
+  - **where:** North facade gable, facing the Inner Quad — the first thing you see approaching from Palm Drive
+  - **why:** Jane Stanford's "Victorian aversion to blank space"; chose mosaics because Northern California's climate (like Italy's) protects them from erosion; insisted on equal representation of women among the figures. The naming is contested — popularly called "Sermon on the Mount" but historian Joncas says it's "an indefinite biblical scene"; Stanford's own description was "Christ Welcoming the Righteous into the Kingdom of God"
+  - **how:** Salviati's modernised process — Paoletti created watercolours, approved by Jane Stanford, then life-sized cartoons were made, tracings cut into coded sections, tesserae glued face-down on paper, shipped from Venice, pressed into mortar on site, paper soaked off. Over 20,000 shades of tesserae available.
 - **Sources:** [Ref 1, 19, 21, 22, 25, 27]
 
 The gable and surrounding surfaces of the north facade contain the church's largest mosaic — and at the time of its completion, the largest mosaic in America. It measures 84 feet wide at the base and 30 feet in height. The mosaic depicts 47 men, women, and children surrounding Christ, the central figure, set against a landscape of waving palms and a gleaming sky. It took 12 men two years to complete.
@@ -219,6 +244,13 @@ The walls of the nave, from floor to clerestory, are embellished by a series of 
 - **Location:** `dome`, `crossing`
 - **Era:** 1900–1905
 - **Type:** `fact`, `observation_prompt`
+- **Inquiry categories:** `who`, `what`, `when`, `where`, `why`, `how`
+  - **who:** Four archangels identified in the Hebrew tradition: Michael, Gabriel, Raphael, and Uriel (Uriel has downcast eyes). Created by Salviati/Paoletti.
+  - **what:** Each angel spans 42 feet from wingtip to wingtip, rising from clouds. Made of hundreds of thousands of tesserae. The dome decorations above them are painted to resemble mosaic — not actual mosaic.
+  - **when:** Survived the 1906 earthquake (the only major part of the crossing left intact). Severely damaged in 1989 — an 8-foot section of one angel's wing fell 70 feet. Stolen mosaic fragments were returned anonymously during restoration.
+  - **where:** On the pendentives — the curved triangular surfaces between the four crossing arches that support the dome. Best viewed standing directly at the crossing and looking up.
+  - **why:** Jane Stanford wanted the dome itself to be mosaic, but builders determined it would be too heavy. The dome was painted instead. The angels represent a theological program — four archangels as guardians of sacred space.
+  - **how:** After 1989, mosaics stabilised with polymer resin injections and custom steel angles. 5,000+ lb steel strongback columns lowered through roof holes to within a foot of the brittle angels. 470 tons of concrete poured into hollow arches.
 - **Sources:** [Ref 5, 69, 71, 73, 78]
 
 On the spandrels of the pendentives — the curved triangular surfaces that support the dome — are mosaics of four archangels, each measuring 42 feet from wingtip to wingtip, rising from clouds. They are identified in the Hebrew tradition as Michael, Gabriel, Raphael, and Uriel (Uriel has downcast eyes).
@@ -236,6 +268,13 @@ Jane Stanford had wanted the dome itself decorated in mosaic tiles, but the buil
 - **Location:** `chancel`
 - **Era:** 1900–1905
 - **Type:** `fact`, `absence`, `observation_prompt`
+- **Inquiry categories:** `who`, `what`, `when`, `where`, `why`, `how`
+  - **who:** Cosimo Roselli (original fresco painter, Sistine Chapel), Paoletti (mosaic reproduction), Pope Leo XIII (granted permission), Jane Stanford (chose the subject). The cherub carvings are reportedly modelled on children of faculty and staff who lived on campus during construction.
+  - **what:** Mosaic reproduction of Roselli's Last Supper behind the altar (NOT Leonardo da Vinci's). White Carrara marble altar. Twelve golden niches now holding candles where marble apostle statues once stood. Brass reading angel lectern brought from Europe by Jane Stanford.
+  - **when:** Apostle statues destroyed in 1906 earthquake, never replaced. Lectern dedicated to Leland Stanford on the anniversary of his birth, 1902.
+  - **where:** The chancel — the raised area at the east end of the church, approached by seven marble steps. The sanctuary is raised further behind a marble altar rail.
+  - **why:** Jane Stanford chose the Sistine Chapel Last Supper specifically — a statement about the calibre of art she demanded. The empty niches are a visible scar of the 1906 earthquake's destruction.
+  - **how:** The chancel floor curves outward into the body of the church. Willis L. Hall called it "artistic work of a kind seldom seen anywhere."
 - **Sources:** [Ref 1, 55, 66, 69]
 
 The chancel contains what Willis L. Hall called "artistic work of a kind seldom seen anywhere." The raised tiled floor curves outward into the body of the church, approached by seven marble steps. Behind the white Carrara marble altar is a mosaic reproduction of Cosimo Roselli's "Last Supper" — modelled after the fresco in the Sistine Chapel (not Leonardo da Vinci's, despite common confusion). Jane Stanford obtained permission from Pope Leo XIII to reproduce it.
@@ -255,6 +294,11 @@ According to local legend, the cherubim carved in stone above the golden niches,
 - **Location:** `narthex`
 - **Era:** 1900–1905
 - **Type:** `fact`, `observation_prompt`
+- **Inquiry categories:** `what`, `where`, `why`, `how`
+  - **what:** Floor mosaic depicting the Lamb of God surrounded by four evangelist symbols: St. Matthew (winged angel), St. Mark (winged lion), St. Luke (ox), St. John (eagle). Latin epigraphs above side doors: "Domus Dei Locus Orationis" and "Domus Dei Aula Coeli." Three bronze entrance doors adorned with angels.
+  - **where:** The narthex — the vestibule you pass through before entering the nave. The mosaic is on the floor beneath your feet. Most people walk right over it.
+  - **why:** The evangelist symbols and the Lamb of God establish the theological program of the church at the threshold. The Latin inscriptions frame the space: "The House of God, the place of prayer" and "The House of God, the forecourt of heaven." Angels on the bronze doors introduce the recurring motif found throughout the entire church.
+  - **how:** Same Salviati smalti glass technique as the wall and facade mosaics, but laid horizontally as a floor surface.
 - **Sources:** [Ref 42, 69]
 
 The mosaic adorning the narthex floor depicts the Lamb of God surrounded by the symbols of the four gospel writers: St. Matthew (the winged angel), St. Mark (the winged lion), St. Luke (the ox), and St. John (the eagle). These symbols recur throughout the church.
@@ -346,6 +390,11 @@ With four organs capable of different historical tuning systems in the same buil
 - **Location:** `all_locations`
 - **Era:** 1906
 - **Type:** `fact`, `narrative`
+- **Inquiry categories:** `what`, `when`, `why`, `how`
+  - **what:** 80-foot spire fell onto chancel roof, walls cracked, facade mosaic collapsed, Carrara marble apostle statues destroyed, dome fresco of God's eye (with tear) lost forever
+  - **when:** April 18, 1906, 5:07 a.m., magnitude 7.8. Jane Stanford had died thirteen months earlier.
+  - **why:** The original construction failed to attach the crossing structure to the surrounding masonry and roof. When the earthquake hit, the crossing moved independently, gouging holes in the roofs.
+  - **how:** The spire and flying buttresses fell, the crossing structure ripped apart from the surrounding building, roofs over transepts, nave, and chancel were gouged open
 - **Sources:** [Ref 7, 29, 30, 36, 69, 75]
 
 At approximately 5:07 a.m. on April 18, 1906, a magnitude 7.8 earthquake struck. Memorial Church was devastated. The 12-sided, 80-foot spire fell onto the chancel roof, destroying the tower dome's frescoed Victorian interpretation of God's eye. The walls cracked. The front facade, with its massive mosaic, collapsed. The Carrara marble apostle statues in the chancel were "injured beyond repair."
@@ -401,6 +450,11 @@ The church reopened in 1992.
 - **Location:** `general`
 - **Era:** 1885–present
 - **Type:** `fact`, `contested`
+- **Inquiry categories:** `who`, `why`, `when`, `how`
+  - **who:** Jane and Leland Stanford (decreed non-denominational policy), Rev. Charles Gardner (first chaplain), Henry Fortsman (professor who critiqued the policy in 1963), Rabbi Patricia Karlin-Neumann (first non-Christian associate dean, 1996), Davie Napier (proposed the Solomon-like reinterpretation)
+  - **why:** The Stanfords were religious but not committed to any denomination. They believed non-sectarianism would "serve the broadest spiritual needs." But the policy was effectively Protestant in practice — Jewish students held secret services in a basement, Catholics were banned from Mass on campus.
+  - **when:** 1885 Founding Grant established the principle. 1902 amendment by Jane Stanford forbade "all denominational alliances." 1966 trustees approved sectarian worship. 1973 Founding Grant legally amended. 1996 first non-Christian associate dean.
+  - **how:** The university had to go to court to overturn Jane Stanford's 1902 amendment. Davie Napier proposed broadening the definition of "Memorial Church" from the building to all activities under its auspices — a legal manoeuvre that enabled change.
 - **Sources:** [Ref 14, 20, 23, 59, 61, 62, 63, 67]
 
 The Stanfords were deeply religious but not formally committed to any denomination. Jane Stanford decreed that the church be non-denominational. The fourteenth clause of the 1885 Founding Grant reads: "To prohibit sectarian instruction, but to have taught in the University the immortality of the soul, the existence of an all-wise and benevolent Creator, and that obedience to His laws is the highest duty of man."
