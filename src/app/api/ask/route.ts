@@ -9,9 +9,11 @@ YOUR CORE PRINCIPLE: Direct attention outward. The phone should send people towa
 
 HOW TO RESPOND:
 
-Respond with ONLY raw JSON — no markdown, no code fences, no backticks. Two fields:
+Respond with ONLY raw JSON — no markdown, no code fences, no backticks. Three fields:
 
-{"observation":"...or null","answer":"..."}
+{"observation":"...or null","answer":"...","entriesUsed":["3.1","6.1"]}
+
+The "entriesUsed" field is a list of knowledge database entry IDs (e.g., "3.1", "6.1") that informed your answer. It is an internal field the learner never sees — the app uses it to pick a relevant photograph to display alongside your response. Be accurate. If your answer draws from Entry 3.1 on the facade mosaic and Entry 6.1 on the 1906 earthquake, list both: ["3.1","6.1"]. If your answer draws from nothing in the database (an "I don't know" response), return an empty array: [].
 
 OBSERVATION (strongly preferred — only null in rare cases):
 Your strong default is to include an observation. Before giving information, direct the group to look at something specific and physical in or around the church. This is how they learn — by seeing first, then understanding.
@@ -97,7 +99,9 @@ Vary the question type. Choose from:
 - Historical imagination: "Imagine standing here in 1906, the morning after the earthquake. What would you see?"
 
 Respond with ONLY raw JSON — no markdown, no code fences, no backticks:
-{"question":"..."}
+{"question":"...","entriesUsed":["3.1"]}
+
+The "entriesUsed" field lists knowledge database entry IDs that your question touches on (e.g., "3.1" if you're asking about the facade mosaic). The app uses this internally to pick a photo. Empty array [] if the question is generic.
 
 Keep the question to 1-2 sentences. Make it genuinely interesting — something the pair will want to talk about.
 
@@ -117,7 +121,9 @@ Vary the angle. Choose from:
 - Outside-in: "If you walked off this Quad right now and told a friend what this church is, what would you say? How would you describe it without using the word 'church'?"
 
 Respond with ONLY raw JSON — no markdown, no code fences, no backticks:
-{"question":"..."}
+{"question":"...","entriesUsed":["10.3"]}
+
+The "entriesUsed" field lists knowledge database entry IDs that your question touches on — especially any connection entries in Domain 10 (Clock Tower, Quad, Cantor) or any other entries you drew from. The app uses this internally to pick a photograph of the place you're referencing. Empty array [] if none apply.
 
 Keep the question to 1–2 sentences. Make it a question that genuinely pulls the frame wider.
 
@@ -132,6 +138,7 @@ export async function POST(req: NextRequest) {
       {
         observation: 'Look up at the facade mosaic above the entrance — the largest mosaic in America when it was completed.',
         answer: "The knowledge base isn't connected yet — add your Anthropic API key to .env.local to enable questions.",
+        entriesUsed: [],
       },
       { status: 200 }
     );
@@ -193,9 +200,12 @@ export async function POST(req: NextRequest) {
       const cleaned = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
       try {
         const parsed = JSON.parse(cleaned);
-        return NextResponse.json({ question: parsed.question || fallback });
+        return NextResponse.json({
+          question: parsed.question || fallback,
+          entriesUsed: Array.isArray(parsed.entriesUsed) ? parsed.entriesUsed : [],
+        });
       } catch {
-        return NextResponse.json({ question: cleaned || fallback });
+        return NextResponse.json({ question: cleaned || fallback, entriesUsed: [] });
       }
     }
 
@@ -236,6 +246,7 @@ export async function POST(req: NextRequest) {
         {
           observation: null,
           answer: `API error (${response.status}): ${detail}`,
+          entriesUsed: [],
         },
         { status: 200 }
       );
@@ -255,6 +266,7 @@ export async function POST(req: NextRequest) {
       const result = {
         observation: parsed.observation || null,
         answer: parsed.answer || "I couldn't find an answer to that. Try asking about something you can see — the mosaics, windows, or architecture.",
+        entriesUsed: Array.isArray(parsed.entriesUsed) ? parsed.entriesUsed : [],
       };
       // Log to Firestore (non-blocking)
       logQuestion({
@@ -269,6 +281,7 @@ export async function POST(req: NextRequest) {
       const result = {
         observation: null,
         answer: cleaned || "I couldn't find an answer to that.",
+        entriesUsed: [] as string[],
       };
       logQuestion({
         question,
@@ -285,6 +298,7 @@ export async function POST(req: NextRequest) {
       {
         observation: null,
         answer: "Something went wrong. Try asking a simpler question about what you can see in the church.",
+        entriesUsed: [],
       },
       { status: 200 }
     );

@@ -1,9 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Pin } from '@/lib/types';
 import { seedPins } from '@/lib/seed-pins';
+import { getPins } from '@/lib/pins-store';
 import { incrementCount, resetCounter, shouldOfferZoomOut } from '@/lib/inquiry-counter';
+import { selectPhotoForResponse, collectAllPhotos } from '@/lib/photo-matcher';
+import { classifyQuestion } from '@/lib/hint-matcher';
+import PhotoDisplay from './PhotoDisplay';
 
 interface Props {
   initialQuestion?: string;
@@ -26,14 +30,53 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
   const [contributionText, setContributionText] = useState('');
   const [contributionSent, setContributionSent] = useState(false);
   const [offerZoomOut, setOfferZoomOut] = useState(false);
+  const [entriesUsed, setEntriesUsed] = useState<string[]>([]);
+  const [deepenEntriesUsed, setDeepenEntriesUsed] = useState<string[]>([]);
+  const [allPins, setAllPins] = useState<Pin[]>(seedPins);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Find a suggested next pin (pick a random one for free-form questions)
   const suggestedPin: Pin | null = seedPins.length > 0 ? seedPins[Math.floor(Math.random() * seedPins.length)] : null;
 
+  // Photo matching: free-form Ask queries cross every pin's photos, since
+  // the question may reference anything in the church or the wider campus.
+  const allPhotos = useMemo(() => collectAllPhotos(allPins), [allPins]);
+
+  const questionCategories = useMemo(
+    () => (question ? classifyQuestion(question) : []),
+    [question]
+  );
+
+  const photoSelection = useMemo(
+    () =>
+      selectPhotoForResponse({
+        photos: allPhotos,
+        currentLocation: null, // no specific location constraint for free-form Ask
+        entriesUsed,
+        categories: questionCategories,
+      }),
+    [allPhotos, entriesUsed, questionCategories]
+  );
+
+  const deepenPhoto = useMemo(() => {
+    if (!deepenQ) return null;
+    const sel = selectPhotoForResponse({
+      photos: allPhotos,
+      currentLocation: null,
+      entriesUsed: deepenEntriesUsed,
+      categories: classifyQuestion(deepenQ),
+    });
+    return sel.answerPhoto;
+  }, [deepenQ, deepenEntriesUsed, allPhotos]);
+
   useEffect(() => {
     setOfferZoomOut(shouldOfferZoomOut());
+    // Pull the latest pins (including Firestore-uploaded photos) so the matcher
+    // has the full photo pool, not just the seed baseline.
+    getPins().then(setAllPins).catch(() => {
+      // Already have seed as fallback
+    });
     if (initialQuestion) ask(initialQuestion);
     else inputRef.current?.focus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -47,6 +90,8 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
     setAnswer('');
     setQuestion(q);
     setDeepenQ(null);
+    setEntriesUsed([]);
+    setDeepenEntriesUsed([]);
     setContributionSent(false);
     scrollRef.current?.scrollTo(0, 0);
 
@@ -60,6 +105,7 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
       const data = await res.json();
       setAnswer(data.answer || '');
       setObservation(data.observation || null);
+      setEntriesUsed(Array.isArray(data.entriesUsed) ? data.entriesUsed : []);
       setPhase(data.observation ? 'observe' : 'answer');
       // Count this as an inquiry once we have the answer
       incrementCount();
@@ -67,6 +113,7 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
     } catch {
       setAnswer("I wasn't able to answer that right now. Try asking about something you can see in or around the church — the mosaics, windows, carvings, or the people who built it.");
       setObservation(null);
+      setEntriesUsed([]);
       setPhase('answer');
     }
   };
@@ -106,6 +153,7 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
       setDeepenQ(data.question || (kind === 'zoom_out'
         ? 'Turn around and look back across the Quad. How does this church fit into the larger story of what the Stanfords built here?'
         : "What details here surprised you the most?"));
+      setDeepenEntriesUsed(Array.isArray(data.entriesUsed) ? data.entriesUsed : []);
 
       if (kind === 'zoom_out') {
         resetCounter();
@@ -117,6 +165,7 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
       setDeepenQ(kind === 'zoom_out'
         ? 'Step back and look at the whole building. What would be missing from this campus if the church weren\'t here?'
         : "What do you notice here that you didn't expect? Talk about it together.");
+      setDeepenEntriesUsed([]);
     }
     setDeepenLoading(false);
   };
@@ -212,6 +261,14 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
             </span>
             <p className="font-serif text-[1rem] leading-relaxed text-mosaic-blue">{deepenQ}</p>
           </div>
+          {/* Photo of the connected place, if the zoom-out referenced a database entry
+              we have a photograph for. Useful when the AI says "look across the Quad"
+              and there's an archival Quad image available. */}
+          {deepenPhoto && deepenQ && (
+            <div className="mt-3">
+              <PhotoDisplay photo={deepenPhoto} categories={classifyQuestion(deepenQ)} />
+            </div>
+          )}
           <p className="text-xs text-text-muted font-sans mt-2">
             {deepenMode === 'zoom_out'
               ? 'Step back together. There\'s no right answer.'
@@ -356,6 +413,11 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
                 </p>
               </div>
 
+              {/* Observation-slot photo: visual anchor for what to look at */}
+              {photoSelection.observationPhoto && (
+                <PhotoDisplay photo={photoSelection.observationPhoto} categories={questionCategories} />
+              )}
+
               <button
                 onClick={revealAnswer}
                 className="w-full py-4 rounded-xl bg-mosaic-blue text-cream font-sans font-medium text-[15px] hover:bg-mosaic-blue-light active:scale-[.98] transition-all"
@@ -379,6 +441,13 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
               <p className="font-serif text-[1.05rem] leading-[1.85] text-text-primary whitespace-pre-line">
                 {answer}
               </p>
+
+              {/* Answer-slot photo — archival-preferred for historical/lost features.
+                  If it's the same photo as the observation slot already shown, skip. */}
+              {photoSelection.answerPhoto &&
+                photoSelection.answerPhoto !== photoSelection.observationPhoto && (
+                  <PhotoDisplay photo={photoSelection.answerPhoto} categories={questionCategories} />
+                )}
 
               {renderThreeOptions(isIDontKnow(answer))}
             </div>

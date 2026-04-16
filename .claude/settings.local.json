@@ -14,7 +14,9 @@
       "Bash(npm uninstall:*)",
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:web.dev)",
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "Bash(ls public/photos/archival/*.jpg public/photos/archival/*.png)",
+      "Bash(ls docs/archival_photo_inventory.*)"
     ]
   }
 }

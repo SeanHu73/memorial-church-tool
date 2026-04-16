@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Pin } from '@/lib/types';
 import { incrementCount, resetCounter, shouldOfferZoomOut } from '@/lib/inquiry-counter';
+import { selectPhotoForResponse } from '@/lib/photo-matcher';
+import { classifyQuestion } from '@/lib/hint-matcher';
+import PhotoDisplay from './PhotoDisplay';
 
 interface Props {
   pin: Pin;
@@ -21,6 +24,7 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
   const [deepenAnswer, setDeepenAnswer] = useState<string | null>(null);
   const [deepenObservation, setDeepenObservation] = useState<string | null>(null);
   const [deepenPhase, setDeepenPhase] = useState<'idle' | 'question' | 'loading' | 'observe' | 'answer'>('idle');
+  const [deepenEntriesUsed, setDeepenEntriesUsed] = useState<string[]>([]);
   const [contributionText, setContributionText] = useState('');
   const [contributionSent, setContributionSent] = useState(false);
   const [offerZoomOut, setOfferZoomOut] = useState(false);
@@ -33,6 +37,7 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
     setDeepenAnswer(null);
     setDeepenObservation(null);
     setDeepenMode('deepen');
+    setDeepenEntriesUsed([]);
     setContributionSent(false);
     setOfferZoomOut(shouldOfferZoomOut());
     scrollRef.current?.scrollTo(0, 0);
@@ -70,6 +75,7 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
       setDeepenQ(data.question || (kind === 'zoom_out'
         ? 'Turn around and look back across the Quad. How does this church fit into the larger story of what the Stanfords built here?'
         : "What details here surprised you the most?"));
+      setDeepenEntriesUsed(Array.isArray(data.entriesUsed) ? data.entriesUsed : []);
       setDeepenPhase('question');
 
       // If this was a zoom-out, reset the counter now; otherwise increment after a beat
@@ -83,6 +89,7 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
       setDeepenQ(kind === 'zoom_out'
         ? 'Step back and look at the whole building. What would be missing from this campus if the church weren\'t here?'
         : "What do you notice here that you didn't expect? Talk about it together.");
+      setDeepenEntriesUsed([]);
       setDeepenPhase('question');
     }
     setDeepenLoading(false);
@@ -108,6 +115,34 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
   };
 
   const areaLabel = pin.location.physicalArea.replace(/_/g, ' ');
+
+  // Photo matching: classify the inquiry question to get categories, then pick
+  // the best observation/answer photo out of this pin's photos. The pin's own
+  // databaseEntryIds stand in for entriesUsed since the static inquiry was
+  // authored against those entries.
+  const photoCategories = useMemo(() => classifyQuestion(pin.inquiry.question), [pin.inquiry.question]);
+  const photoSelection = useMemo(
+    () =>
+      selectPhotoForResponse({
+        photos: pin.photos,
+        currentLocation: pin.location.physicalArea,
+        entriesUsed: pin.databaseEntryIds,
+        categories: photoCategories,
+      }),
+    [pin.photos, pin.location.physicalArea, pin.databaseEntryIds, photoCategories]
+  );
+
+  // Deepen / zoom-out photo — matched against the AI-generated question's entriesUsed.
+  const deepenPhoto = useMemo(() => {
+    if (!deepenQ) return null;
+    const sel = selectPhotoForResponse({
+      photos: pin.photos,
+      currentLocation: deepenMode === 'zoom_out' ? null : pin.location.physicalArea,
+      entriesUsed: deepenEntriesUsed,
+      categories: classifyQuestion(deepenQ),
+    });
+    return sel.answerPhoto;
+  }, [deepenQ, deepenEntriesUsed, deepenMode, pin.photos, pin.location.physicalArea]);
 
   // Check if an answer looks like an "I don't know" response
   const isIDontKnow = (text: string) => {
@@ -262,6 +297,11 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
                 {pin.inquiry.question}
               </p>
 
+              {/* Observation-slot photo: what the learner is being asked to look at */}
+              {photoSelection.observationPhoto && (
+                <PhotoDisplay photo={photoSelection.observationPhoto} categories={photoCategories} />
+              )}
+
               <button
                 onClick={reveal}
                 className="w-full py-4 rounded-xl bg-mosaic-blue text-cream font-sans font-medium text-[15px] hover:bg-mosaic-blue-light active:scale-[.98] transition-all"
@@ -283,6 +323,13 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
               <p className="font-serif text-[1.05rem] leading-[1.8] text-text-primary mb-2">
                 {pin.inquiry.answer}
               </p>
+
+              {/* Answer-slot photo: archival / historical context for the narrative.
+                  If it's the same photo as the observation slot, skip it — already shown. */}
+              {photoSelection.answerPhoto &&
+                photoSelection.answerPhoto !== photoSelection.observationPhoto && (
+                  <PhotoDisplay photo={photoSelection.answerPhoto} categories={photoCategories} />
+                )}
 
               {renderThreeOptions(isIDontKnow(pin.inquiry.answer))}
             </div>
@@ -318,6 +365,12 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
                     : 'Talk it over together. There\'s no right answer.'}
                 </p>
               </div>
+
+              {/* Optional photo for zoom-out: if the AI referenced an entry
+                  we have a photo for, show that place as a visual anchor. */}
+              {deepenPhoto && deepenQ && (
+                <PhotoDisplay photo={deepenPhoto} categories={classifyQuestion(deepenQ)} />
+              )}
 
               {renderThreeOptions()}
             </div>

@@ -311,15 +311,18 @@ The physical location tag is the most important field across all layers — it's
 3. The Pendentive Angels (crossing) — entry 3.4
 4. The Chancel & Last Supper (chancel) — entry 3.5
 
+### Recently built (Changes 1–6, April 2026 session)
+- **Three-option inquiry loop ending** with alternating "Keep talking about this" / "Step back and see the bigger picture" based on a random counter (2, 3, or 4 consecutive direct-observation inquiries between zoom-outs).
+- **Epistemic honesty rules in system prompt** — model acknowledges gaps plainly, offers related context, turns questions back to the learner.
+- **Category-aware response differentiation** — who/what/when/where/why/how questions produce noticeably different emphasis.
+- **Photo data model** — array-based, multi-source, with physicalLocationTag, databaseEntries, categories, and annotations fields. Pins with empty photos array render normally.
+- **Learner contributions** — `memorial-church-contributions` Firestore collection and UI for when the model acknowledges a gap.
+- **Admin photo upload and annotation at `/admin`** — Sean can now upload on-site and archival photos, fill in all metadata fields, and tap-to-annotate specific points with category-tagged clues. Pins now read from Firestore (with seed-pins.ts as fallback).
+
 ### What's NOT built yet
-- **Three-option inquiry loop ending** — currently only suggests the next pin. Needs: suggested place / keep talking / ask own question (Design Principle 4, Step E).
-- **Photos on pins** — pins are text-only. No on-site or archival photos displayed yet. Data model needs to support the array-based, multi-source photo architecture (Design Principle 3).
-- **Photo upload interface** — there is no way for anyone (Sean or future contributors) to upload photos to a pin through the app. Currently requires code changes. Needs: a contributor-facing UI where a user can select a pin, upload a photo (camera or gallery), set the type (onsite/archival/contributor), write a caption, and optionally add annotations.
-- **Photo annotation interface** — there is no UI for adding annotations to photos. Needs: a tap-to-annotate flow where a contributor taps a point on a photo, writes a caption, tags it with inquiry categories (who/what/when/where/why/how), and writes per-category clue sentences. This is how the observation hints get attached to specific visual evidence.
-- **Photo annotation display** — the annotation data model exists in seed-pins.ts but there's no explorer-facing UI for viewing annotations as hints on photos. Needs: subtle dots on photos that reveal captions when tapped, with a "Show hints" button.
-- **Learner contributions** — no `memorial-church-contributions` Firestore collection or submission UI.
-- **Pins are local only** — `memorial-church-pins` Firestore collection was never created; pins live in `seed-pins.ts`.
-- **No contributor interface** — adding new pins or observation hints requires code changes.
+- **Learner-facing photo display** — photos exist in the data model and can be uploaded via admin, but they don't appear in the inquiry flow yet. This is the next session (Change 7) and the final piece before the place-based experience is complete. Without it, the app tells learners to "look at the inscription" without showing the inscription.
+- **Ingestion of Cowork's archival spreadsheet** — the 30+ archival photos Cowork found are not yet in the app. Can be done manually through admin, or automated in a short follow-up session.
+- **Pilot testing** — waiting on Change 7 and real photo content.
 
 ### Key files
 | File | Purpose |
@@ -575,26 +578,99 @@ This means: implement a simple `getPins()` function that tries Firestore first, 
 
 ---
 
-## Future Claude Code Session — Learner-Facing Photo Display
+## Next Claude Code Session — Change 7: Learner-Facing Photo Display
 
-*Build this AFTER Sean has uploaded real photos and annotations using the admin interface from Change 6. Needs real content to test against.*
+*Changes 1–6 are complete. This is now the next session's primary task. This needs to be built before pilot testing because photos are not decorative — they're central to the place-based experience. A question like "look at the narthex floor mosaic" without showing the floor mosaic is text pretending to be place-based.*
 
-### Photo display on pins
+### Core principle: photos appear when the AI directs attention to something observable
 
-When a pin has photos in its `photos` array, display them in the inquiry view:
-- Show the primary photo (first in array) between the question and the "We've discussed it" button
-- If multiple photos exist, show a subtle dot indicator (not a carousel — keep it simple)
-- Swipe or tap to see additional photos
-- Each photo shows its caption below and a small source label: "Archival — [credit], [year]" or "On-site photo" or "Community contributed"
-- Archival photos used in AI answers should appear inline in the answer section when the narrative references something the archival photo shows
+The rule is simple. Every time the AI's response includes an `observation` field (the field that directs the group to look at a specific physical thing), the app should try to show a photo of that thing alongside the observation. If no photo exists, the text observation still works — but when a photo IS available, showing it makes the instruction concrete.
 
-### Annotation display (learner-facing)
+Examples of when photos should appear:
 
-When an explorer views a photo that has annotations:
-- Small, subtle dots appear on the photo at annotation positions
-- A "Show hints" button below the photo reveals annotations one at a time
-- Each hint shows the caption and the relevant category clue based on the current question context
-- The AI's system prompt receives matching annotations as physical anchors (same mechanism as the current observation hints, but now attached to specific visual evidence in a specific photo)
+- "Look at the inscription above the narthex door" → show the photo of that inscription
+- "Turn toward the dome and look up at the pendentive angels" → show the photo of the pendentives
+- "Find the golden niches along the lower chancel walls" → show the photo of the niches
+- "Look at the facade mosaic" → show the facade mosaic photo
+- "Step back and look across the Quad" → show a Quad/campus-context photo if one exists
+
+Examples of when a photo is also valuable (secondary use):
+
+- The AI's answer references something the learner cannot currently see (the lost spire, the destroyed apostle statues, the original dome fresco) → show the archival "before" photo alongside the answer
+- A zoom-out question mentions a connected place (Clock Tower, Cantor, Memorial Arch) → show a photo of that connected place
+
+### Where photos appear in the flow
+
+1. **Alongside the observation prompt (Step A / the "look at this" moment):** when the observation is revealed, if a matching photo exists, it appears directly above or next to the observation text. The learner sees both the instruction and what they're being asked to look at.
+2. **Alongside the narrative answer (Step C):** if the answer references something the archival photos illustrate — especially something no longer visible — a relevant archival photo appears with the answer text.
+3. **On zoom-out responses:** when the "Step back" option pulls attention to a connected place, a photo of that place appears if available.
+
+The photo never replaces the physical object. The learner is still meant to look up, turn around, walk over. The photo is a visual anchor that helps them find what the app is pointing them toward, and a comparison frame when the real thing has changed.
+
+### How the app picks the right photo — deterministic retrieval
+
+**The AI does not pick photos. The app's code does.** The AI generates its observation and answer; the app then runs a filter over the available photos and picks the best match. This keeps photo selection predictable and prevents the AI from inventing image descriptions.
+
+Build a `selectPhotoForResponse()` function in a new file `src/lib/photo-matcher.ts`. It takes:
+
+- The current pin's photos array
+- The AI's response (observation text, answer text, and the knowledge entries the answer drew from — add this to the API response)
+- The current question category (from hint-matcher.ts)
+- The current physical location tag
+
+And returns up to 2 photos: one for the observation (if applicable), one for the answer (if applicable). They may be the same photo, in which case only show it once.
+
+**The ranking logic (in priority order):**
+
+1. **Location match is mandatory.** Filter photos where `photo.physicalLocationTag === current_location_tag` OR `photo.physicalLocationTag === 'general'`. Only photos passing this filter are eligible.
+
+2. **Database entry overlap.** Of the remaining photos, prefer ones whose `databaseEntries` array includes any of the entry IDs referenced in the answer. This is the strongest signal — it means a human has said "this photo illustrates this knowledge." For this to work, update the API response to include `entriesUsed: string[]` — the list of knowledge entry IDs the AI drew from for this answer. The AI can be instructed in the system prompt to include this in its JSON output.
+
+3. **Category match.** Of what remains, prefer photos whose `categories` array includes the current question's category. A "when" question prefers a photo tagged for "when."
+
+4. **Type preference for observation vs. answer:**
+   - For the observation slot: prefer onsite photos (showing what the learner is being asked to look at RIGHT NOW). Fall back to archival only if no onsite exists.
+   - For the answer slot: prefer archival photos for anything referencing historical events, lost features, or before/after comparisons. Prefer onsite for anything the learner can currently see.
+
+5. **Tiebreaker:** if multiple photos qualify equally, pick the one with the most annotations (richer content), then by upload recency.
+
+If no photo passes step 1, return null for that slot — no photo displayed, and that's fine. The text alone still works.
+
+### Visual design
+
+Keep it simple. The photo appears as a single image, not a carousel. Below the photo, show a small caption line: the photo's caption text plus a subtle source attribution like "Library of Congress, 1906" or "Taken on site."
+
+If the photo has annotations, show small dots on the image at annotation positions. A "Show hints" button below reveals annotations one at a time — tap a dot or tap the button to reveal the caption and the category-relevant clue.
+
+Mobile-first sizing. Photos should be readable at 390px width. Don't let them dominate the screen — they should occupy the middle third vertically, leaving room for text above and the "We've discussed it" button below.
+
+### API response update
+
+Modify `src/app/api/ask/route.ts` so the JSON response now includes `entriesUsed`:
+
+```
+{"observation": "...", "answer": "...", "entriesUsed": ["3.1", "6.1"]}
+```
+
+The system prompt should instruct the model to list the entry IDs it drew from. This is an internal field the learner never sees — it's only used by the photo matcher.
+
+### Build priority for this session
+
+1. **Add `entriesUsed` to the API response** — the foundation for everything else. Update the system prompt, parse it on the client side.
+2. **Build `selectPhotoForResponse()` in `src/lib/photo-matcher.ts`** — the deterministic ranking algorithm.
+3. **Update `InquirySheet.tsx` and `AskSheet.tsx` to display photos** — at observation reveal, at answer reveal.
+4. **Add annotation display (dots + "Show hints" button)** — the learner-facing version of what admin created in Change 6.
+5. **Test with real content:**
+   - Open the app, tap the facade mosaic pin. A photo should appear alongside the observation.
+   - Ask a question about the spire. An archival pre-1906 photo should appear alongside the answer since no current photo exists.
+   - Add a photo with annotations via `/admin` to the narthex pin, then as a learner tap that pin — dots should appear on the photo and "Show hints" should reveal the captions.
+   - Ask a zoom-out question that references the Quad — if you've uploaded a Quad photo, it should appear.
+
+### What this session does NOT need to build
+
+- Photo upload flow for learners (contributor mode) — still future work. For now, photos come from admin only.
+- Photo swiping/carousel — a pin with 3 photos shows only the best-matched one for the current question. Cycling through photos is a future refinement.
+- Integration with Cowork's archival spreadsheet — you'll ingest those separately in a short follow-up session. Sean will manually add a few archival photos through admin first to validate the flow.
 
 ---
 

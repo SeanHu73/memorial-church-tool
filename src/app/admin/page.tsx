@@ -20,6 +20,8 @@ import { Pin, PinPhoto, PhotoAnnotation, QuestionCategory } from '@/lib/types';
 import { getPins, savePin } from '@/lib/pins-store';
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { seedPins } from '@/lib/seed-pins';
+import { groupManifestByPin, archivalManifest } from '@/lib/archival-manifest';
 
 const CATEGORIES: QuestionCategory[] = ['who', 'what', 'when', 'where', 'why', 'how'];
 
@@ -82,6 +84,70 @@ export default function AdminPage() {
     setTimeout(() => setStatus(null), 4000);
   };
 
+  const [importing, setImporting] = useState(false);
+  const [importReport, setImportReport] = useState<string | null>(null);
+
+  /**
+   * Bulk-import every entry in `src/lib/archival-manifest.ts` into Firestore.
+   * Idempotent: skips photos whose URL is already present on the target pin,
+   * so re-running after editing the manifest is safe.
+   */
+  const runBulkImport = async () => {
+    if (importing) return;
+    if (!confirm(
+      `Import ${archivalManifest.length} archival photos from the manifest into Firestore? ` +
+      `This merges photos into each target pin. Safe to re-run — duplicates are skipped.`
+    )) return;
+
+    setImporting(true);
+    setImportReport(null);
+
+    const grouped = groupManifestByPin();
+    const currentPins = await getPins();
+    const byId = new Map<string, Pin>();
+    for (const p of currentPins) byId.set(p.id, p);
+    // Also seed any pinIds from the manifest that don't exist yet with their
+    // seed-pin baseline, so we don't accidentally create empty shells.
+    for (const p of seedPins) if (!byId.has(p.id)) byId.set(p.id, p);
+
+    let pinsWritten = 0;
+    let photosAdded = 0;
+    let photosSkipped = 0;
+    const missingPins: string[] = [];
+
+    for (const [pinId, manifestPhotos] of Object.entries(grouped)) {
+      const pin = byId.get(pinId);
+      if (!pin) {
+        missingPins.push(pinId);
+        continue;
+      }
+
+      const existingUrls = new Set(pin.photos.map((p) => p.url));
+      const newPhotos = manifestPhotos.filter((p) => {
+        if (existingUrls.has(p.url)) {
+          photosSkipped += 1;
+          return false;
+        }
+        return true;
+      });
+
+      if (newPhotos.length === 0) continue;
+
+      const updated: Pin = { ...pin, photos: [...pin.photos, ...newPhotos] };
+      await savePin(updated);
+      pinsWritten += 1;
+      photosAdded += newPhotos.length;
+    }
+
+    await refreshPins();
+    setImporting(false);
+    setImportReport(
+      `Import complete. ${photosAdded} photo(s) added to ${pinsWritten} pin(s). ` +
+      `${photosSkipped} already present (skipped). ` +
+      (missingPins.length ? `Missing pins (not imported): ${missingPins.join(', ')}.` : '')
+    );
+  };
+
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 p-6 font-sans">
       <div className="max-w-4xl mx-auto">
@@ -100,6 +166,33 @@ export default function AdminPage() {
         {status && (
           <div className="mb-4 p-3 rounded border border-green-300 bg-green-50 text-green-900 text-sm">{status}</div>
         )}
+
+        {/* Bulk archival import — one-shot ingest of /public/photos/archival/
+            manifest into Firestore. Safe to re-run (deduped by URL). */}
+        <div className="mb-5 p-4 rounded border border-amber-300 bg-amber-50">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="font-semibold text-sm text-amber-900">Bulk import archival photos</h2>
+              <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                Reads <code className="bg-amber-100 px-1 rounded">src/lib/archival-manifest.ts</code>
+                {' '}({archivalManifest.length} entries) and writes each photo into its target pin.
+                Photos are served from <code className="bg-amber-100 px-1 rounded">/public/photos/archival/</code>
+                {' '}— no Firebase Storage upload. Deduped by URL, safe to re-run.
+              </p>
+            </div>
+            <button
+              onClick={runBulkImport}
+              disabled={importing}
+              className="shrink-0 px-3 py-1.5 rounded bg-amber-700 text-white text-sm hover:bg-amber-800 disabled:opacity-50"
+            >
+              {importing ? 'Importing...' : 'Run import'}
+            </button>
+          </div>
+          {importReport && (
+            <p className="mt-3 text-xs text-amber-900 font-mono bg-amber-100 p-2 rounded">{importReport}</p>
+          )}
+        </div>
+
 
         {loading ? (
           <p className="text-stone-600">Loading pins...</p>
