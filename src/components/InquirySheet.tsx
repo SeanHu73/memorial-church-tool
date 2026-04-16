@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Pin, Photo, PinPhoto, SessionMemory } from '@/lib/types';
+import { Pin, Photo, SessionMemory } from '@/lib/types';
 import {
   loadSessionMemory,
   saveSessionMemory,
@@ -10,7 +10,6 @@ import {
   addOpenZoomOutQuestion,
 } from '@/lib/session-memory';
 import { selectPhotoForResponse } from '@/lib/photo-matcher';
-import { getPhotosForPin } from '@/lib/photo-retrieval';
 import { getPhotos } from '@/lib/photos-store';
 import { classifyQuestion } from '@/lib/hint-matcher';
 import PhotoDisplay from './PhotoDisplay';
@@ -37,9 +36,10 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
   const [allPhotos, setAllPhotos] = useState<Photo[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Pull all photos from the new collection on mount. Empty array (and
-  // therefore the embedded-fallback path in getPhotosForPin) is used until
-  // this resolves. Failures are silent — the fallback covers them.
+  // Pull the full photo library on mount. The matcher operates on the
+  // entire library (library-first retrieval) — pin attachment is only
+  // a tiebreaker, never a filter. Failures leave allPhotos empty, in
+  // which case the matcher returns null and no photo renders.
   useEffect(() => {
     getPhotos().then(setAllPhotos).catch(() => {});
   }, []);
@@ -65,21 +65,22 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
 
   const close = () => { setClosing(true); setTimeout(onClose, 300); };
 
-  // Photos available for this pin via the new retrieval helper.
-  const pinPhotos = useMemo(() => getPhotosForPin(pin, allPhotos), [pin, allPhotos]);
-
   const photoCategories = useMemo(() => classifyQuestion(pin.inquiry.question), [pin.inquiry.question]);
 
   const photoSelection = useMemo(
     () =>
       selectPhotoForResponse({
-        photos: pinPhotos as PinPhoto[],
-        currentLocation: pin.location.physicalArea,
+        photos: allPhotos,
+        observation: null,             // static inquiry has no dedicated observation text
+        answer: pin.inquiry.answer,
+        anchorUsed: pin.inquiry.question,
         observationEntries: pin.databaseEntryIds,
         answerEntries: pin.databaseEntryIds,
-        categories: photoCategories,
+        questionCategory: photoCategories[0] ?? null,
+        currentLocation: pin.location.physicalArea,
+        currentPin: pin,
       }),
-    [pinPhotos, pin.location.physicalArea, pin.databaseEntryIds, photoCategories]
+    [allPhotos, pin, photoCategories]
   );
 
   const reveal = () => {
@@ -180,19 +181,25 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
   const areaLabel = pin.location.physicalArea.replace(/_/g, ' ');
 
   // Deepen / zoom-out photo — matched against the AI-generated question's entriesUsed.
-  // Deepen/zoom responses are single questions (no observation slot), so we use
-  // the one entries list for the answer slot only.
+  // Deepen/zoom responses are single questions; the answer slot already
+  // does the heavy lifting via the visible/invisible heuristic, so we
+  // pass the question text as both the anchor and the answer signal.
   const deepenPhoto = useMemo(() => {
     if (!deepenQ) return null;
+    const cats = classifyQuestion(deepenQ);
     const sel = selectPhotoForResponse({
-      photos: pinPhotos as PinPhoto[],
-      currentLocation: deepenMode === 'zoom_out' ? null : pin.location.physicalArea,
+      photos: allPhotos,
+      observation: null,
+      answer: deepenQ,
+      anchorUsed: deepenQ,
       observationEntries: [],
       answerEntries: deepenEntriesUsed,
-      categories: classifyQuestion(deepenQ),
+      questionCategory: cats[0] ?? null,
+      currentLocation: deepenMode === 'zoom_out' ? null : pin.location.physicalArea,
+      currentPin: deepenMode === 'zoom_out' ? null : pin,
     });
-    return sel.answerPhoto;
-  }, [deepenQ, deepenEntriesUsed, deepenMode, pinPhotos, pin.location.physicalArea]);
+    return sel.answerPhoto || sel.observationPhoto;
+  }, [deepenQ, deepenEntriesUsed, deepenMode, allPhotos, pin]);
 
   // Check if an answer looks like an "I don't know" response
   const isIDontKnow = (text: string) => {

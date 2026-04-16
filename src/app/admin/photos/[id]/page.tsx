@@ -101,7 +101,13 @@ export default function PhotoEditPage() {
     setSaving(true);
     setError(null);
     try {
-      const next = await savePhoto(photo);
+      // Normalise Windows path separators that may have crept into the URL
+      // field — browsers can't resolve backslashes.
+      const sanitised: Photo = {
+        ...photo,
+        url: photo.url.replace(/\\/g, '/'),
+      };
+      const next = await savePhoto(sanitised);
       await syncPhotoToPins(next, initialLinkedPinIdsRef.current);
       initialLinkedPinIdsRef.current = [...next.linkedPinIds];
       setPhoto(next);

@@ -1,9 +1,56 @@
 # Build State — Memorial Church Tool
 
 *Handoff document for the next Claude Code session. Last updated 2026-04-16
-after Change 7 retrieval cutover and Change 8 (session memory + post-response
-validation + coverage-based zoom-out). Read this instead of re-discovering
-the codebase.*
+after Change 7 retrieval cutover, Change 8 (session memory + post-response
+validation + coverage-based zoom-out), and the **library-first photo
+retrieval rewrite**. Read this instead of re-discovering the codebase.*
+
+---
+
+## 0. Library-first photo retrieval (latest, 2026-04-16)
+
+Diagnostic on the live data found pin↔photo links were entirely empty in
+Firestore: every pin had `photoIds: []` and `photos: []`; every photo had
+`linkedPinIds: []`. The legacy pin-first matcher (`getPhotosForPin` →
+`selectPhotoForResponse(pre-filtered subset)`) was therefore handing the
+matcher empty arrays for every request → zero photos rendered.
+
+**Fix landed this session:**
+- `src/lib/photo-retrieval.ts` **deleted** (both `getPhotosForPin` and
+  `collectAllPinPhotos` are gone — pin attachment is no longer a filter).
+- `src/lib/photo-matcher.ts` **rewritten**: takes the FULL `Photo[]` library
+  plus AI signals (`anchorUsed`, `observation`, `answer`,
+  `observationEntries`, `answerEntries`, `questionCategory`,
+  `currentLocation`, optional `currentPin`). Scores each candidate on
+  IDF-weighted semantic overlap + entry/category/type/pin signals. Threshold
+  `MIN_SCORE = 3`; below threshold returns `null` with a `console.log`
+  showing the top three candidates so an empty slot is debuggable.
+  - **Observation slot**: strict location filter (`currentLocation` or
+    `'general'`). Prefers onsite. Query text is `anchorUsed || observation`.
+  - **Answer slot**: visible/invisible heuristic
+    (`isInvisibleContext()` checks for years <1990 + historical markers
+    like "earthquake", "1906", "originally", "destroyed", "Jane Stanford",
+    etc.). When the answer is *visible* context, the answer slot returns
+    `null` (no duplicate of the observation photo). When *invisible*, the
+    matcher searches the full library, prefers archival, and excludes the
+    observation photo.
+  - **Pin tiebreaker**: small `+0.5` boost if `currentPin` is in the
+    photo's `linkedPinIds`. Never a filter.
+- `InquirySheet.tsx` and `AskSheet.tsx` now pass `allPhotos` directly to
+  the matcher with the new input shape. AskSheet no longer needs `getPins`
+  (that import + the `allPins` state are gone).
+- `PhotoDisplay.tsx` widened from `PinPhoto` to `Photo`.
+- `/admin/photos/new` and `/admin/photos/[id]` save handlers normalise
+  Windows backslashes in `url` (`\` → `/`) before writing to Firestore —
+  prevents recurrence of the `north_nave_inscription` URL bug.
+- Two missaved photos were patched directly in Firestore via a one-shot
+  script (now deleted): `abade1a5…` (memchu_plaque_exterior) →
+  `physicalLocationTag: 'exterior_facade'`; `1ef295e3…`
+  (north_nave_inscription) → `physicalLocationTag: 'nave'` and
+  `url: '/photos/onsite/north_nave_inscription.jpg'`.
+
+`npx tsc --noEmit` and `next build` both clean. Verification on a real
+walk-through still pending.
 
 ---
 
@@ -17,10 +64,10 @@ the codebase.*
 - **Change 5** — Photo data model: `PinPhoto` shape with `type`, `physicalLocationTag`, `databaseEntries`, `categories`, `annotations`, plus `PhotoAnnotation` with per-category clues.
 - **Change 6** — Admin photo upload + annotation at `/admin` (see legacy pin-by-pin UI still present in `src/app/admin/page.tsx`). Firebase Storage under `memorial-church/photos/[type]/...`. Tap-to-annotate with per-category clues. First session where pins move from `seed-pins.ts` into Firestore.
 
-### Change 7 — Learner-facing photo display + retrieval cutover: **complete**
-- `src/lib/photo-matcher.ts` ranks photos: location → database-entry overlap → category → slot-based type preference → annotation tiebreaker. Observation slot scores against `observationEntries`; answer slot scores against `answerEntries` so observation photos don't spoil answers.
-- `src/components/PhotoDisplay.tsx` renders a single photo with numbered annotation dots, source attribution line, and "Show hints" button revealing category-appropriate clues.
-- **Cutover (this session)**: `src/lib/photo-retrieval.ts::getPhotosForPin(pin, allPhotos)` and `collectAllPinPhotos(pins, allPhotos)` now resolve photos from the standalone `memorial-church-photos` collection. Priority: `pin.photoIds` → inverse `photo.linkedPinIds.includes(pin.id)` → embedded `pin.photos` legacy fallback. `InquirySheet.tsx` / `AskSheet.tsx` use these instead of reading `pin.photos` directly.
+### Change 7 — Learner-facing photo display + retrieval cutover: **complete (then superseded)**
+- `src/lib/photo-matcher.ts` originally ranked pre-filtered pin-attached photos by location → database-entry overlap → category → slot-based type preference → annotation tiebreaker. **Superseded** by the library-first rewrite above (Section 0); the new matcher takes the full `Photo[]` library and uses IDF-weighted semantic scoring + a visible/invisible heuristic.
+- `src/components/PhotoDisplay.tsx` renders a single photo (now typed `Photo`) with numbered annotation dots, source attribution line, and "Show hints" button revealing category-appropriate clues.
+- **Cutover (earlier this session, then deleted)**: `src/lib/photo-retrieval.ts` defined `getPhotosForPin(pin, allPhotos)` + `collectAllPinPhotos(pins, allPhotos)` to resolve photos from the standalone `memorial-church-photos` collection via `pin.photoIds` → inverse `photo.linkedPinIds` → embedded `pin.photos` fallback. Both helpers were **deleted** in the library-first rewrite — pin attachment is no longer a filter, only a tiebreaker.
 - `src/app/api/ask/route.ts` returns `observationEntries` + `answerEntries`. Client still falls back to a legacy `entriesUsed` field for older responses. (See Change 8 below for the additional `anchorUsed` / `quotationsUsed` fields.)
 
 ### Change 8 — Session memory, post-response validation, coverage-based zoom-out: **complete**
@@ -140,7 +187,7 @@ Rules are permissive per-collection (test-mode pattern). There are now five sibl
 | File | Purpose |
 |------|---------|
 | `src/lib/session-memory.ts` | sessionStorage-backed `SessionMemory` helpers: `loadSessionMemory`, `saveSessionMemory`, `recordTurn`, `addOpenZoomOutQuestion`, `isZoomOutAvailable` (≥2 substantive turns AND ≥2 entries-or-locations). |
-| `src/lib/photo-retrieval.ts` | `getPhotosForPin(pin, allPhotos)` + `collectAllPinPhotos(pins, allPhotos)`. Three-tier resolution: `pin.photoIds` → inverse `photo.linkedPinIds.includes(pin.id)` → embedded `pin.photos` legacy. |
+| ~~`src/lib/photo-retrieval.ts`~~ | Created mid-session for the pin-first cutover, then **deleted** by the library-first rewrite. Pin attachment is no longer a filter. |
 
 ### Existing key files
 | File | Purpose |
@@ -151,8 +198,8 @@ Rules are permissive per-collection (test-mode pattern). There are now five sibl
 | `src/app/page.tsx` | Main map orchestration |
 | `src/app/globals.css` | Palette, `body { overflow: hidden; height: 100dvh }` |
 | `src/components/Map.tsx` | Google Maps with 3D view + geolocation |
-| `src/components/InquirySheet.tsx` | Pin-based inquiry sheet. Loads photos via `getPhotos()` + `getPhotosForPin()`. Threads `SessionMemory`, gates zoom-out via `isZoomOutAvailable()`. |
-| `src/components/AskSheet.tsx` | Free-form question sheet. Parallel `Promise.allSettled([getPins(), getPhotos()])`. Threads `SessionMemory` into every `/api/ask`. Records anchor + quotations + entries after each turn. |
+| `src/components/InquirySheet.tsx` | Pin-based inquiry sheet. Loads the full photo library via `getPhotos()` and passes it to the matcher with `currentPin: pin` (tiebreaker only). Threads `SessionMemory`, gates zoom-out via `isZoomOutAvailable()`. |
+| `src/components/AskSheet.tsx` | Free-form question sheet. Loads the full photo library via `getPhotos()` and passes it to the matcher with `currentPin: null`. Threads `SessionMemory` into every `/api/ask`. Records anchor + quotations + entries after each turn. |
 | `src/components/PhotoDisplay.tsx` | Learner-facing photo renderer with annotation dots |
 | `src/components/ServiceWorkerRegistrar.tsx` | PWA service worker |
 | `src/lib/types.ts` | `Pin`, `PinPhoto`, `Photo`, `PhotoAnnotation`, `QuestionCategory`, `SessionMemory`, `OpenZoomOutQuestion`, `AskResponse`, etc. |
@@ -160,7 +207,7 @@ Rules are permissive per-collection (test-mode pattern). There are now five sibl
 | `src/lib/seed-pins.ts` | 4-pin fallback when Firestore is empty |
 | `src/lib/knowledge-db.ts` | Inlined knowledge DB as a TS string constant |
 | `src/lib/hint-matcher.ts` | Question → category + hint injection |
-| `src/lib/photo-matcher.ts` | `selectPhotoForResponse()` (slot-aware ranking against `observationEntries` / `answerEntries`). |
+| `src/lib/photo-matcher.ts` | `selectPhotoForResponse()` — library-first, slot-aware. Takes the full `Photo[]` library + AI signals + optional `currentPin` (tiebreaker only). IDF-weighted semantic scoring, threshold `MIN_SCORE = 3`, visible/invisible heuristic for the answer slot, debug logs when a slot returns null. |
 | `src/lib/archival-manifest.ts` | Static archival-photo manifest for bulk import |
 | `src/lib/firebase.ts` | Client init (Firestore + Storage) |
 | `src/lib/firebase-admin.ts` | Question logging via REST |

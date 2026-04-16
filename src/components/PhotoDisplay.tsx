@@ -14,14 +14,14 @@
  */
 
 import { useMemo, useState } from 'react';
-import { PinPhoto, PhotoAnnotation, QuestionCategory } from '@/lib/types';
+import { Photo, PhotoAnnotation, QuestionCategory } from '@/lib/types';
 
 interface Props {
-  photo: PinPhoto;
+  photo: Photo;
   categories: QuestionCategory[];  // question categories → pick which clue to show
 }
 
-function attributionLine(photo: PinPhoto): string {
+function attributionLine(photo: Photo): string {
   if (photo.type === 'onsite') {
     return photo.credit || 'Taken on site';
   }

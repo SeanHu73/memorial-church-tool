@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Pin, Photo, PinPhoto, SessionMemory } from '@/lib/types';
+import { Pin, Photo, SessionMemory } from '@/lib/types';
 import { seedPins } from '@/lib/seed-pins';
-import { getPins } from '@/lib/pins-store';
 import { getPhotos } from '@/lib/photos-store';
 import {
   loadSessionMemory,
@@ -13,7 +12,6 @@ import {
   addOpenZoomOutQuestion,
 } from '@/lib/session-memory';
 import { selectPhotoForResponse } from '@/lib/photo-matcher';
-import { collectAllPinPhotos } from '@/lib/photo-retrieval';
 import { classifyQuestion } from '@/lib/hint-matcher';
 import PhotoDisplay from './PhotoDisplay';
 
@@ -40,7 +38,6 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
   const [observationEntries, setObservationEntries] = useState<string[]>([]);
   const [answerEntries, setAnswerEntries] = useState<string[]>([]);
   const [deepenEntriesUsed, setDeepenEntriesUsed] = useState<string[]>([]);
-  const [allPins, setAllPins] = useState<Pin[]>(seedPins);
   const [allPhotos, setAllPhotos] = useState<Photo[]>([]);
   const [sessionMemory, setSessionMemory] = useState<SessionMemory>(() => loadSessionMemory());
   const inputRef = useRef<HTMLInputElement>(null);
@@ -56,10 +53,6 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
   // Find a suggested next pin (pick a random one for free-form questions)
   const suggestedPin: Pin | null = seedPins.length > 0 ? seedPins[Math.floor(Math.random() * seedPins.length)] : null;
 
-  // Photo matching: free-form Ask queries cross every pin's photos via the
-  // new collection (with embedded fallback for pre-migration pins).
-  const allPinPhotos = useMemo(() => collectAllPinPhotos(allPins, allPhotos), [allPins, allPhotos]);
-
   const questionCategories = useMemo(
     () => (question ? classifyQuestion(question) : []),
     [question]
@@ -68,34 +61,40 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
   const photoSelection = useMemo(
     () =>
       selectPhotoForResponse({
-        photos: allPinPhotos as PinPhoto[],
-        currentLocation: null, // no specific location constraint for free-form Ask
+        photos: allPhotos,
+        observation,
+        answer,
+        anchorUsed: question || null,
         observationEntries,
         answerEntries,
-        categories: questionCategories,
+        questionCategory: questionCategories[0] ?? null,
+        currentLocation: null,         // free-form Ask isn't tied to a pin
+        currentPin: null,
       }),
-    [allPinPhotos, observationEntries, answerEntries, questionCategories]
+    [allPhotos, observation, answer, question, observationEntries, answerEntries, questionCategories]
   );
 
   const deepenPhoto = useMemo(() => {
     if (!deepenQ) return null;
+    const cats = classifyQuestion(deepenQ);
     const sel = selectPhotoForResponse({
-      photos: allPinPhotos as PinPhoto[],
-      currentLocation: null,
+      photos: allPhotos,
+      observation: null,
+      answer: deepenQ,
+      anchorUsed: deepenQ,
       observationEntries: [],
       answerEntries: deepenEntriesUsed,
-      categories: classifyQuestion(deepenQ),
+      questionCategory: cats[0] ?? null,
+      currentLocation: null,
+      currentPin: null,
     });
-    return sel.answerPhoto;
-  }, [deepenQ, deepenEntriesUsed, allPinPhotos]);
+    return sel.answerPhoto || sel.observationPhoto;
+  }, [deepenQ, deepenEntriesUsed, allPhotos]);
 
   useEffect(() => {
-    // Pull the latest pins (Firestore overrides) and the standalone photo
-    // collection in parallel. Both have safe fallbacks if Firestore is down.
-    Promise.allSettled([getPins(), getPhotos()]).then(([pinsR, photosR]) => {
-      if (pinsR.status === 'fulfilled') setAllPins(pinsR.value);
-      if (photosR.status === 'fulfilled') setAllPhotos(photosR.value);
-    });
+    // Pull the full photo library; the matcher operates library-first so
+    // we don't need the pin overrides here anymore.
+    getPhotos().then(setAllPhotos).catch(() => {});
     if (initialQuestion) ask(initialQuestion);
     else inputRef.current?.focus();
     // eslint-disable-next-line react-hooks/exhaustive-deps

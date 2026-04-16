@@ -25,7 +25,18 @@
       "Bash(echo \"exit code: $?\")",
       "Bash(echo \"exit: $?\")",
       "Bash(npx eslint:*)",
-      "Bash(ls src/app/admin/photos/[id]/ src/app/admin/photos/new/)"
+      "Bash(ls src/app/admin/photos/[id]/ src/app/admin/photos/new/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{url_effective}\\\\n\" -L https://memorial-church-tool.vercel.app/)",
+      "Bash(curl -s -o /dev/null -w \"status: %{http_code}\\\\n\" https://memorial-church-tool.vercel.app/)",
+      "Bash(curl -s -o /dev/null -w \"status: %{http_code}\\\\n\" https://memorial-church-tool.vercel.app/admin)",
+      "Bash(curl -s -o /dev/null -w \"status: %{http_code}\\\\n\" https://memorial-church-tool.vercel.app/admin/photos)",
+      "Bash(curl -s -o /dev/null -w \"status: %{http_code}\\\\n\" https://memorial-church-tool.vercel.app/admin/photos/new)",
+      "Bash(curl -s https://memorial-church-tool.vercel.app/)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(echo \"TSC EXIT: $?\")",
+      "Bash(node --input-type=module -e ':*)",
+      "Bash(ls D:/Provenance/memorial-church-tool/.env*)",
+      "Bash(node --env-file=.env.local scripts/patch-missaved-photos.mjs)"
     ]
   }
 }

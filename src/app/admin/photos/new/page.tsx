@@ -143,19 +143,23 @@ export default function NewPhotoPage() {
       const keywordList = Array.from(new Set(keywords.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)));
       const now = new Date().toISOString();
 
+      // Normalise Windows path separators — pasting a path from File Explorer
+      // can leave backslashes that browsers can't resolve.
+      const normalizedUrl = url.trim().replace(/\\/g, '/');
+
       const photo: Photo = {
         id,
-        url: url.trim(),
-        storageBackend: detectStorageBackend(url.trim()),
+        url: normalizedUrl,
+        storageBackend: detectStorageBackend(normalizedUrl),
         type,
         caption: caption.trim(),
         description: description.trim() || generateDescription({
-          url, type, caption, credit,
+          url: normalizedUrl, type, caption, credit,
           source: source || null, year: year || null, license: license || null,
           physicalLocationTag, databaseEntries: entryList, categories, annotations: [],
         }, firstPin),
         keywords: keywordList.length > 0 ? keywordList : generateKeywords({
-          url, type, caption, credit,
+          url: normalizedUrl, type, caption, credit,
           source: source || null, year: year || null, license: license || null,
           physicalLocationTag, databaseEntries: entryList, categories, annotations: [],
         }, firstPin),

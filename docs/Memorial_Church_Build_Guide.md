@@ -311,21 +311,18 @@ The physical location tag is the most important field across all layers — it's
 3. The Pendentive Angels (crossing) — entry 3.4
 4. The Chancel & Last Supper (chancel) — entry 3.5
 
-### Recently built (Changes 1–8, April 2026 sessions)
-- **Three-option inquiry loop ending** with alternating "Keep talking about this" / "Step back and see the bigger picture". The random 2–4 counter described in Change 1 below has been **retired** as of Change 8 — gating is now coverage-based via `isZoomOutAvailable()` (≥2 substantive turns AND ≥2 entries-or-locations covered). The behaviour is similar but driven by what's actually been discussed instead of a random rhythm.
+### Recently built (Changes 1–6, April 2026 session)
+- **Three-option inquiry loop ending** with alternating "Keep talking about this" / "Step back and see the bigger picture" based on a random counter (2, 3, or 4 consecutive direct-observation inquiries between zoom-outs).
 - **Epistemic honesty rules in system prompt** — model acknowledges gaps plainly, offers related context, turns questions back to the learner.
 - **Category-aware response differentiation** — who/what/when/where/why/how questions produce noticeably different emphasis.
 - **Photo data model** — array-based, multi-source, with physicalLocationTag, databaseEntries, categories, and annotations fields. Pins with empty photos array render normally.
 - **Learner contributions** — `memorial-church-contributions` Firestore collection and UI for when the model acknowledges a gap.
 - **Admin photo upload and annotation at `/admin`** — Sean can now upload on-site and archival photos, fill in all metadata fields, and tap-to-annotate specific points with category-tagged clues. Pins now read from Firestore (with seed-pins.ts as fallback).
-- **Photo-centric admin library at `/admin/photos`** — standalone `memorial-church-photos` collection, click-to-edit, multi-pin attachment, auto-generated descriptions/keywords. `photo_extraction_v1` migration extracted all embedded photos on 2026-04-16.
-- **Change 7 retrieval cutover** — `src/lib/photo-retrieval.ts` resolves photos for a pin via `pin.photoIds` → inverse `photo.linkedPinIds` → embedded `pin.photos` legacy. Both `InquirySheet` and `AskSheet` now read through this helper.
-- **Change 8 — session memory + post-response validation + coverage-based zoom-out**. `src/lib/session-memory.ts` persists `SessionMemory` in sessionStorage. `/api/ask` accepts it, injects a "SESSION SO FAR" block into the prompt, and runs `validateResponse()` post-response (word count >120, recycled anchor, recycled quotation, banned phrases) with up to 2 regeneration retries. Zoom-out mode receives a "COVERAGE SO FAR" block.
 
 ### What's NOT built yet
-- **Eventual `pin.photos` removal** (`photo_embedding_removal_v1`) — Change 7 retrieval is now cut over: `src/lib/photo-retrieval.ts::getPhotosForPin()` resolves photos with priority `pin.photoIds` → inverse `photo.linkedPinIds` → embedded `pin.photos` legacy fallback, and both `InquirySheet`/`AskSheet` use it. The embedded `pin.photos` array and `photo-pin-sync.ts` mirror are kept only as the safety-net fallback. Once production has been verified, a follow-up migration can strip the embedded array and the sync helper. Don't do it casually — the learner app would lose photos for any pin that hasn't yet been re-extracted.
-- **Cowork archival spreadsheet reconciliation** — 33 archival photos are now in the app (HABS + Highsmith + Calisphere set, loaded via `archival-manifest.ts` and migrated into `memorial-church-photos` on 2026-04-16). What remains is comparing `docs/archival_photo_inventory.xlsx` to the manifest, filling in any missing metadata, and deciding whether new bulk imports should write directly into the standalone collection rather than going through the legacy pin-walk.
-- **Pilot testing** — waiting on Sean's verification pass through the photo library and a real walk-through of the Ask flow now that session memory is enforced.
+- **Learner-facing photo display** — photos exist in the data model and can be uploaded via admin, but they don't appear in the inquiry flow yet. This is the next session (Change 7) and the final piece before the place-based experience is complete. Without it, the app tells learners to "look at the inscription" without showing the inscription.
+- **Ingestion of Cowork's archival spreadsheet** — the 30+ archival photos Cowork found are not yet in the app. Can be done manually through admin, or automated in a short follow-up session.
+- **Pilot testing** — waiting on Change 7 and real photo content.
 
 ### Key files
 | File | Purpose |
@@ -351,64 +348,56 @@ The protocol has two layers: a tight system prompt focused on what only the mode
 
 **Identity and voice.** You are a knowledgeable friend who has spent years falling in love with Memorial Church. Not a tour guide, not a textbook, not an AI assistant. Write the way that friend would talk to two people standing in front of the church together — warm, specific, never glib. Vary how you open: sometimes a vivid detail, sometimes a human story, sometimes a surprise, sometimes what's missing or contested. Vary sentence rhythm. Avoid clichés ("delve," "tapestry," "rich history," "nestled"), bullet points, and AI-assistant phrases ("Here's the thing:", "Let me break this down").
 
-**Response format.** Raw JSON, no markdown. Six fields:
+**Response format.** Raw JSON, no markdown:
 ```json
 {
   "observation": "...or null",
   "answer": "...",
-  "observationEntries": ["2.4"],
-  "answerEntries": ["1.3", "6.1"],
+  "entriesUsed": ["3.1", "6.1"],
   "anchorUsed": "the facade plaque",
   "quotationsUsed": ["any direct quote you included"]
 }
 ```
 
-All four tracking fields (`observationEntries`, `answerEntries`, `anchorUsed`, `quotationsUsed`) are internal — the learner never sees them. They let the app track coverage and pick photos.
+`entriesUsed`, `anchorUsed`, and `quotationsUsed` are internal — the learner never sees them. They let the app track what's been covered AND help it pick the right photo to display alongside the observation.
 
-`observationEntries` and `answerEntries` are deliberately separate. `observationEntries` names the physical THING the learner is being directed to look at (if the observation says "look at the stone plaque on the facade," list the plaque's entry ID, not Jane Stanford's biography). `answerEntries` lists the entries that informed the narrative. The photo matcher uses `observationEntries` to pick a photo of the thing to find, and `answerEntries` to pick a secondary photo that illustrates the story — so the observation photo doesn't spoil the answer. **Don't collapse these back into a single `entriesUsed` field.** The spoiler-prevention depends on them being separate. (The route still accepts a legacy `entriesUsed` from older clients and mirrors it into both fields.)
-
-If `observation` is `null`, set `observationEntries` to `[]` and `anchorUsed` to `null`. If the answer draws from nothing in the database (an "I don't know" response), set `answerEntries` to `[]`. If no direct quotes were embedded, `quotationsUsed` is `[]`.
+**About `anchorUsed` specifically — this field matters for photo retrieval.** Write it as a short noun phrase naming the specific physical thing the observation directs the group to look at. Good examples: `"the facade plaque"`, `"the pendentive angels"`, `"the Latin door inscriptions"`, `"the narthex floor mosaic"`, `"the golden niches behind the altar"`. Bad examples that won't match photos well: `"the church"`, `"the inscription"` (too generic), `"Jane Stanford"` (that's a person, not a physical anchor), `"the carved stonework"` (too vague). If the observation points at multiple things, pick the primary one. If the observation is null, `anchorUsed` should also be null or an empty string.
 
 **The observation field.** Strong default is to include one. Direct the group to look at something specific and physical — not "look around the church" but "Find the stone plaque below the mosaic and read whose name is carved there." If a question feels too abstract for an anchor, find one anyway. Example: "Why was it built?" → the inscription on the facade plaque IS the anchor; read it together first, then talk about why. `null` only when the question genuinely has no physical connection — rare.
 
-**The answer field.** When you've given an observation, write knowing the group is looking at the thing you pointed to. When `null`, lead with narrative directly. 60–120 words. End with a thread — a thing to look for, a question that opens, a tension unresolved. Never end with a summary closer that wraps the topic up ("she meant they were inseparable", "that was their answer to grief"). Let the learner draw conclusions.
+**The answer field.** When you've given an observation, write knowing the group is looking at the thing you pointed to. When `null`, lead with narrative directly. Aim for 80 words; never exceed 120. End with a thread — a thing to look for, a question that opens, a tension unresolved. Never end with a summary closer that wraps the topic up ("she meant they were inseparable", "that was their answer to grief"). Let the learner draw conclusions.
 
 **Engage tension; don't smooth it.** The knowledge base contains controversies — costs that drew criticism, opposition from David Starr Jordan, Jewish students worshipping in secret, the contradiction of Stanford wealth built on Chinese labour, contested mosaic naming, the choice not to rebuild the spire. When a question opens that door, walk through it. Don't deflect into inspiring narrative. Example: if asked about the cost, don't say "they spared no expense" — say "David Starr Jordan worried publicly that the money should have gone to the library." Friction is part of the story.
 
 **Honesty over invention.** If the knowledge base doesn't have what's being asked, say so plainly, offer what you do have, and turn the question back to the learner: "How would you try to find that out?" Never fabricate.
 
-**Use the session context provided to you.** Each request includes a "SESSION SO FAR" block with what's already been covered (anchors used, quotations used, recent question categories, locations discussed, and a turn count). Don't repeat anchors or quotations from those lists. Don't keep delivering the same flavour of answer (four motivation questions in a row → vary your approach by the fourth). When the request includes `mode: "zoom_out"`, the system prompt instead receives a "COVERAGE SO FAR" block listing entries and locations covered so far — use the coverage to ask a question that bridges what's been seen, being specific about what was covered, not generic.
+**Use the session context provided to you.** Each request includes a "Session so far" block with what's already been covered (entries used, anchors used, quotations used, locations discussed, recent question categories). Don't repeat anchors or quotations. Don't keep delivering the same flavour of answer (four motivation questions in a row → vary your approach by the fourth). When the request includes `mode: "zoom_out"`, use the coverage to ask a question that bridges what's been seen — be specific about what was covered, not generic.
 
 #### What the code enforces (post-response checks)
 
-The model is unreliable at counting, remembering, and refusing patterns. `validateResponse()` in `route.ts` handles these so the prompt doesn't have to keep restating them. On any failed check, the route appends the assistant's reply + a corrective user turn listing the problems, and re-asks. Up to 2 regeneration attempts per request; after that, the last response ships anyway (with a `console.warn`) rather than failing the learner.
+The model is unreliable at counting, remembering, and refusing patterns. Code handles these so the prompt doesn't have to keep restating them:
 
-1. **Word count.** Count the answer's words. If over 120, push back: `The answer is N words. Condense to under 120 words while keeping the voice and the ending.`
+1. **Word count.** After the model responds, count the answer's words. If over 120, send the response back to the model with: "This response is N words. Condense to under 120 by cutting the wrap-up and trusting the reader." Use the condensed version.
 
-2. **Recycled anchor.** If `anchorUsed` matches anything in `mem.recentObservationAnchors` (case-insensitive), push back: `The anchor "X" was already used recently. Pick a different physical detail to point the group at.`
+2. **Recycled content rejection.** If `anchorUsed` or any string in `quotationsUsed` matches something in the recent session memory, reject and regenerate with: "This anchor/quotation was already used at turn N. Pick a different one."
 
-3. **Recycled quotations.** Each string in `quotationsUsed` is compared against `mem.recentQuotations` via `similarQuote()` — lowercase, whitespace-normalised, punctuation-stripped substring match either way (so "my soul is in that church" and "my soul is in that church." are caught as duplicates). On match: `The quotation "X" was already used recently. Paraphrase it or draw on a different quote.`
+3. **Banned phrases.** If the answer contains "delve," "tapestry," "rich history," "nestled," or any AI-assistant tell ("Great question", "Let me break this down", "Here's the thing"), reject and regenerate.
 
-4. **Banned phrases.** If the answer contains `delve`, `tapestry`, `rich history`, `nestled`, `great question`, `let me break this down`, or `here's the thing` (case-insensitive), push back: `Remove the phrase "X" — rewrite the sentence without it.`
+4. **Format validation.** If the JSON is malformed or missing required fields, reject and retry once.
 
-5. **JSON parsing.** If the response can't be parsed at all, the loop bails and ships the raw text as the answer (no retry, since further regeneration tends to compound the problem). Field defaults are applied by `parseAskJson()` for any missing field.
+Up to 2 regeneration attempts per request. After that, ship what you have rather than failing the user.
 
 #### What the request injection adds
 
-Each API request appends the following to the base system prompt before the call:
+Each API request to the model includes:
 
-- **Relevant observation hints** for the question, via `formatHintsForPrompt(findRelevantHints(question))`. (Already implemented; not new.)
+- **The classified question category** (one line): `"This question is primarily a WHEN question — lead with chronology and change over time, but weave other angles in as needed."` This replaces the long per-category paragraphs that used to be in the system prompt.
 
-- **The classified question category** (one line): `DETECTED QUESTION CATEGORIES: who, what. Emphasise the who angle in your response.` This replaces the long per-category paragraphs that used to live in the system prompt.
+- **The relevant observation hints** for that pin and category (already implemented).
 
-- **The "SESSION SO FAR" block**, when there's anything to surface (skipped on a brand-new session so the model doesn't see an empty preamble). Lists `recentObservationAnchors`, `recentQuotations`, `recentQuestionCategories`, `locationsEverDiscussed`, and `substantiveTurnCount`. The client (`InquirySheet` and `AskSheet`) sends `sessionMemory` on every request and persists it via `saveSessionMemory()`.
+- **The session coverage state**: what entries the AI has used in answers so far, what anchors and quotations have been used, what locations have been discussed, the last few question categories asked. (Detailed below in Change 8.)
 
-- **The mode flag** routes to a different system prompt entirely:
-  - `mode: undefined` (default) → `SYSTEM_PROMPT` (the long one above).
-  - `mode: "deepen"` → `DEEPEN_PROMPT`: short prompt asking for a reflective/observational/personal/historical-imagination question at the current location. JSON is `{question, entriesUsed}`.
-  - `mode: "zoom_out"` → `ZOOM_OUT_PROMPT` + a "COVERAGE SO FAR" block listing `entriesEverUsed` and `locationsEverDiscussed`. JSON is `{question, entriesUsed}`. The client also tracks zoom-out questions in `openZoomOutQuestions` so they can be resurfaced later.
-
-The `pinContext` field on the request is woven into the user message for deepen / zoom-out modes ("The pair is currently at: ...") so the generated question can reference where they're standing.
+- **The mode flag** if applicable: `"normal"` (default), `"deepen"` (reflective question at current location), or `"zoom_out"` (bigger-picture question that uses coverage to bridge what's been seen).
 
 ---
 
@@ -809,30 +798,91 @@ The photo never replaces the physical object. The learner is still meant to look
 
 **The AI does not pick photos. The app's code does.** The AI generates its observation and answer; the app then runs a filter over the available photos and picks the best match. This keeps photo selection predictable and prevents the AI from inventing image descriptions.
 
-Build a `selectPhotoForResponse()` function in a new file `src/lib/photo-matcher.ts`. It takes:
+**Retrieval is library-first, not pin-first.** The matcher starts with the ENTIRE photo library — every document in the `memorial-church-photos` Firestore collection. It does NOT start from the current pin's attached photos. Pin attachment is a scoring signal, not a filter. A photo with zero linked pins that semantically matches the anchor or answer is eligible and should surface; a photo attached to the current pin that has no semantic relevance should not.
 
-- The current pin's photos array
-- The AI's response (observation text, answer text, and the knowledge entries the answer drew from — add this to the API response)
+**Retire any pin-first retrieval paths.** If the codebase has a function called `getPhotosForPin(pin, allPhotos)` that walks `pin.photoIds`, scans `photo.linkedPinIds.includes(pin.id)`, or reads legacy `pin.photos`, it needs to be removed or repurposed. That function's job is gone. Photos do not belong to pins. The new entry point is `selectPhotoForResponse(input)` which takes the full library and the AI's response, and returns the best-matching photos independent of pin attachment.
+
+**The client passes the full photo library to the matcher, not a pre-filtered subset.** If the current client code calls something like `getPhotosForPin(pin, allPhotos)` and then passes the result to `selectPhotoForResponse()`, that's the bug — the filter happens too early. The matcher must receive the entire library to do its job.
+
+Build (or rewrite) a `selectPhotoForResponse()` function in `src/lib/photo-matcher.ts`. It takes:
+
+- The AI's response (observation text, answer text, `anchorUsed`, and `entriesUsed`)
 - The current question category (from hint-matcher.ts)
-- The current physical location tag
+- The current pin (optional — used only as a tiebreaker signal, not a filter)
+- The full library of photos from the `memorial-church-photos` Firestore collection
 
 And returns up to 2 photos: one for the observation (if applicable), one for the answer (if applicable). They may be the same photo, in which case only show it once.
 
-**The ranking logic (in priority order):**
+**Photos are independent entities, not pin-embedded ones.** The matcher searches the entire photo library, not just photos attached to the current pin. A photo of the pre-1906 spire that's attached to the facade pin should still surface if the learner is standing at the chancel pin asking about the 1906 earthquake. Pin attachment is a soft signal (used as a tiebreaker), not a hard filter.
 
-1. **Location match is mandatory.** Filter photos where `photo.physicalLocationTag === current_location_tag` OR `photo.physicalLocationTag === 'general'`. Only photos passing this filter are eligible.
+**Critical: the observation slot and the answer slot need different retrieval logic.** An observation directs the group to look at a specific physical thing — "find the plaque below the mosaic" or "look up at the pendentive angels." The photo for this slot must match what the group is being told to LOOK AT, not what the answer text happens to discuss. If the observation is "find the plaque" and the answer discusses Jane Stanford and grief, the observation photo should show the plaque, not Jane's portrait. Separate these two retrieval problems.
 
-2. **Database entry overlap.** Of the remaining photos, prefer ones whose `databaseEntries` array includes any of the entry IDs referenced in the answer. This is the strongest signal — it means a human has said "this photo illustrates this knowledge." For this to work, update the API response to include `entriesUsed: string[]` — the list of knowledge entry IDs the AI drew from for this answer. The AI can be instructed in the system prompt to include this in its JSON output.
+#### Retrieval for the observation slot
 
-3. **Category match.** Of what remains, prefer photos whose `categories` array includes the current question's category. A "when" question prefers a photo tagged for "when."
+The goal: find the photo that best shows the physical thing the group is being directed to observe.
 
-4. **Type preference for observation vs. answer:**
-   - For the observation slot: prefer onsite photos (showing what the learner is being asked to look at RIGHT NOW). Fall back to archival only if no onsite exists.
-   - For the answer slot: prefer archival photos for anything referencing historical events, lost features, or before/after comparisons. Prefer onsite for anything the learner can currently see.
+1. **Eligibility filter.** Photos whose `physicalLocationTag` matches the current location OR is `general`. The observation is always about something at or near where the learner is, so location filtering is tighter here than for the answer slot.
 
-5. **Tiebreaker:** if multiple photos qualify equally, pick the one with the most annotations (richer content), then by upload recency.
+2. **Primary signal: semantic match against the anchor, not the full answer.** Use the `anchorUsed` field from the AI response (e.g., "the facade plaque", "the pendentive angels", "the Latin door inscriptions") as the target phrase. Score each eligible photo by how well its `description` and `keywords` match the anchor phrase. A photo whose description begins "Close-up of the carved stone plaque on the north facade..." scores highly when `anchorUsed = "the facade plaque"`.
 
-If no photo passes step 1, return null for that slot — no photo displayed, and that's fine. The text alone still works.
+3. **Fallback: semantic match against the observation text.** If `anchorUsed` is missing or produces no matches, fall back to matching against the observation text itself (which names what to look at).
+
+4. **Type preference.** Strongly prefer onsite photos over archival ones for observations — the group is looking at something in front of them RIGHT NOW, so a current-day photo is the natural match. Only fall back to archival if no onsite photo is a good match (e.g., for a lost feature like the spire, where no onsite photo is possible).
+
+5. **Pin attachment as tiebreaker.** If two photos score equally, prefer the one attached to the current pin.
+
+#### Retrieval for the answer slot
+
+**The answer slot exists to show things the learner CANNOT see right now.** The observation slot already shows what they're being asked to look at. The answer slot's job is different: it brings in visual evidence they otherwise wouldn't have access to — historical photographs, lost features, faraway places, people from the past. If the answer is talking entirely about what's already in front of them, the answer slot should stay empty.
+
+Examples of when the answer slot earns a photo:
+
+- The answer references the 1906 earthquake damage → show the archival earthquake photo.
+- The answer mentions the original 80-foot spire that fell → show the pre-1906 photo of the church with the spire.
+- The answer tells the story of Jane Stanford climbing scaffolding → show her portrait.
+- The answer describes the Salviati workshop in Venice making the mosaics → show a photo of the workshop or Venice context (if available).
+- The answer discusses the twelve marble apostle statues that once stood in the chancel niches (if such a photo exists).
+
+Examples of when the answer slot should NOT have a photo (return null):
+
+- The answer is fully grounded in what the learner is looking at now — for example, an observation "find the facade plaque" with an answer that discusses what the plaque says and why. The observation photo of the plaque is sufficient.
+- The answer is about concepts, ideas, or abstractions with no visual analogue — for example, a philosophical question about non-denominational worship.
+- The best-matching photo would be the same one the observation slot already picked.
+
+The ranking logic:
+
+1. **Visible/invisible test (primary filter for this slot).** Ask: is the answer referencing something the learner cannot currently see from where they're standing? If yes, continue. If no — the answer is about what they're already looking at — return null. The observation photo covers it.
+
+2. **Eligibility filter (location relevance).** Photos whose `physicalLocationTag` matches the current location OR matches a location the answer discusses OR is `general`. Derive "location the answer is discussing" from the physical location tags of knowledge entries in `entriesUsed`.
+
+3. **Primary signal: semantic match against the content the answer brings in from elsewhere.** Focus on the parts of the answer that reference things NOT in the current visual field — historical events, lost features, people, places. Score each eligible photo by how well its `description` and `keywords` match this contextual content. A photo whose description mentions "pre-1906 spire" and "earthquake" ranks highly for any answer that pulls in that historical material.
+
+4. **Type preference — strongly favour archival.** For the answer slot specifically, prefer archival photos. The slot's job is to surface historical or contextual material. Onsite photos rarely belong here because onsite photos show what's currently visible — which is the observation slot's job.
+
+5. **Database entries overlap.** If the photo's `databaseEntries` overlaps with `entriesUsed`, boost the score.
+
+6. **Category match.** Boost photos whose `categories` includes the current question's category.
+
+7. **Don't duplicate the observation photo.** If the top-scoring answer photo is the same as the observation photo, skip it. Take the next candidate. If no other candidate passes the relevance threshold, return null.
+
+8. **Pin attachment as tiebreaker.** Same as observation slot.
+
+#### A simple way to think about it
+
+- The observation photo answers: *"What are we looking at right now?"*
+- The answer photo answers: *"What are we learning about that we can't see from here?"*
+
+If the answer is entirely about what the observation photo already shows, don't add a second photo. If the answer reaches into history, elsewhere, or the non-visible, the answer photo is where that visual context lives.
+
+#### Implementation notes
+
+- Term overlap scoring between a photo's description/keywords and the target text (anchor phrase or answer text) is sufficient to start — no embeddings needed. Weight by term specificity (proper nouns and distinctive words count more than common words like "the church" or "stone").
+
+- A minimum relevance threshold applies to both slots. If no photo scores above the threshold, return null — no photo displayed is better than a bad one.
+
+- For debugging: log which photos were considered for each slot and why the winner won (or why the slot returned null). This makes it easy to spot logic errors: "the matcher picked Jane Stanford's portrait for the observation because her name appeared in the answer text, but the anchor was 'the plaque'" tells you the anchor-first logic isn't firing.
+
+**Why this matters for retrieval quality:** with pin-first filtering (the old approach), photos were locked to their attached pins. With answer-only scoring across both slots (the previous spec), observation photos drifted from what the group was actually being told to look at, and answer photos often duplicated the observation photo instead of adding something new. Now each slot has a clear, distinct job: observations target the anchor (what they're seeing right now), answers target the contextual material (what they're learning about that they can't see). Pin attachment is a curation hint, not a fence.
 
 ### Visual design
 
