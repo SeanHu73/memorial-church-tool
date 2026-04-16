@@ -244,6 +244,73 @@
 
 ---
 
+## Stanford Political, Economic, and Founding History (Added April 2026)
+
+52. **Stanford University. "Stanford's Mission."**
+    URL: https://archived-bulletin.stanford.mobi/stanfordsmission/
+    *Official Stanford bulletin account of the founding vision. Covers Leland's role in the Big Four, his governorship during the Civil War, the "Cornell of the West" model, and the connection between university and church as a single project.*
+
+53. **Stanford University. "Founding Grant, November 11, 1885."**
+    *The founding document specifying co-education, non-sectarianism, practical-plus-liberal education, and the commitment to "fit the graduate for some useful pursuit." Establishes the legal foundation for the university.*
+
+54. **Wikipedia. "Leland Stanford."**
+    URL: https://en.wikipedia.org/wiki/Leland_Stanford
+    *Comprehensive biographical article with detailed footnotes. Covers political career (California governor 1862–1863, U.S. Senator 1885–1893), Big Four railroad presidency, involvement with Wells Fargo and Pacific Life, and the robber baron characterisation.*
+
+55. **Wikipedia. "History of Stanford University."**
+    URL: https://en.wikipedia.org/wiki/History_of_Stanford_University
+    *Detailed account of the 1885 Founding Grant, the 1893 federal lawsuit, Jane Stanford's role in keeping the university afloat, and the early decades including the Cornell connection and David Starr Jordan presidency.*
+
+56. **California Museum. "Leland Stanford — Inductee Biography."**
+    URL: https://californiamuseum.org/inductee/leland-stanford/
+    *Official California Museum account. Covers Stanford's role in founding California's Republican Party, keeping California in the Union during the Civil War, and his economic impact on the West.*
+
+57. **PBS American Experience. "Leland Stanford."**
+    URL: https://www.pbs.org/wgbh/americanexperience/features/tcrr-stanford/
+    *Accessible account of Stanford's political career, railroad leadership, and relationship with Abraham Lincoln. Includes critical assessment of his management style and the tensions with Huntington.*
+
+58. **Philanthropy Roundtable. "Leland Stanford."**
+    URL: https://www.philanthropyroundtable.org/hall-of-fame/leland-stanford/
+    *Honest account of Stanford's Gilded Age practices (stock watering, kickbacks, monopoly) alongside the educational philanthropy. Describes the Stanfords' Eastern college research that shaped the university's design.*
+
+59. **Palo Alto History Museum. "Moments in History: Leland Stanford (1824–1893) and Jane Stanford (1828–1905)."**
+    URL: https://paloaltohistorymuseum.org/moments-in-history-leland-stanford-1824-1893-jane-stanford-1828-1905/
+    *Local historical account with particular attention to the Palo Alto connection and the couple's life on the Palo Alto Stock Farm.*
+
+---
+
+## Chinese Railroad Workers and the Origins of Stanford Wealth (Added April 2026)
+
+60. **Chinese Railroad Workers in North America Project at Stanford.**
+    URL: https://amstudies.stanford.edu/about/transnational-initiatives/chinese-railroad-workers-north-america-project
+    *The primary scholarly source. Co-directed by Stanford faculty Gordon H. Chang and Shelley Fisher Fishkin since 2012. Explicit institutional acknowledgment that the wealth that founded Stanford University came largely from Chinese labour on the Central Pacific Railroad. Includes oral histories with descendants, an open-access digital archive, and exhaustive bibliography.*
+
+61. **Chang, Gordon H. and Shelley Fisher Fishkin, editors. *The Chinese and the Iron Road: Building the Transcontinental Railroad.* Stanford University Press, 2019.**
+    Introduction excerpt: https://www.sup.org/books/asian-american-studies/chinese-and-iron-road/excerpt/introduction-excerpt
+    *The definitive academic treatment. Covers the 1864 recruitment after white worker shortages, the conditions of the work, the 1867 strike, and the historical erasure of Chinese contributions at the 1969 centennial. Essential source for Entry 1.2b.*
+
+62. **Stanford Report. "Stanford scholars give voice to the Chinese workers who helped build Transcontinental Railroad." June 17, 2015.**
+    URL: https://news.stanford.edu/stories/2015/06/railroad-chinese-laborers-061715
+    *Official Stanford coverage of the research project, including Dean Richard Saller's explicit statement that the project was "created in recognition of the crucial role that the Chinese who built the Central Pacific Railroad played in creating the fortune with which Leland Stanford founded our university."*
+
+63. **Stanford Report. "Giving voice to Chinese railroad workers." April 9, 2019.**
+    URL: https://news.stanford.edu/stories/2019/04/giving-voice-to-chinese-railroad-workers
+    *Account of the 150th anniversary commemoration and the research methodology. Includes the fact that no text produced by any Chinese railroad worker on the transcontinental line has ever been found — a core piece of why this history has been so hard to recover.*
+
+64. **The Stanford Daily. "Remembering the Chinese railroad workers that built Stanford's fortune." May 24, 2019.**
+    URL: https://stanforddaily.com/2019/05/23/chinese-railroad-workers/
+    *Student paper coverage with direct quotes from Chang and Fishkin, including Leland Stanford's own 1865 letter to President Andrew Johnson acknowledging that completing the western railroad would have been "impossible" without Chinese workers. Also covers the 1867 strike and the contradiction of Stanford running on an anti-Chinese platform while depending on Chinese labour.*
+
+65. **Chinese Railroad Workers in North America Project. "Geography of Chinese Workers Building the Transcontinental Railroad."**
+    URL: https://web.stanford.edu/group/chineserailroad/cgi-bin/website/virtual/
+    *Detailed geographic account of the workers' origins in the Pearl River Delta / Guangdong Province. Covers the Opium Wars context that drove emigration, the Siyi (四邑) region specifically, and the routes through Hong Kong, Macao, and Guangzhou. Includes photograph references from the Alfred A. Hart Photographs collection at Stanford Libraries.*
+
+66. **Bill Lane Center for the American West, Stanford. "Chinese Railroad Workers in North America Project."**
+    URL: https://west.stanford.edu/research/history-arts-and-culture/chinese-railroad-workers-north-america-project
+    *Note that Leland Stanford also employed many Chinese migrants on his Palo Alto estate after the railroad was completed — extending the labour story beyond construction and into the grounds on which the university (and church) were eventually built.*
+
+---
+
 ## Key Books to Acquire/Consult (Not Yet Read)
 
 - Gregg, Robert C. *Glory of Angels.* 1995. — The definitive book on the church. Physical copy needed.

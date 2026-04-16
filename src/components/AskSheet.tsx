@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Pin } from '@/lib/types';
 import { seedPins } from '@/lib/seed-pins';
+import { incrementCount, resetCounter, shouldOfferZoomOut } from '@/lib/inquiry-counter';
 
 interface Props {
   initialQuestion?: string;
@@ -20,9 +21,11 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
   const [closing, setClosing] = useState(false);
   const [ownQ, setOwnQ] = useState('');
   const [deepenQ, setDeepenQ] = useState<string | null>(null);
+  const [deepenMode, setDeepenMode] = useState<'deepen' | 'zoom_out'>('deepen');
   const [deepenLoading, setDeepenLoading] = useState(false);
   const [contributionText, setContributionText] = useState('');
   const [contributionSent, setContributionSent] = useState(false);
+  const [offerZoomOut, setOfferZoomOut] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -30,6 +33,7 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
   const suggestedPin: Pin | null = seedPins.length > 0 ? seedPins[Math.floor(Math.random() * seedPins.length)] : null;
 
   useEffect(() => {
+    setOfferZoomOut(shouldOfferZoomOut());
     if (initialQuestion) ask(initialQuestion);
     else inputRef.current?.focus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,6 +61,9 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
       setAnswer(data.answer || '');
       setObservation(data.observation || null);
       setPhase(data.observation ? 'observe' : 'answer');
+      // Count this as an inquiry once we have the answer
+      incrementCount();
+      setOfferZoomOut(shouldOfferZoomOut());
     } catch {
       setAnswer("I wasn't able to answer that right now. Try asking about something you can see in or around the church — the mosaics, windows, carvings, or the people who built it.");
       setObservation(null);
@@ -82,22 +89,34 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
     }
   };
 
-  const handleDeepen = async () => {
+  const handleDeepenOrZoom = async (kind: 'deepen' | 'zoom_out') => {
     setDeepenLoading(true);
+    setDeepenMode(kind);
     try {
       const res = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          question: 'deepen',
-          mode: 'deepen',
+          question: kind,
+          mode: kind,
           pinContext: `Memorial Church (general area)`,
         }),
       });
       const data = await res.json();
-      setDeepenQ(data.question || "What details here surprised you the most?");
+      setDeepenQ(data.question || (kind === 'zoom_out'
+        ? 'Turn around and look back across the Quad. How does this church fit into the larger story of what the Stanfords built here?'
+        : "What details here surprised you the most?"));
+
+      if (kind === 'zoom_out') {
+        resetCounter();
+      } else {
+        incrementCount();
+      }
+      setOfferZoomOut(shouldOfferZoomOut());
     } catch {
-      setDeepenQ("What do you notice here that you didn't expect? Talk about it together.");
+      setDeepenQ(kind === 'zoom_out'
+        ? 'Step back and look at the whole building. What would be missing from this campus if the church weren\'t here?'
+        : "What do you notice here that you didn't expect? Talk about it together.");
     }
     setDeepenLoading(false);
   };
@@ -150,30 +169,54 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
         </button>
       )}
 
-      {/* Option 2: Keep talking about this */}
+      {/* Option 2: Keep talking OR Step back */}
       {!deepenQ ? (
-        <button
-          onClick={handleDeepen}
-          disabled={deepenLoading}
-          className="w-full text-left p-4 rounded-xl border border-sandstone-light/50 bg-warm-white hover:border-mosaic-blue/30 hover:bg-cream transition-all group"
-        >
-          <div className="flex items-start gap-3">
-            <span className="text-mosaic-blue mt-0.5 shrink-0 text-lg">💬</span>
-            <div>
-              <p className="text-xs font-sans font-medium text-text-muted mb-1 uppercase tracking-wider">Keep talking about this</p>
-              <p className="font-serif text-sm text-text-secondary leading-relaxed group-hover:text-text-primary transition-colors">
-                {deepenLoading ? 'Thinking...' : 'Get a question to discuss together right here'}
-              </p>
+        offerZoomOut ? (
+          <button
+            onClick={() => handleDeepenOrZoom('zoom_out')}
+            disabled={deepenLoading}
+            className="w-full text-left p-4 rounded-xl border border-mosaic-teal/40 bg-warm-white hover:border-mosaic-teal/70 hover:bg-cream transition-all group"
+          >
+            <div className="flex items-start gap-3">
+              <span className="text-mosaic-teal mt-0.5 shrink-0 text-lg">🧭</span>
+              <div>
+                <p className="text-xs font-sans font-medium text-text-muted mb-1 uppercase tracking-wider">Step back and see the bigger picture</p>
+                <p className="font-serif text-sm text-text-secondary leading-relaxed group-hover:text-text-primary transition-colors">
+                  {deepenLoading ? 'Widening the frame...' : 'Widen the frame — how does this connect to the rest of the campus, the era, the larger story?'}
+                </p>
+              </div>
             </div>
-          </div>
-        </button>
+          </button>
+        ) : (
+          <button
+            onClick={() => handleDeepenOrZoom('deepen')}
+            disabled={deepenLoading}
+            className="w-full text-left p-4 rounded-xl border border-sandstone-light/50 bg-warm-white hover:border-mosaic-blue/30 hover:bg-cream transition-all group"
+          >
+            <div className="flex items-start gap-3">
+              <span className="text-mosaic-blue mt-0.5 shrink-0 text-lg">💬</span>
+              <div>
+                <p className="text-xs font-sans font-medium text-text-muted mb-1 uppercase tracking-wider">Keep talking about this</p>
+                <p className="font-serif text-sm text-text-secondary leading-relaxed group-hover:text-text-primary transition-colors">
+                  {deepenLoading ? 'Thinking...' : 'Get a question to discuss together right here'}
+                </p>
+              </div>
+            </div>
+          </button>
+        )
       ) : (
-        <div className="p-4 rounded-xl border border-mosaic-blue/20 bg-warm-white animate-fade-in">
+        <div className={`p-4 rounded-xl border bg-warm-white animate-fade-in ${deepenMode === 'zoom_out' ? 'border-mosaic-teal/30' : 'border-mosaic-blue/20'}`}>
           <div className="flex items-start gap-3 mb-2">
-            <span className="text-mosaic-blue text-lg mt-0.5 shrink-0">💬</span>
+            <span className={`text-lg mt-0.5 shrink-0 ${deepenMode === 'zoom_out' ? 'text-mosaic-teal' : 'text-mosaic-blue'}`}>
+              {deepenMode === 'zoom_out' ? '🧭' : '💬'}
+            </span>
             <p className="font-serif text-[1rem] leading-relaxed text-mosaic-blue">{deepenQ}</p>
           </div>
-          <p className="text-xs text-text-muted font-sans mt-2">Talk it over together. There&apos;s no right answer.</p>
+          <p className="text-xs text-text-muted font-sans mt-2">
+            {deepenMode === 'zoom_out'
+              ? 'Step back together. There\'s no right answer.'
+              : 'Talk it over together. There\'s no right answer.'}
+          </p>
         </div>
       )}
 
@@ -196,7 +239,7 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
         </form>
       </div>
 
-      {/* Contribution option — only when the model said "I don't know" */}
+      {/* Contribution option */}
       {showContributeOption && !contributionSent && (
         <div className="p-4 rounded-xl border border-aged-gold/30 bg-warm-white">
           <div className="flex items-start gap-3 mb-2">

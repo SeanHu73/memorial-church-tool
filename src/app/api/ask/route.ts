@@ -104,6 +104,26 @@ Keep the question to 1-2 sentences. Make it genuinely interesting — something 
 KNOWLEDGE DATABASE:
 ${knowledgeDB}`;
 
+const ZOOM_OUT_PROMPT = `You are a thoughtful companion helping a pair of people exploring Stanford Memorial Church step back from close-in observation and see the bigger picture. They have been focused on specific objects and details for several inquiries in a row. Now it is time to widen the frame.
+
+Generate a question that pulls the group's attention away from the specific object they've been looking at and toward the bigger picture — how this place connects to the wider campus, the historical era, the broader themes of the Stanford story, or the world outside Memorial Church. The question should invite them to think about context, connections, and place-making.
+
+Reference something the learner can physically do — turn around, look across the Quad toward the Oval and the palm-lined approach, look up at the sky above the dome, think about what was happening in California in that era (the Gold Rush aftermath, the railroads, the 1906 earthquake reshaping the Bay Area), consider how a family's grief became a university that now educates tens of thousands.
+
+Vary the angle. Choose from:
+- Campus context: "Turn around and look back across the Oval toward the palms. The church sits at the head of the entire campus — why do you think the Stanfords made it the focal point rather than, say, the library or a lecture hall?"
+- Historical era: "Memorial Church was dedicated in 1903 — three years before the 1906 earthquake shook everything apart. What else do you think was being built in California at that moment?"
+- Thematic connection: "This whole building is a memorial to loss. How does a place that honours the dead end up being used daily by people who are very much alive?"
+- Outside-in: "If you walked off this Quad right now and told a friend what this church is, what would you say? How would you describe it without using the word 'church'?"
+
+Respond with ONLY raw JSON — no markdown, no code fences, no backticks:
+{"question":"..."}
+
+Keep the question to 1–2 sentences. Make it a question that genuinely pulls the frame wider.
+
+KNOWLEDGE DATABASE:
+${knowledgeDB}`;
+
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
@@ -134,11 +154,20 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // "Deepen" mode: generate a reflective question for the current location
-    if (mode === 'deepen') {
-      const deepenUserMsg = pinContext
-        ? `The pair is currently at: ${pinContext}. Generate a conversation-starting question about this specific location.`
-        : `Generate a conversation-starting question about Memorial Church.`;
+    // "Deepen" or "Zoom-out" mode: generate a question (reflective or bigger-picture)
+    if (mode === 'deepen' || mode === 'zoom_out') {
+      const isZoomOut = mode === 'zoom_out';
+      const systemPrompt = isZoomOut ? ZOOM_OUT_PROMPT : DEEPEN_PROMPT;
+
+      const userMsg = pinContext
+        ? `The pair is currently at: ${pinContext}. ${isZoomOut ? 'Generate a question that zooms out from this specific object toward the bigger picture.' : 'Generate a conversation-starting question about this specific location.'}`
+        : isZoomOut
+          ? `Generate a question that zooms out from Memorial Church toward the wider campus, era, or themes.`
+          : `Generate a conversation-starting question about Memorial Church.`;
+
+      const fallback = isZoomOut
+        ? 'Turn around and look back across the Quad. How does this church fit into the larger story of what the Stanfords built here?'
+        : "What details here surprised you the most? Talk about why.";
 
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -150,16 +179,13 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 300,
-          system: DEEPEN_PROMPT,
-          messages: [{ role: 'user', content: deepenUserMsg }],
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userMsg }],
         }),
       });
 
       if (!response.ok) {
-        return NextResponse.json(
-          { question: "What details here surprised you the most? Talk about why." },
-          { status: 200 }
-        );
+        return NextResponse.json({ question: fallback }, { status: 200 });
       }
 
       const data = await response.json();
@@ -167,9 +193,9 @@ export async function POST(req: NextRequest) {
       const cleaned = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
       try {
         const parsed = JSON.parse(cleaned);
-        return NextResponse.json({ question: parsed.question || "What do you notice here that you didn't expect?" });
+        return NextResponse.json({ question: parsed.question || fallback });
       } catch {
-        return NextResponse.json({ question: cleaned || "What do you notice here that you didn't expect?" });
+        return NextResponse.json({ question: cleaned || fallback });
       }
     }
 

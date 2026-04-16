@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { seedPins } from '@/lib/seed-pins';
+import { getPins } from '@/lib/pins-store';
 import { Pin } from '@/lib/types';
 import InquirySheet from '@/components/InquirySheet';
 import AskSheet from '@/components/AskSheet';
@@ -10,9 +11,17 @@ import AskSheet from '@/components/AskSheet';
 const Map = dynamic(() => import('@/components/Map'), { ssr: false });
 
 export default function Home() {
+  // Start with seed pins for instant render; replace with Firestore-merged pins once loaded.
+  const [pins, setPins] = useState<Pin[]>(seedPins);
   const [selectedPin, setSelectedPin] = useState<Pin | null>(null);
   const [askQuestion, setAskQuestion] = useState<string | null>(null);
   const [bottomBarQ, setBottomBarQ] = useState('');
+
+  useEffect(() => {
+    getPins().then(setPins).catch(() => {
+      // Already have seed pins as fallback — nothing to do.
+    });
+  }, []);
 
   const handlePinSelect = useCallback((pin: Pin) => {
     setSelectedPin(pin);
@@ -20,9 +29,9 @@ export default function Home() {
   }, []);
 
   const handleNavigateToPin = useCallback((pinId: string) => {
-    const pin = seedPins.find((p) => p.id === pinId);
+    const pin = pins.find((p) => p.id === pinId);
     if (pin) setSelectedPin(pin);
-  }, []);
+  }, [pins]);
 
   const handleAskQuestion = useCallback((question: string) => {
     setSelectedPin(null);
@@ -42,7 +51,7 @@ export default function Home() {
       {/* Map */}
       <div className="flex-1 relative">
         <Map
-          pins={seedPins}
+          pins={pins}
           selectedPinId={selectedPin?.id ?? null}
           onPinSelect={handlePinSelect}
         />

@@ -8,24 +8,30 @@
 
 ## DOMAIN 1: FOUNDING & PEOPLE
 
-### Entry 1.1 — The Chain of Grief That Built a University and a Church
-- **Topic:** founding, Stanford family, motivation
+### Entry 1.1 — The Stanfords: Railroad Wealth, Political Power, and the Birth of a Western University
+- **Topic:** founding, Stanford family, political and economic context, motivation
 - **Location:** `general`
-- **Era:** 1868–1903
+- **Era:** 1824–1905
 - **Type:** `fact`, `narrative`
 - **Inquiry categories:** `who`, `why`, `when`
-  - **who:** The Stanford family — Leland Sr. (railroad magnate, governor, senator), Jane Lathrop Stanford, Leland Jr. (died at 15)
-  - **why:** Grief over their son's death transformed into a mission — "the children of California shall be our children." The church was Jane's memorial to her husband after his death in 1893.
-  - **when:** Son died 1884, university founded 1885, opened 1891, Leland Sr. died 1893, estate released 1898, church designs submitted 1898, dedicated 1903, Jane died 1905
-- **Sources:** [Ref 6, 37, 80, 82, 85]
+  - **who:** Leland Stanford (1824–1893) — lawyer, Sacramento merchant, California's first Republican governor, U.S. Senator, president of the Central Pacific Railroad, one of the "Big Four" who built the western half of the transcontinental railroad. Jane Lathrop Stanford (1828–1905) — his wife and, after his death, sole steward of the university and founder of Memorial Church. Leland Stanford Jr. (1868–1884) — their only child, who died at fifteen.
+  - **why:** The university and the church were two sides of a single project: to bring an elite university to the American West, and to build it on a scale that rivalled the old institutions of the East Coast. The Stanfords' grief over their son's death in 1884 became the emotional catalyst, but the vision of a great western university had been forming for decades.
+  - **when:** Leland elected governor 1861, drove the golden spike 1869, elected U.S. Senator 1885, founded university 1885, university opened 1891, Leland died 1893, church designs submitted 1898, church dedicated 1903, Jane died 1905.
+- **Sources:** [Ref 6, 37, 80, 82, 85; Stanford's Mission bulletin; Chinese Railroad Workers in North America Project]
 
-Leland Stanford Jr. was born on May 14, 1868 — the only child of Leland and Jane Stanford, who had endured eighteen childless years of marriage. His father was a railroad magnate, former California governor, and U.S. senator. In 1884, the family was on a Grand Tour of Europe when the boy fell ill in Athens. They rushed him to Italy — Naples, then Rome, then Florence — where he died of typhoid fever on March 13, 1884, two months before his sixteenth birthday.
+Leland Stanford arrived in Sacramento in 1852 — a failed Wisconsin lawyer whose office had burned down — and built a fortune selling mining supplies to Gold Rush miners. Within a decade he was one of the most powerful men in California. In 1861 he helped found the state's Republican Party and was elected governor — the first Republican to hold the office. His two-year term coincided with the Civil War, and historians credit him with keeping California in the Union during a period when Southern sympathisers were organising to pull the state toward the Confederacy.
 
-The grief transformed the Stanfords. They decided that since they could not help their own son, "the children of California shall be our children." On November 11, 1885, they signed the Founding Grant establishing the Leland Stanford Junior University (still its legal name). The cornerstone was laid on May 14, 1887 — what would have been Leland Jr.'s nineteenth birthday. The university opened on October 1, 1891 with 555 students.
+That same year, Stanford and three business partners — Collis Huntington, Mark Hopkins, and Charles Crocker — founded the Central Pacific Railroad. They became known as the "Big Four." The Central Pacific would build the western half of the transcontinental railroad, tunnelling through the Sierra Nevada, crossing Nevada, and meeting the Union Pacific at Promontory Summit, Utah. On May 10, 1869, Stanford swung a silver mallet and drove a golden spike to mark the railroad's completion. The telegraph message that went out to the country was a single word: "DONE." It was arguably the first national mass media event in American history.
 
-When Leland Stanford Sr. died on June 21, 1893, the estate was tied up in probate and a federal lawsuit over railroad construction loans. Jane Stanford refused to close the university, funding faculty salaries from her personal monthly probate allowance. President David Starr Jordan later said that during those six years, "the future of a university hung by a single thread, the love of a good woman."
+The railroad made Stanford immensely rich. The labour that built it — roughly 90 percent of the western workforce — came from China. Between 10,000 and 15,000 Chinese workers at any given moment laid the tracks through the Sierra, hung from woven baskets to set explosives on granite cliffs, and died by the hundreds in avalanches and accidents. They were paid less than half of what white workers earned. Leland Stanford had run for governor on an anti-Chinese platform, calling the Chinese "the dregs of Asia" — but as president of the Central Pacific, he came to depend on their labour completely. In an 1865 letter to President Andrew Johnson, he wrote that completing the western portion of the railroad would have been "impossible" without them. That contradiction — a politician who built his fortune on the labour of a people he had publicly demonised — is part of the moral complexity of the Stanford story. The wealth that endowed the university and built this church came largely from their work.
 
-When the estate was finally released in 1898, Jane turned her attention to the church she and her husband had always envisioned as the campus centrepiece. She died on February 28, 1905, having overseen the church's dedication but not surviving to see the earthquake that would nearly destroy it thirteen months later.
+After his governorship, Stanford served as president of the Central Pacific (1861–1893) and, starting in 1868, the Southern Pacific Railroad as well. In 1885 the California legislature elected him to the U.S. Senate, a position he held until his death. He continued to run the railroads throughout his Senate term — an arrangement that would be illegal today.
+
+The idea of the university had been growing for years. The Stanfords had visited Harvard, Yale, MIT, Johns Hopkins, and especially Cornell (which would become Stanford's model). They saw that the great American universities were all in the East, and they wanted to change that. When their son died of typhoid in Florence in 1884, during a family Grand Tour, the grief gave their plans urgency. They decided that "the children of California shall be our children." On November 11, 1885, they signed the Founding Grant establishing the Leland Stanford Junior University — still its legal name. The cornerstone was laid on May 14, 1887, what would have been Leland Jr.'s nineteenth birthday.
+
+The university opened on October 1, 1891 with 555 students. It was designed to be radical for its era: co-educational from day one (unusual for a major university), non-denominational, and originally tuition-free. It offered engineering, agriculture, and practical sciences alongside the liberal arts — reflecting the Stanfords' belief that a university should "fit the graduate for some useful pursuit." It was conceived as the "Cornell of the West."
+
+When Leland died in 1893, the estate was tied up in probate and a federal lawsuit over railroad construction loans. Jane refused to close the university. For six years she funded faculty salaries from her personal monthly probate allowance — selling jewellery when she had to. President David Starr Jordan later said that during those years "the future of a university hung by a single thread, the love of a good woman." When the estate was released in 1898, Jane turned to the church the Stanfords had always envisioned as the campus centrepiece. It was dedicated in 1903. She died in 1905, thirteen months before the earthquake that would nearly destroy it.
 
 ---
 
@@ -47,6 +53,52 @@ She personally examined construction alongside the architect and builder, climbi
 She once said: "While my whole heart is in the university, my soul is in that church."
 
 Her funeral, in March 1905, took place in the church she had created. Clergy from several religious traditions officiated — a rabbi, a Presbyterian minister, a Methodist minister, an Episcopal bishop, and a Baptist minister — reflecting the non-sectarian philosophy she had insisted upon.
+
+---
+
+### Entry 1.2a — Founding Vision: A Great University for the West
+- **Topic:** university founding, educational philosophy, historical context
+- **Location:** `general`, `exterior_facade`
+- **Era:** 1885–1903
+- **Type:** `fact`, `interpretation`
+- **Inquiry categories:** `why`, `what`, `when`
+  - **why:** The Stanfords wanted to break higher education's concentration in the American Northeast. They envisioned an institution that would give California — and the whole American West — the kind of university that had only existed in the East or in Europe. The church was part of this project, not separate from it.
+  - **what:** Founding principles written into the 1885 Grant: co-educational (unusual for a major university at that time), non-sectarian, originally tuition-free, practical as well as liberal, aimed at "personal success and direct usefulness in life." Modelled on Cornell — nicknamed "the Cornell of the West" in its early years.
+  - **when:** Founding Grant signed November 11, 1885. Cornerstone laid May 14, 1887 (Leland Jr.'s would-be 19th birthday). University opened October 1, 1891. Church dedicated January 25, 1903.
+- **Sources:** [Stanford Founding Grant 1885, Stanford's Mission bulletin, Wikipedia: History of Stanford University]
+
+Before their son's death, Leland and Jane Stanford had already been studying American higher education. They visited Harvard, Yale, MIT, Johns Hopkins, and Cornell. They looked closely at Cornell in particular — a "land-grant" university that had pioneered practical education alongside the liberal arts, and that admitted women. What they saw at these institutions, and what they didn't see west of the Mississippi, shaped their vision. In 1885, the United States had no major university on the Pacific coast. The great centres of American learning were all clustered between Boston, New York, and Washington. The Stanfords wanted to change that.
+
+The Founding Grant of November 11, 1885 is the document that established what the university was supposed to be. It specified that the university should fit graduates "for some useful pursuit" — engineering, agriculture, the sciences, but also literature, music, and art. It required co-education ("afford equal facilities and give equal advantages in the University to both sexes"). It prohibited sectarian religious instruction. It was originally tuition-free. For its first several decades, the university was called "the Cornell of the West" — a name that reflected both its model and its ambition.
+
+The church was not a separate project from the university. The Stanfords conceived of it as the campus centrepiece from the beginning — the architectural and symbolic heart of the Main Quad. Its position is not an accident: from almost anywhere on the original campus, the church's facade is the first thing you see. Frederick Law Olmsted, the landscape architect who designed Central Park in New York, designed the campus around this arrangement. The church anchors the Quad; the Quad anchors the university. When Memorial Church was finally dedicated in 1903, the university was twelve years old and fighting for its financial survival. Jane Stanford's letter at the dedication called it the fulfilment of a plan that she and Leland had begun forming in 1887 — the same year as the university's cornerstone.
+
+The Stanfords built what they believed a great western university should have: a serious research institution, an art museum, a medical school (eventually), and a non-sectarian space for contemplation. Each of these decisions made a claim about what kind of institution was possible, and where. The church, in this sense, was a statement about the West — that it could sustain culture on the scale of the East, not as imitation but as genuine parallel. The 80-foot spire that once rose from its crossing, visible from miles away, was part of that statement.
+
+---
+
+### Entry 1.2b — The Chinese Railroad Workers Who Built the Stanford Fortune
+- **Topic:** labour history, wealth origins, historical justice
+- **Location:** `general`
+- **Era:** 1864–1869
+- **Type:** `fact`, `contested`, `absence`
+- **Inquiry categories:** `who`, `why`, `how`
+  - **who:** Between 10,000 and 20,000 Chinese migrant workers — most from the Pearl River Delta region of Guangdong province, southern China. Predominantly young, single men. At peak construction, roughly 90 percent of the Central Pacific's western workforce. Most of their names have been lost to history — the Central Pacific's payroll records listed only American contractors and Chinese "head men," not individual workers.
+  - **why:** The Central Pacific faced a labour shortage in 1864 as white workers left for Nevada silver mines. Without Chinese labour, the western half of the transcontinental railroad — and the fortune it generated — would not have existed. Leland Stanford had run for governor on an anti-Chinese platform, then as railroad president came to rely on Chinese workers entirely.
+  - **how:** They tunnelled through the Sierra Nevada granite with black powder and later nitroglycerin, hung from woven reed baskets to set explosives on sheer cliffs at Cape Horn, laid track through the worst winters on record, struck for equal wages in 1867 (and were starved into submission when the railroad cut off their food supply). Hundreds died in avalanches and explosions.
+- **Sources:** [Chinese Railroad Workers in North America Project (Stanford); Chang and Fishkin, The Chinese and the Iron Road, 2019; Stanford Report, "Giving voice to Chinese railroad workers," 2019]
+
+The wealth that built Memorial Church came, more than from any other single source, from the Central Pacific Railroad. And the Central Pacific was built, more than by any other group, by Chinese workers.
+
+When construction began in 1864, Leland Stanford's railroad was in trouble. White workers were abandoning the backbreaking work for the prospect of striking silver in Nevada. Less than fifty miles of track had been laid, and there was no clear path through the Sierra Nevada. The railroad's construction superintendent, Charles Crocker, tried hiring a few dozen Chinese workers from Gold Rush mining communities. They proved so effective that by late 1865 Chinese workers were the vast majority of the Central Pacific's labour force.
+
+They did the most dangerous work: tunnelling through solid granite, hanging from woven baskets on sheer cliffs at Cape Horn to set explosive charges, working through two of the worst winters on record in the Sierra Nevada, where avalanches and rockfalls killed them by the dozen. Historians estimate between several hundred and a thousand died during construction. They were paid roughly half of what white workers earned. In June 1867, about 3,000 of them went on strike for equal wages and the freedom to leave their jobs — one of the largest labour actions in 19th-century American history. The railroad broke the strike by cutting off food deliveries to their camps.
+
+On May 10, 1869, Leland Stanford drove the golden spike at Promontory Summit, Utah, to mark the railroad's completion. The famous photograph taken that day showed the railroad executives and the white workers; it was long believed that no Chinese workers were in it, though Stanford researchers have since identified at least two in the crowd. At the 100th anniversary celebration in 1969, the Chinese contribution was not mentioned at all.
+
+In 2012, Stanford launched the Chinese Railroad Workers in North America Project to recover this history. The project's scholars are explicit about why it matters to Stanford in particular: the railroad generated the fortune that built the university and the church. The workers who built that fortune received almost none of it. Their names, in most cases, are lost. No written documents produced by any Chinese railroad worker on the transcontinental line have ever been found.
+
+This is part of the history of Memorial Church. The building is a memorial — to a son, to a husband, to a vision of Western civic life. It is also, in a sense that was never intended, a monument to labour that has never been fully named. The Stanfords also employed Chinese workers on their Palo Alto estate, their vineyards, and their ranches for decades after the railroad was finished. Some of that labour, too, went into the grounds on which the church stands.
 
 ---
 
@@ -601,69 +653,67 @@ The clockwork and face from one of the clocks in Memorial Church's original 80-f
 
 ## DOMAIN 11: CONTEXTUAL PHOTO REGISTRY
 
-*This section maps database entries to available archival photographs that can enrich narrative answers. Photos tagged with `[FREELY USABLE]` can be downloaded and used without additional permissions. Photos tagged `[PERMISSION REQUIRED]` need written authorisation before use in a product. Photos tagged `[VISIT TO PHOTOGRAPH]` are physical archival holdings that Sean can photograph on-site at Stanford Special Collections.*
+*The archival photo inventory is maintained as a separate spreadsheet at `docs/archival_photo_inventory.xlsx`. That file is the authoritative source of truth for archival photo metadata — filenames, captions, credits, years, licences, database entry links, location tags, and download URLs. This section summarises what's available and how it maps to database entries. When a new photo is added, update the spreadsheet first, then verify the data flows into the app's pin data.*
 
-### Photo Set 11.1 — Library of Congress HABS Survey (HABS CA-2172-A)
-- **Licence:** `[FREELY USABLE]` — No known restrictions on U.S. Government images
-- **URL:** https://www.loc.gov/resource/hhh.ca1003.photos?st=gallery
-- **Available images (at least 18):**
-  - Front facade (northeast wall) → supports Entry 3.1 (facade mosaic)
-  - Front viewed from east and north → supports Entry 2.1 (architecture)
-  - Detail of front mosaic → supports Entry 3.1 (facade mosaic close-up)
-  - Detail of front entrance arcade → supports Entry 2.3 (Quad connection), Entry 3.6 (narthex)
-  - Southeast apsidiole → supports Entry 2.1 (architecture)
-  - Interior views → support Domain 3 (mosaics) and Domain 4 (stained glass)
-- **Cowork task:** Download full set, tag each with database entry ID and location tag.
+### What the archival collection covers (verified downloadable)
 
-### Photo Set 11.2 — Carol M. Highsmith Archive (Library of Congress)
-- **Licence:** `[FREELY USABLE]` — No known restrictions on publication
-- **Available images:**
-  - Memorial Church exterior, 2013 (LC-DIG-highsm-25336): https://www.loc.gov/item/2013634782/ → supports Entry 2.1
-  - Church through main gate (LC-DIG-highsm-14887): https://www.loc.gov/item/2011633081/ → supports Entry 2.3 (Quad context)
-- **Cowork task:** Download both, tag.
+**Pre-1906 church with original spire** — 4 images (Wikimedia Commons):
+- Frank Davey front-facing shot (1903) — `pre1906_church_spire_facade_davey.jpg`
+- Detroit Photographic Company colour photochrom (ca. 1903–1905) — only known colour image — `pre1906_church_spire_colour_photochrom.jpg`
+- Glass plate view through Main Quad arcade (ca. 1900, CHS) — `pre1906_church_spire_through_arcade.jpg`
+- Multi-panel image with Memorial Arch (1903) — `pre1906_church_and_arch_quad_1903.jpg`
+- Supports: Entry 1.1, 2.1, 2.2, 3.1, 6.1
 
-### Photo Set 11.3 — F.C. Winter Stereographs (Library of Congress, ca. 1907)
-- **Licence:** `[FREELY USABLE]` — No known restrictions on publication
-- **URL:** https://www.loc.gov/item/2007683331/
-- **Available images:** Interior views: organ loft from apse, pulpit, lectern, west transept, east wall, altar
-- **Significance:** These are from approximately 1907, showing the church in its earliest years (possibly during or just after reconstruction). Extremely rare interior documentation.
-- **Cowork task:** Download all available digitised stereographs, tag with interior location tags.
+**1906 earthquake and Memorial Arch**:
+- Keystone View Company stereograph of Memorial Arch ruins with church visible (Library of Congress) — `1906_earthquake_arch_ruins_stereograph.jpg`
+- Highsmith photo of current rebuilt arch — `memorial_arch_current_highsmith.jpg`
+- German postcard showing Memorial Court ca. 1908 reconstruction — `memorial_court_post1906_arch.jpg`
+- Supports: Entry 2.2, 6.1, 6.2
 
-### Photo Set 11.4 — California Historical Society via Calisphere (1906 earthquake)
-- **Licence:** `[PERMISSION REQUIRED]` — Restricted to research, teaching, private study
-- **Key image:** View through the damaged arch showing ruined steeple (1906): https://calisphere.org/item/1580c77a0729a43e374b76a78e50c2a6/
-- **Supports:** Entry 2.2 (lost spire), Entry 6.1 (1906 earthquake)
-- **Cowork task:** Download for research reference; flag for permissions inquiry if we want to use in product.
+**Jane Stanford portrait** — Illustrated biography portrait (1897, Wikimedia) — `jane_stanford_portrait_1897.jpg`
+- Supports: Entry 1.1, 1.2, and any entry referencing her
 
-### Photo Set 11.5 — Stanford Historical Photograph Collection (SC1071)
-- **Licence:** `[VISIT TO PHOTOGRAPH]` — Physical collection, Green Library West
-- **Key holdings:**
-  - Box 18, Folder 19: 1906 earthquake reconstruction photos → supports Entry 6.2
-  - Box 30, Folders 1–4: Post-1906 exterior (4 folders) → supports Domains 2, 3
-  - Box 30, Folders 5–6: Post-1906 interior (2 folders) → supports Domains 3, 4, 5
-  - Box 30, Folder 7: Stained glass windows → supports Domain 4
-- **Action:** Contact specialcollections@stanford.edu to schedule visit. Collection move in progress through 2026.
+**Current-day exterior (Highsmith, LOC)**:
+- Exterior 2013 — `highsmith_exterior_2013.jpg`
+- Church through Main Gate 2011 — `highsmith_main_gate_2011.jpg`
+- Supports: Entry 2.1, 2.3, 3.1
 
-### Photo Set 11.6 — Salviati & Co. Stanford Mosaic Collection
-- **Licence:** `[VISIT TO PHOTOGRAPH]` — Physical collection, Stanford Special Collections
-- **Key holdings:** Original Paoletti watercolours, hand-coloured photographs of mosaic designs, rejected facade designs
-- **Supports:** Domain 3 (mosaics), Entry 1.4 (Camerino/Salviati)
-- **Significance:** These are the original design documents for the mosaics. Showing a Paoletti watercolour alongside the finished mosaic would be extraordinary for the learning tool.
-- **Action:** Contact Stanford Special Collections for access.
+**HABS architectural survey (18 B&W + 2 colour, all Library of Congress, freely usable)**:
+- 2 colour transparencies (sp=1, sp=2): exterior front-northeast and east
+- 10 exterior angles (sp=3 to sp=13): all sides of the church, including facade, rear, apse, apsidioles, transepts, southeast side, fenestration details
+- 3 entrance/column details (sp=14 to sp=16): arcade stonework, carved capitals, column shafts
+- 4 interior shots (sp=17 to sp=20): nave looking toward altar, pulpit, northwest aisle with organ loft, southeast apsidiole
+- Supports: Entries 2.1, 2.3, 3.1, 3.3, 3.5, 5.1 (broad architectural documentation of the current church)
 
-### Photo Set 11.7 — Stanford Quake '06 Centennial Alliance
-- **Licence:** Status varies — images credited to Stanford News Service, Degenkolb Engineering
-- **URL:** https://quake06.stanford.edu/4-repair-monuments
-- **Available images:** Pre-1906 church (with spire), 1906 damage interior, 1989 damage (fallen mosaic fragments, displaced masonry), seismic strengthening diagrams
-- **Supports:** Entries 6.1, 6.2, 6.3
-- **Cowork task:** Download images from this page, noting credit lines. Flag for permissions inquiry.
+### What the archives do NOT have (gaps Sean's on-site visit addresses)
 
-### How contextual photos should be used in the tool
+These items were researched and confirmed unavailable in digital form:
 
-When the language model answers a learner's question, it can reference a contextual photo when:
-1. The answer describes something that is **no longer visible** (the spire, the apostle statues, the original dome fresco) — show what used to be there
+- **Dome fresco (God's eye with tear)** — destroyed 1906, no photograph found. Possibly in Stanford Special Collections SC0125 Box 3 but not confirmed.
+- **F.C. Winter stereographs (ca. 1907)** — catalogued at LOC but NOT digitised. Physical-only: LOT 13873 (S). Contact LOC Prints & Photographs for digitisation request or in-person research.
+- **1906 earthquake close-ups of church interior/facade** — Stanford Archives copyright. Available on quake06.stanford.edu but not freely downloadable. Contact archives@stanford.edu for educational licensing.
+- **1989 Loma Prieta damage** — Stanford News Service and Degenkolb Engineering copyright. Not freely downloadable.
+- **Salviati Venice studio / mosaic fabrication process** — no digitised images located. May be in Stanford Special Collections Salviati Collection (physical-only).
+- **Fisk-Nanney organ installation (1984)** — not found in free sources. C.B. Fisk, Inc. likely has photos. Contact directly.
+- **Stained glass detail** — Brooklyn Museum has Lamb's "Religion Enthroned" (object 28578) but not freely downloadable at high resolution. Best source: Sean's on-site photography.
+- **Paoletti watercolour designs** — Stanford Special Collections physical-only.
+- **Bancroft Library 1906 church ruins** — visible on Calisphere but restricted. Contact bancref@library.berkeley.edu.
+
+### Priority levels (from the spreadsheet)
+
+- **Priority 1 – CRITICAL**: Things that no longer exist (pre-1906 spire, Memorial Arch, dome fresco, 1906 damage). Most valuable for the app because learners are standing where these things were.
+- **Priority 2 – HIGH**: Key figures and historical views of things that still exist (Jane Stanford portrait, interior comparison shots, contemporary photos).
+- **Priority 3 – HABS**: Comprehensive architectural documentation (20 images). Freely usable.
+- **Priority 3 – SUPPLEMENTARY**: Nice-to-have context (Fisk organ, stained glass, Salviati). App works without them.
+
+### How the AI uses contextual photos
+
+When a learner's question triggers an answer, the system gathers photos whose `databaseEntries` field overlaps with the knowledge entries being referenced AND whose `physicalLocationTag` matches the learner's current location (or the location the answer is directing them to).
+
+The photo appears alongside the narrative answer when:
+1. The answer describes something **no longer visible** (the spire, the apostle statues, the original dome fresco) — show what used to be there
 2. The answer describes a **before/after** (pre-earthquake vs. post-reconstruction) — pair the archival image with the learner's current-day observation
 3. The answer describes a **process** (how mosaics were made, how the church was dismantled stone by stone) — show documentation of that process
-4. The answer describes a **detail that's hard to see** from ground level (pendentive angels, dome paintings, clerestory mosaics) — show a close-up from the archive
+4. The answer describes a **detail that's hard to see from ground level** (pendentive angels, dome paintings, clerestory mosaics) — show a close-up from the archive
 
 The photo should always be secondary to the physical observation. The narrative should say: "Look up at [X]. Now look at this photo from [year] — notice how [Y] has changed."

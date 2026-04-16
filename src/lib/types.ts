@@ -8,14 +8,32 @@ export interface PhotoAnnotation {
   clues: Partial<Record<QuestionCategory, string>>;
 }
 
+export type PhysicalLocationTag =
+  | 'exterior_facade'
+  | 'exterior_sides'
+  | 'exterior_rear'
+  | 'narthex'
+  | 'nave'
+  | 'nave_aisles'
+  | 'crossing'
+  | 'dome'
+  | 'chancel'
+  | 'transepts'
+  | 'side_chapel'
+  | 'organ_loft'
+  | 'general';
+
 export interface PinPhoto {
   url: string;
   type: 'onsite' | 'archival' | 'contributor';
   caption: string;
   credit: string;
-  source: string | null;    // URL of the original archive source (for archival)
-  year: string | null;      // when the photo was taken (for archival)
-  license: string | null;   // licence status (for archival)
+  source: string | null;           // URL of the original archive source (for archival)
+  year: string | null;             // when the photo was taken (for archival)
+  license: string | null;          // licence status (for archival)
+  physicalLocationTag: string;     // exterior_facade | narthex | nave | crossing | dome | chancel | transepts | side_chapel | organ_loft | general
+  databaseEntries: string[];       // knowledge entry IDs this photo illustrates (e.g., ["3.1", "6.1"])
+  categories: QuestionCategory[];  // which inquiry angles this photo primarily serves
   annotations: PhotoAnnotation[];
 }
 

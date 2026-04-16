@@ -15,11 +15,19 @@ The tool also serves as a prototype for the Provenance "Investigate the Collecti
 
 ## Design Principles
 
-### 1. Questions drive the experience; answers invoke the place
+### 1. Questions drive the experience; answers invoke the place; context reveals the bigger picture
 
 The tool poses questions to a group (likely a pair) to discuss *before* revealing more. Questions should direct attention toward physical observation of the place — what you can see, touch, notice, compare. The learner should be looking at Memorial Church, not reading a screen.
 
 Answers, when revealed, should be told as **narrative** — not encyclopedia entries. The tone should invoke imagination, excitement, and understanding by connecting the observable present to the invisible past. The reader should feel the weight of the stones, picture Jane Stanford climbing scaffolding with her parasol, hear the 4,500 pipes of the Fisk-Nanney organ filling the nave.
+
+**Context is a north star, not an afterthought.** The learning experience is not only about what sits directly in front of the learner — it's about how that object, detail, or space relates to the things around it, the time it comes from, and the broader historical currents that shape what we're seeing today. This is place-making and sense-making. The church is not an isolated building. It sits at the centre of the Main Quad, which connects to the Memorial Arch (destroyed 1906), which sits near the Clock Tower (containing the salvaged face of the lost spire), which relates to the Cantor Arts Center (built by the same Salviati artists), which connects back to Venice and to the Gilded Age American West. The pins on the map are not isolated stops — they are points in a web of relationships, and moving between them is how learners come to understand the whole.
+
+Context matters because it stirs the imagination. Seeing that a detail on a pendentive connects to a Byzantine church in Ravenna, or that the stones of the facade were shipped because San Jose quarries couldn't supply them fast enough, or that the same artists made the mosaics on the Cantor — these connections validate what the learner sees with the accumulated knowledge other humans have built about this place. They anchor the experience in history and community.
+
+**How this shows up in the inquiry loop:** the default question is always directly observational — look at this, notice that, touch this. But periodically (roughly every 2–3 inquiries, with some randomness so it doesn't feel like a preset pattern), the question should pull the learner back to see the bigger picture. What connects this to what you just saw? How does this fit into the wider campus? What was happening in the world when this was built? These zoom-out moments should not replace direct observation but punctuate it — shifting the focus from the object to the object-in-context, then back again.
+
+The implementation: after each direct-observation pin completes its inquiry loop, the system tracks how many consecutive direct-observation questions have been asked. On the 2nd, 3rd, or 4th (chosen randomly each time), the "Keep talking about this" option in the three-option ending is replaced by a "Step back and see the bigger picture" option — a question that connects what they just saw to something broader in time, place, or theme. The language model generates this broader question using the same knowledge base, but the system prompt flags it as a context-prompting response (not a direct-observation one). After the zoom-out, the pattern resets and the next few inquiries return to direct observation. This rhythm — close, close, pull back, close, close, pull back — mirrors how people actually learn to see a place.
 
 ### 2. The knowledge base is contained, not live
 
@@ -44,18 +52,21 @@ Photos are not a prerequisite for a pin to work. A pin with no photos should ren
 **Photo data model (per pin):**
 ```javascript
 photos: [{
-  url: string,
+  url: string,                    // path to file (e.g., "/photos/archival/jane_stanford_1897.jpg")
   type: "onsite" | "archival" | "contributor",
-  caption: string,
-  credit: string,          // photographer or archive name
-  source: string | null,   // URL of the original archive source (for archival)
-  year: string | null,     // when the photo was taken (for archival)
-  license: string | null,  // licence status (for archival)
-  annotations: [{          // observation hints attached to this specific photo
-    x: number,             // percentage position (0-100)
+  caption: string,                // what the learner reads when the photo appears
+  credit: string,                 // photographer or archive (e.g., "Carol M. Highsmith, 2013")
+  source: string | null,          // URL of the original archive source
+  year: string | null,            // when the photo was taken
+  license: string | null,         // licence status (e.g., "Public domain")
+  physicalLocationTag: string,    // exterior_facade | narthex | nave | crossing | dome | chancel | transepts | side_chapel | organ_loft | general
+  databaseEntries: string[],      // which knowledge base entries this photo illustrates (e.g., ["3.1", "6.1"])
+  categories: QuestionCategory[], // which inquiry angles this photo primarily serves (e.g., ["what", "when"] for a before/after photo)
+  annotations: [{                 // optional tap-to-reveal hints on specific points in the photo
+    x: number,                    // percentage position (0-100)
     y: number,
     caption: string,
-    categories: string[],  // ["who", "what", "when", etc.]
+    categories: string[],         // ["who", "what", "when", etc.]
     clues: {
       who?: string,
       what?: string,
@@ -67,6 +78,12 @@ photos: [{
   }]
 }]
 ```
+
+**Why the last three fields matter for the AI:**
+
+- `physicalLocationTag` lets the app surface the right photo when a learner is at a specific place in the church. A photo tagged `dome` should appear when someone is asking about the dome, regardless of which pin they started from.
+- `databaseEntries` tells the AI which photos illustrate which knowledge. When the AI's answer draws from Entry 3.1 (facade mosaic) and Entry 6.1 (1906 earthquake), the app can show photos linked to either entry — without the AI having to guess what to display.
+- `categories` at the photo level means a photo about "when the spire fell" primarily serves "when" and "what" questions. Combined with annotation-level categories, this gives the AI a two-tier signal: the photo as a whole has emphasis, and specific points within the photo have finer-grained emphasis.
 
 Knowledge entries should be tagged with physical locations (facade, narthex, nave, crossing, chancel, transepts, organ loft, etc.) so that questions, answers, and photos can be surfaced contextually as a learner moves through the space.
 
@@ -95,10 +112,10 @@ The model should not repeat the same type of follow-up question consecutively. I
 **Step E: The learner chooses what's next.**
 After the response and follow-up question, the learner sees three options:
 1. **A suggested place to look next** — a tappable card showing another pin with a teaser: "This connects to something you can see in the chancel..." Tapping this restarts the loop at Step A for the new location.
-2. **A personal/reflective question** — a tappable option that doesn't direct attention to a new place but instead invites reflection or discussion: "Talk with your partner about..." This leads to a response that doesn't require moving.
+2. **"Keep talking about this" OR "Step back and see the bigger picture"** — only one of these appears at a time. By default, the option is "Keep talking about this" — a reflective, personal, or theory-building question about the current location that doesn't require moving. But after 2–3 consecutive direct-observation inquiries (chosen randomly — 2, 3, or 4 — so the pattern doesn't feel preset), this option is replaced with "Step back and see the bigger picture" — a context-prompting question that pulls the learner's attention away from the immediate object and toward its place in the larger story. Examples: "What does this detail tell you about what was happening in California when this church was built?" or "You've been looking at the mosaic up close — now turn around and look at the Quad. How does this church fit into the campus around it?" After a zoom-out question is asked, the counter resets and the next few inquiries return to direct-observation defaults.
 3. **"Ask your own question"** — a text input where the learner types whatever they're curious about. The model finds the most relevant location in the database, directs the learner to look at that place (restarting at Step A), and generates a contextual response.
 
-The loop continues until the learner stops. Every path leads back to observation.
+The loop continues until the learner stops. Every path leads back to observation — but the rhythm of close-close-zoom-out ensures that learners don't get tunnel vision on a single object. They come to see the church as a web of relationships, not a sequence of isolated details.
 
 ### 5. Photo annotations as storyteller contributions
 
@@ -208,6 +225,48 @@ Each database entry and each photo annotation can have multiple category tags. T
 
 ---
 
+## How the Knowledge System Fits Together
+
+*This section explains how database entries, photos, pins, observation hints, and learner contributions all connect, and how the AI pulls from them to generate an answer.*
+
+The system has five layers of content. Each layer has its own purpose and tagging structure, but they all share one thing: physical location tags. A learner standing in the chancel should see questions, photos, hints, and answers that are anchored to the chancel.
+
+**Layer 1: Knowledge database entries** — The verified facts, stories, and interpretations. Each entry has an ID (e.g., `3.1`, `6.1`), a topic domain, a physical location tag, a knowledge type (fact/interpretation/anecdote/absence/contested), and inquiry category tags for the richer entries. This is what the AI reads to generate answers. The entries live in `src/lib/knowledge-db.ts`.
+
+**Layer 2: Pins** — The points on the map a learner can tap. Each pin corresponds to a physical location (narthex, chancel crossing, organ loft, etc.) and references one or more database entries. Pins live in `src/lib/seed-pins.ts`. Each pin has an `inquiry` field (the opening question) and an `answer` field (pre-written for the seed pins, generated by the AI for free-form questions).
+
+**Layer 3: Observation hints** — Pre-written clues attached to each pin, tagged by inquiry category. These tell the AI where to direct the group's attention before answering a specific type of question. When someone asks a "how" question, the `how` hint for the relevant pin is injected into the prompt so the AI can say "Together, look at the left edge of the mosaic and notice..." These live on pins in `seed-pins.ts`.
+
+**Layer 4: Photos** — Visual evidence attached to pins. Each photo has a type (onsite/archival/contributor), a caption, credit, source, licence, a physical location tag (so photos surface at the right place), linked database entry IDs (so the AI knows which photos illustrate which knowledge), and inquiry categories at the photo level. Photos can optionally have annotations — tap-targets on specific points within the photo, each with its own caption and category-tagged clues.
+
+**Layer 5: Learner contributions** — Unverified information submitted by learners when the AI doesn't know something. Stored in the `memorial-church-contributions` collection, isolated from the verified database. The AI never reads from this collection. Contributions are reviewed manually and, if verified, can be promoted into the main knowledge base.
+
+### How the AI pulls knowledge when answering
+
+When a learner asks a question, the system:
+
+1. **Classifies the question by category** (who/what/when/where/why/how) via `hint-matcher.ts`.
+2. **Identifies the relevant location** — either from the pin the learner tapped, or from the question content if they typed it freely.
+3. **Gathers relevant knowledge entries** from `knowledge-db.ts` matching the location and topic.
+4. **Gathers matching observation hints** from the pin for the classified category.
+5. **Gathers relevant photos** whose `physicalLocationTag` matches the location and whose `databaseEntries` overlap with the entries from step 3.
+6. **Constructs the system prompt** with all of this — knowledge entries, hints, photo captions, and instructions about category emphasis — and sends it to the model.
+7. **Returns a JSON response** with an observation (where to look) and an answer (the narrative).
+
+### What tagging you need to maintain
+
+For each new piece of content added to the system:
+
+- **New database entry**: give it a domain, physical location tag, type, inquiry category tags (at least for "key" entries — the AI uses these to differentiate responses), and sources.
+- **New pin**: give it a physical location tag and reference the relevant database entry IDs in its `relatedEntries` field.
+- **New observation hint**: attach it to a pin with a category tag and a `lookAt` + `clue` pair.
+- **New photo**: give it the archival/onsite/contributor type, a caption, physical location tag, linked database entry IDs, and inquiry categories. Archival photos that come from Cowork arrive with most of this already filled in (from the spreadsheet).
+- **New annotation on a photo**: add x/y coordinates, a caption, categories, and a one-sentence clue per category.
+
+The physical location tag is the most important field across all layers — it's what lets the system surface the right content at the right place.
+
+---
+
 ## Build Sequence
 
 1. ~~**Create this build guide**~~ ✅
@@ -254,8 +313,10 @@ Each database entry and each photo annotation can have multiple category tags. T
 
 ### What's NOT built yet
 - **Three-option inquiry loop ending** — currently only suggests the next pin. Needs: suggested place / keep talking / ask own question (Design Principle 4, Step E).
-- **Photos on pins** — pins are text-only. No on-site or archival photos displayed yet.
-- **Photo annotation display** — the annotation data model exists in seed-pins.ts but there's no UI for viewing annotations as hints on photos.
+- **Photos on pins** — pins are text-only. No on-site or archival photos displayed yet. Data model needs to support the array-based, multi-source photo architecture (Design Principle 3).
+- **Photo upload interface** — there is no way for anyone (Sean or future contributors) to upload photos to a pin through the app. Currently requires code changes. Needs: a contributor-facing UI where a user can select a pin, upload a photo (camera or gallery), set the type (onsite/archival/contributor), write a caption, and optionally add annotations.
+- **Photo annotation interface** — there is no UI for adding annotations to photos. Needs: a tap-to-annotate flow where a contributor taps a point on a photo, writes a caption, tags it with inquiry categories (who/what/when/where/why/how), and writes per-category clue sentences. This is how the observation hints get attached to specific visual evidence.
+- **Photo annotation display** — the annotation data model exists in seed-pins.ts but there's no explorer-facing UI for viewing annotations as hints on photos. Needs: subtle dots on photos that reveal captions when tapped, with a "Show hints" button.
 - **Learner contributions** — no `memorial-church-contributions` Firestore collection or submission UI.
 - **Pins are local only** — `memorial-church-pins` Firestore collection was never created; pins live in `seed-pins.ts`.
 - **No contributor interface** — adding new pins or observation hints requires code changes.
@@ -330,10 +391,21 @@ Currently, after the AI response, the app only suggests the next pin. This needs
 **Option 1: "See something connected"**
 A card showing the suggested next pin with a teaser (e.g., "This connects to something in the chancel..."). Tapping it loads the new pin's inquiry — same behaviour as the current "next pin" suggestion, but now it's one of three choices, not the only one.
 
-**Option 2: "Keep talking about this"**
-A card that, when tapped, sends a request to the Claude API asking for a personal/reflective or theory-building follow-up question about the CURRENT location. The response should NOT direct attention to a new place — it should deepen conversation where they are. The response also ends with the same three options, so the loop continues.
+**Option 2: "Keep talking about this" OR "Step back and see the bigger picture"** (alternating)
 
-For this option, add to the API call a flag like `mode: "deepen"` so the system prompt knows to generate a reflective question rather than an informational answer. The prompt for this mode should say: "Generate a conversation-starting question for a pair standing at [current pin location]. The question should invite personal reflection, theory-building, or historical imagination — NOT direct them to a new location. Keep it to 1-2 sentences."
+Only ONE of these appears at a time, based on an inquiry counter the app tracks.
+
+**Default — "Keep talking about this":**
+A card that, when tapped, sends a request to the Claude API asking for a personal/reflective or theory-building follow-up question about the CURRENT location. The response should NOT direct attention to a new place — it should deepen conversation where they are. Add `mode: "deepen"` to the API call so the system prompt knows to generate a reflective question rather than an informational answer.
+
+**Periodically — "Step back and see the bigger picture":**
+After every 2, 3, or 4 consecutive direct-observation inquiries (choose the number randomly each time so the pattern doesn't feel preset), replace the "Keep talking" option with a zoom-out option. When tapped, it sends `mode: "zoom_out"` to the API. The system prompt for this mode should say: "Generate a question that pulls the group's attention away from the specific object they've been looking at and toward the bigger picture — how this place connects to the wider campus, the historical era, the broader themes of the Stanford story, or the world outside Memorial Church. The question should invite them to think about context, connections, and place-making. Reference something the learner can physically do — turn around, look across the Quad, think about what was happening in California in [relevant era]. Keep it to 1–2 sentences."
+
+After a zoom-out response, reset the counter. The next few inquiries default back to "Keep talking about this."
+
+**Implementation detail:** Store the counter in component state or Firestore (per session). Increment it after every non-zoom-out inquiry. When it reaches the random target (2, 3, or 4), swap the UI button and send the `zoom_out` mode flag. On the next inquiry after a zoom-out, pick a new random target and start counting again.
+
+The response after either option ends with the same three options, so the loop continues.
 
 **Option 3: "Ask your own question"**
 A text input field. This already exists in AskSheet — but now it should also appear as an option at the end of every answer in InquirySheet. When typed from InquirySheet, it should:
@@ -341,7 +413,7 @@ A text input field. This already exists in AskSheet — but now it should also a
 2. If the model's answer involves a different physical location, direct the learner there (show the observation first, then the answer — same flow as AskSheet)
 3. If the model's answer is about the current location, show it inline and then show the three options again
 
-**Design:** The three options should be styled as soft, tappable cards in the warm palette. Option 1 gets a subtle arrow/direction icon. Option 2 gets a conversation/thought icon. Option 3 is a text input with a send button.
+**Design:** The three options should be styled as soft, tappable cards in the warm palette. Option 1 gets a subtle arrow/direction icon. Option 2 gets a conversation/thought icon when showing "Keep talking about this" and a zoom-out/horizon icon (a lens widening, or a compass rose) when showing "Step back and see the bigger picture" — the visual change signals the shift in depth. Option 3 is a text input with a send button.
 
 ### Change 2: Epistemic honesty in the system prompt
 
@@ -411,6 +483,9 @@ photos: {
   source: string | null;
   year: string | null;
   license: string | null;
+  physicalLocationTag: string;      // exterior_facade | narthex | nave | crossing | dome | chancel | transepts | side_chapel | organ_loft | general
+  databaseEntries: string[];        // knowledge entry IDs this photo illustrates (e.g., ["3.1", "6.1"])
+  categories: QuestionCategory[];   // which inquiry angles this photo primarily serves
   annotations: {
     x: number;
     y: number;
@@ -425,15 +500,101 @@ In `src/lib/seed-pins.ts`, set `photos: []` on each seed pin. Move any existing 
 
 A pin with an empty photos array must render and function identically to how it works now. No grey boxes, no "image coming soon," no visual change. The photo display component will be built in a later session after real images exist.
 
+**Important note on data ingestion:** The archival photos will arrive from Cowork as a spreadsheet (`docs/archival_photo_inventory.xlsx`) with columns that map directly to this data model — `filename`, `caption_for_app` (→ caption), `credit`, `year`, `license`, `archive_page_url` (→ source), `physical_location_tag` (→ physicalLocationTag), and `database_entries` (→ databaseEntries). The `categories` field is derived from the content — e.g., a pre-1906 spire photo is `["what", "when"]`. When photo ingestion is built in a future session, this spreadsheet becomes the source of truth.
+
+### Change 6: Admin photo upload and annotation interface (builder-only, no polish)
+
+Sean needs to be able to add photos (both on-site and archival) to pins himself, including annotating specific points on each photo. This is a builder/admin tool — it does NOT need to be polished, learner-friendly, or mobile-optimised. A simple form-based interface is fine. It lives on the same app but is accessed through a separate route or a hidden mode toggle.
+
+**Access pattern:**
+
+Create an admin route at `/admin` (or `/contribute`). No authentication gate for now — just a URL that learners won't stumble onto. Link to it from the main app with a small, unobtrusive "Admin" link in a corner, or make it unlinked and accessed by URL only. Sean will use it to add photos; learners won't see it.
+
+**Admin screen — photo upload flow:**
+
+The admin screen should have:
+1. A pin selector (dropdown listing all existing pins by title, plus an option to create a new pin)
+2. If an existing pin is selected: show a list of photos already on that pin, plus an "Add photo" button
+3. If "Add photo" is tapped or "Create new pin" is selected: show the photo form
+
+**Photo form fields (all editable, pre-filled where possible):**
+
+- **File upload:** camera or gallery. Uploads to Firebase Storage at `memorial-church/photos/[type]/[filename]`. Store the resulting URL.
+- **Type:** dropdown — "onsite" | "archival" | "contributor". Default to "onsite" (this is what Sean is adding today).
+- **Caption:** text area. "What the learner reads when the photo appears." Required.
+- **Credit:** text field. For onsite photos, default to "Sean Hu, [today's date]". For archival, free-text (e.g., "Library of Congress HABS Survey").
+- **Source URL:** text field. Optional for onsite, required for archival.
+- **Year:** text field. Optional for onsite (defaults to current year).
+- **License:** text field. Optional for onsite (defaults to "All rights reserved — creator's work"), required for archival.
+- **Physical location tag:** dropdown — the standard tags (exterior_facade, narthex, nave, crossing, dome, chancel, transepts, side_chapel, organ_loft, general). Pre-filled from the pin's location if known.
+- **Database entries:** multi-select or comma-separated text field — list the entry IDs this photo illustrates (e.g., "3.1, 6.1"). Show a helper list of entry IDs and titles on the side for reference.
+- **Categories:** checkboxes — who, what, when, where, why, how. Sean checks which inquiry angles this photo primarily serves.
+
+When submitted, the photo metadata is written to the pin's `photos` array in Firestore. The Firestore pin document is created if it doesn't exist (first write establishes the `memorial-church-pins` collection properly — currently pins are local-only).
+
+**Annotation interface (for tap-to-mark points on a photo):**
+
+After a photo is saved, the admin can optionally annotate it:
+
+1. The saved photo displays in a large preview.
+2. Sean taps anywhere on the image → a dot appears at that position. The x/y coordinates are stored as percentages (0-100) so they scale correctly on any screen size.
+3. An annotation form opens:
+   - **Caption:** what the learner would see when this dot is tapped (e.g., "The left side of the mosaic is slightly brighter — this is where the 1914 restoration begins").
+   - **Categories:** checkboxes for who/what/when/where/why/how.
+   - **Per-category clues:** for each checked category, a text area appears for Sean to write the category-specific clue sentence.
+   - **Save** or **Cancel.**
+4. After saving, the dot persists on the photo preview. Sean can tap it again to edit, or tap a new location to add another annotation.
+5. Multiple annotations per photo are supported. Each is stored as an object in the photo's `annotations` array.
+
+**What this session does NOT need to build:**
+
+- Learner-facing photo display — photos don't need to show up in the inquiry flow yet. That's a future session after Sean has uploaded real photos with annotations and can test the learner experience against real content.
+- Photo swiping/carousel — not yet.
+- Polished mobile UI — a desktop-friendly form is fine.
+- Authentication — any bad actor would need to guess the admin URL, which is enough for now.
+- The annotation reveal mechanism for learners ("Show hints" button) — builds later.
+
+**Firestore data layer:**
+
+Until now, pins have lived in `src/lib/seed-pins.ts`. With Change 6, the app needs to read pins from the `memorial-church-pins` Firestore collection (falling back to seed data if the collection is empty on first load). When Sean uses the admin interface, his changes write to Firestore, and the main app reads those changes on next load.
+
+This means: implement a simple `getPins()` function that tries Firestore first, falls back to `seed-pins.ts` if Firestore is empty or unavailable. Admin writes go to Firestore. This is the first time the app truly uses Firestore for pins, not just questions.
+
 ### Build priority for this session
 
-1. Three-option loop ending (Change 1) — this is the biggest UX gap
+1. Three-option loop ending with alternating zoom-out (Change 1) — the biggest UX gap
 2. Epistemic honesty update to system prompt (Change 2)
 3. Category-aware differentiation in system prompt (Change 4)
 4. Photo data model architecture (Change 5) — quick, no UI
 5. Learner contributions collection and UI (Change 3)
-6. Test: ask "who built this?" and "why was this built?" about the facade mosaic — responses should sound noticeably different
-7. Test: ask something outside the database (e.g., "what's the Wi-Fi password?") — should get an honest "I don't know" with a redirect
+6. Admin photo upload and annotation interface (Change 6) — so Sean can start adding his on-site photos
+7. Test: ask "who built this?" and "why was this built?" about the facade mosaic — responses should sound noticeably different
+8. Test: ask something outside the database (e.g., "what's the Wi-Fi password?") — should get an honest "I don't know" with a redirect
+9. Test: go through 4–5 inquiries and confirm the "Step back" option appears on one of them
+10. Test: open /admin, upload a test photo to the facade mosaic pin, add two annotations, confirm it's saved to Firestore
+
+---
+
+## Future Claude Code Session — Learner-Facing Photo Display
+
+*Build this AFTER Sean has uploaded real photos and annotations using the admin interface from Change 6. Needs real content to test against.*
+
+### Photo display on pins
+
+When a pin has photos in its `photos` array, display them in the inquiry view:
+- Show the primary photo (first in array) between the question and the "We've discussed it" button
+- If multiple photos exist, show a subtle dot indicator (not a carousel — keep it simple)
+- Swipe or tap to see additional photos
+- Each photo shows its caption below and a small source label: "Archival — [credit], [year]" or "On-site photo" or "Community contributed"
+- Archival photos used in AI answers should appear inline in the answer section when the narrative references something the archival photo shows
+
+### Annotation display (learner-facing)
+
+When an explorer views a photo that has annotations:
+- Small, subtle dots appear on the photo at annotation positions
+- A "Show hints" button below the photo reveals annotations one at a time
+- Each hint shows the caption and the relevant category clue based on the current question context
+- The AI's system prompt receives matching annotations as physical anchors (same mechanism as the current observation hints, but now attached to specific visual evidence in a specific photo)
 
 ---
 
