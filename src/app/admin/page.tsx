@@ -159,6 +159,7 @@ export default function AdminPage() {
           </p>
           <nav className="mt-3 text-sm flex gap-4">
             <button onClick={() => { setSelectedPinId(null); setView('pin-list'); setEditingPhotoIndex(null); }} className="text-blue-700 hover:underline">← All pins</button>
+            <a href="/admin/photos" className="text-blue-700 hover:underline font-semibold">📷 Photo library →</a>
             <a href="/" className="text-blue-700 hover:underline">Back to main app</a>
           </nav>
         </header>
