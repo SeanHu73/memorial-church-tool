@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import knowledgeDB from '@/lib/knowledge-db';
 import { findRelevantHints, formatHintsForPrompt, classifyQuestion } from '@/lib/hint-matcher';
-import { logQuestion } from '@/lib/firebase-admin';
+import { logToSheet } from '@/lib/sheets-logger';
 
 const SYSTEM_PROMPT = `You are a knowledgeable, warm companion to people exploring Stanford Memorial Church. They are standing in or near the church right now, in pairs or small groups. They have asked you a question. You answer using ONLY the knowledge database provided below.
 
@@ -210,12 +210,14 @@ export async function POST(req: NextRequest) {
       try {
         const parsed = JSON.parse(cleaned);
         const finalQuestion = parsed.question || fallback;
-        // Log deepen/zoom-out interactions to Firestore so user-testing data
-        // captures the full exploration path, not just standard questions.
-        logQuestion({
-          question: `[${mode}] ${pinContext || 'general'}`,
+        // Log the deepen/zoom-out interaction. Fire-and-forget with
+        // keepalive: true so the POST survives after we return.
+        logToSheet({
+          type: mode as 'deepen' | 'zoom_out',
+          question: mode,
           observation: null,
           answer: finalQuestion,
+          pinContext: pinContext || null,
           hintsUsed: 0,
           timestamp: new Date().toISOString(),
         });
@@ -225,10 +227,12 @@ export async function POST(req: NextRequest) {
         });
       } catch {
         const finalQuestion = cleaned || fallback;
-        logQuestion({
-          question: `[${mode}] ${pinContext || 'general'}`,
+        logToSheet({
+          type: mode as 'deepen' | 'zoom_out',
+          question: mode,
           observation: null,
           answer: finalQuestion,
+          pinContext: pinContext || null,
           hintsUsed: 0,
           timestamp: new Date().toISOString(),
         });
@@ -300,11 +304,15 @@ export async function POST(req: NextRequest) {
         observationEntries: Array.isArray(parsed.observationEntries) ? parsed.observationEntries : legacyEntries,
         answerEntries: Array.isArray(parsed.answerEntries) ? parsed.answerEntries : legacyEntries,
       };
-      // Log to Firestore (non-blocking)
-      logQuestion({
+      // Fire-and-forget log to Google Sheet. `keepalive: true` inside
+      // logToSheet lets the POST survive the serverless termination that
+      // previously dropped Firestore writes.
+      logToSheet({
+        type: 'ask',
         question,
         observation: result.observation,
         answer: result.answer,
+        pinContext: null,
         hintsUsed: hints.length,
         timestamp: new Date().toISOString(),
       });
@@ -316,10 +324,12 @@ export async function POST(req: NextRequest) {
         observationEntries: [] as string[],
         answerEntries: [] as string[],
       };
-      logQuestion({
+      logToSheet({
+        type: 'ask',
         question,
         observation: null,
         answer: result.answer,
+        pinContext: null,
         hintsUsed: hints.length,
         timestamp: new Date().toISOString(),
       });
