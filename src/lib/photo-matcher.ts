@@ -7,7 +7,13 @@
  *   1. Location match (mandatory, when currentLocation is provided):
  *      photo.physicalLocationTag === currentLocation OR 'general'
  *   2. Database entry overlap — strongest signal (humans tagged the photo
- *      against the entry the answer drew from)
+ *      against the entry the slot is about). CRITICAL: the observation slot
+ *      scores against `observationEntries` (the physical thing the learner
+ *      is being told to look at), while the answer slot scores against
+ *      `answerEntries` (the narrative content of the answer). This prevents
+ *      the observation photo from spoiling the answer — e.g., when the
+ *      observation says "find the plaque" but the answer is about Jane
+ *      Stanford, the observation photo should show the plaque, not Jane.
  *   3. Category match — preferred photos tagged for the question's category
  *   4. Type preference by slot:
  *      - observation slot prefers onsite (what they can see right now)
@@ -22,9 +28,10 @@ import { PinPhoto, QuestionCategory } from './types';
 
 export interface PhotoMatchInput {
   photos: PinPhoto[];
-  currentLocation: string | null;   // null = no location constraint (e.g., free-form ask)
-  entriesUsed: string[];            // knowledge entry IDs referenced in the answer
-  categories: QuestionCategory[];   // question categories (who/what/when...)
+  currentLocation: string | null;      // null = no location constraint (e.g., free-form ask)
+  observationEntries: string[];        // knowledge entry IDs for the physical feature the observation points at
+  answerEntries: string[];             // knowledge entry IDs the narrative answer drew from
+  categories: QuestionCategory[];      // question categories (who/what/when...)
 }
 
 export interface PhotoSelection {
@@ -58,8 +65,12 @@ function scorePhoto(
 ): number {
   let score = 0;
 
-  // 2. Database entry overlap — strongest signal (weight 1000 per match)
-  const entryOverlap = photo.databaseEntries.filter((e) => input.entriesUsed.includes(e)).length;
+  // 2. Database entry overlap — strongest signal (weight 1000 per match).
+  //    Each slot scores against its OWN entry list so the observation photo
+  //    illustrates the physical feature the learner is looking at, while the
+  //    answer photo illustrates the narrative content.
+  const slotEntries = slot === 'observation' ? input.observationEntries : input.answerEntries;
+  const entryOverlap = photo.databaseEntries.filter((e) => slotEntries.includes(e)).length;
   score += entryOverlap * 1000;
 
   // 3. Category overlap (weight 50 per match)

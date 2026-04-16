@@ -74,17 +74,30 @@ export default function PhotoDisplay({ photo, categories }: Props) {
 
   return (
     <div className="my-5 animate-fade-in">
-      {/* Photo frame — capped height so it doesn't dominate the middle of the sheet */}
-      <div className="relative rounded-xl overflow-hidden bg-sandstone-light/30 border border-sandstone-light/60">
+      {/*
+        Photo frame — uses `object-contain` and a flex-centered container so
+        photos of any aspect (tall portrait, wide landscape, square) fit
+        without cropping. Letterbox area uses the same sandstone background as
+        the rest of the card so it reads as a frame, not empty space. Cap at
+        50vh so even a tall portrait can't dominate the middle of a 390px-wide
+        phone.
+      */}
+      <div className="relative rounded-xl overflow-hidden bg-sandstone-light/30 border border-sandstone-light/60 flex items-center justify-center" style={{ maxHeight: '50vh' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={photo.url}
           alt={photo.caption || 'Memorial Church photograph'}
-          className="w-full h-auto max-h-[38vh] object-cover block"
+          className="max-w-full w-auto h-auto block"
+          style={{ maxHeight: '50vh' }}
           loading="lazy"
         />
 
-        {/* Annotation dots, shown once hints are revealed */}
+        {/* Annotation dots, shown once hints are revealed.
+            Positioned as percentages of the container (not the image), so
+            letterbox may shift dots slightly when the image is contained.
+            For most dots (which cluster near the middle of the subject),
+            this is acceptable; perfect alignment would require measuring the
+            rendered image bounds at runtime. */}
         {hintsShown && hasAnnotations && photo.annotations.map((ann, idx) => (
           <button
             key={idx}

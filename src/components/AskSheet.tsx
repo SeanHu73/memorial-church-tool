@@ -30,7 +30,8 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
   const [contributionText, setContributionText] = useState('');
   const [contributionSent, setContributionSent] = useState(false);
   const [offerZoomOut, setOfferZoomOut] = useState(false);
-  const [entriesUsed, setEntriesUsed] = useState<string[]>([]);
+  const [observationEntries, setObservationEntries] = useState<string[]>([]);
+  const [answerEntries, setAnswerEntries] = useState<string[]>([]);
   const [deepenEntriesUsed, setDeepenEntriesUsed] = useState<string[]>([]);
   const [allPins, setAllPins] = useState<Pin[]>(seedPins);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,10 +54,11 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
       selectPhotoForResponse({
         photos: allPhotos,
         currentLocation: null, // no specific location constraint for free-form Ask
-        entriesUsed,
+        observationEntries,
+        answerEntries,
         categories: questionCategories,
       }),
-    [allPhotos, entriesUsed, questionCategories]
+    [allPhotos, observationEntries, answerEntries, questionCategories]
   );
 
   const deepenPhoto = useMemo(() => {
@@ -64,7 +66,8 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
     const sel = selectPhotoForResponse({
       photos: allPhotos,
       currentLocation: null,
-      entriesUsed: deepenEntriesUsed,
+      observationEntries: [],
+      answerEntries: deepenEntriesUsed,
       categories: classifyQuestion(deepenQ),
     });
     return sel.answerPhoto;
@@ -90,7 +93,8 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
     setAnswer('');
     setQuestion(q);
     setDeepenQ(null);
-    setEntriesUsed([]);
+    setObservationEntries([]);
+    setAnswerEntries([]);
     setDeepenEntriesUsed([]);
     setContributionSent(false);
     scrollRef.current?.scrollTo(0, 0);
@@ -105,7 +109,11 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
       const data = await res.json();
       setAnswer(data.answer || '');
       setObservation(data.observation || null);
-      setEntriesUsed(Array.isArray(data.entriesUsed) ? data.entriesUsed : []);
+      // Prefer the new split fields; fall back to legacy entriesUsed if the
+      // API happens to return only the old shape (e.g. before redeploy).
+      const legacy = Array.isArray(data.entriesUsed) ? data.entriesUsed : [];
+      setObservationEntries(Array.isArray(data.observationEntries) ? data.observationEntries : legacy);
+      setAnswerEntries(Array.isArray(data.answerEntries) ? data.answerEntries : legacy);
       setPhase(data.observation ? 'observe' : 'answer');
       // Count this as an inquiry once we have the answer
       incrementCount();
@@ -113,7 +121,8 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
     } catch {
       setAnswer("I wasn't able to answer that right now. Try asking about something you can see in or around the church — the mosaics, windows, carvings, or the people who built it.");
       setObservation(null);
-      setEntriesUsed([]);
+      setObservationEntries([]);
+      setAnswerEntries([]);
       setPhase('answer');
     }
   };

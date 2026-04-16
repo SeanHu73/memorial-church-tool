@@ -118,27 +118,32 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
 
   // Photo matching: classify the inquiry question to get categories, then pick
   // the best observation/answer photo out of this pin's photos. The pin's own
-  // databaseEntryIds stand in for entriesUsed since the static inquiry was
-  // authored against those entries.
+  // databaseEntryIds stand in for both observation and answer entries since the
+  // static inquiry was authored against those entries; we don't have a per-slot
+  // split for static pins. (The AI-driven AskSheet does have a real split.)
   const photoCategories = useMemo(() => classifyQuestion(pin.inquiry.question), [pin.inquiry.question]);
   const photoSelection = useMemo(
     () =>
       selectPhotoForResponse({
         photos: pin.photos,
         currentLocation: pin.location.physicalArea,
-        entriesUsed: pin.databaseEntryIds,
+        observationEntries: pin.databaseEntryIds,
+        answerEntries: pin.databaseEntryIds,
         categories: photoCategories,
       }),
     [pin.photos, pin.location.physicalArea, pin.databaseEntryIds, photoCategories]
   );
 
   // Deepen / zoom-out photo — matched against the AI-generated question's entriesUsed.
+  // Deepen/zoom responses are single questions (no observation slot), so we use
+  // the one entries list for the answer slot only.
   const deepenPhoto = useMemo(() => {
     if (!deepenQ) return null;
     const sel = selectPhotoForResponse({
       photos: pin.photos,
       currentLocation: deepenMode === 'zoom_out' ? null : pin.location.physicalArea,
-      entriesUsed: deepenEntriesUsed,
+      observationEntries: [],
+      answerEntries: deepenEntriesUsed,
       categories: classifyQuestion(deepenQ),
     });
     return sel.answerPhoto;

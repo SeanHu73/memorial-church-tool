@@ -21,12 +21,15 @@ interface ContributionLog {
 }
 
 export async function logQuestion(entry: QuestionLog): Promise<void> {
-  if (!PROJECT_ID || !API_KEY) return;
+  if (!PROJECT_ID || !API_KEY) {
+    console.warn('[logQuestion] Skipped: NEXT_PUBLIC_FIREBASE_PROJECT_ID or NEXT_PUBLIC_FIREBASE_API_KEY is not set in this environment.');
+    return;
+  }
 
   const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/memorial-church-questions?key=${API_KEY}`;
 
   try {
-    await fetch(url, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -41,9 +44,16 @@ export async function logQuestion(entry: QuestionLog): Promise<void> {
         },
       }),
     });
-  } catch {
-    // Logging failure shouldn't break the user experience
-    console.error('Failed to log question to Firestore');
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      // Visible in Vercel function logs — most commonly a Firestore security
+      // rule rejection. Fix by allowing unauthenticated writes to
+      // memorial-church-questions (test config) or switching to a service
+      // account for production.
+      console.error(`[logQuestion] Firestore write failed (${res.status}):`, body.slice(0, 300));
+    }
+  } catch (err) {
+    console.error('[logQuestion] Network error writing to Firestore:', err);
   }
 }
 

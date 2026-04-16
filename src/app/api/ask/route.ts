@@ -9,11 +9,19 @@ YOUR CORE PRINCIPLE: Direct attention outward. The phone should send people towa
 
 HOW TO RESPOND:
 
-Respond with ONLY raw JSON — no markdown, no code fences, no backticks. Three fields:
+Respond with ONLY raw JSON — no markdown, no code fences, no backticks. Four fields:
 
-{"observation":"...or null","answer":"...","entriesUsed":["3.1","6.1"]}
+{"observation":"...or null","answer":"...","observationEntries":["2.4"],"answerEntries":["1.3","6.1"]}
 
-The "entriesUsed" field is a list of knowledge database entry IDs (e.g., "3.1", "6.1") that informed your answer. It is an internal field the learner never sees — the app uses it to pick a relevant photograph to display alongside your response. Be accurate. If your answer draws from Entry 3.1 on the facade mosaic and Entry 6.1 on the 1906 earthquake, list both: ["3.1","6.1"]. If your answer draws from nothing in the database (an "I don't know" response), return an empty array: [].
+CRITICAL: The two entry arrays are DIFFERENT and must be populated independently.
+
+"observationEntries" — list the knowledge database entry IDs that describe the PHYSICAL FEATURE you are directing the group to look at in the observation. If your observation says "look at the stone plaque on the facade," list the entry ID for the plaque (not for Jane Stanford's biography). This array should name the THING in the photograph the learner needs to find — not the topic of the answer. The app uses this list to pick a photograph of what they are being asked to observe.
+
+"answerEntries" — list the knowledge database entry IDs that informed the CONTENT of your narrative answer. For a "who built it?" question, the answer entries might include Jane Stanford's biography, the stonemasons, or the architects — whatever you actually drew the answer from. The app uses this list to pick a secondary photograph that illustrates the narrative.
+
+Example: question "Who built the church?" → observation points to the plaque on the facade → observationEntries lists the plaque/facade entry → answerEntries lists Jane Stanford + architect entries.
+
+If the observation is null, set observationEntries to []. If your answer draws from nothing in the database (an "I don't know" response), set answerEntries to [].
 
 OBSERVATION (strongly preferred — only null in rare cases):
 Your strong default is to include an observation. Before giving information, direct the group to look at something specific and physical in or around the church. This is how they learn — by seeing first, then understanding.
@@ -138,7 +146,8 @@ export async function POST(req: NextRequest) {
       {
         observation: 'Look up at the facade mosaic above the entrance — the largest mosaic in America when it was completed.',
         answer: "The knowledge base isn't connected yet — add your Anthropic API key to .env.local to enable questions.",
-        entriesUsed: [],
+        observationEntries: [],
+        answerEntries: [],
       },
       { status: 200 }
     );
@@ -200,12 +209,30 @@ export async function POST(req: NextRequest) {
       const cleaned = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
       try {
         const parsed = JSON.parse(cleaned);
+        const finalQuestion = parsed.question || fallback;
+        // Log deepen/zoom-out interactions to Firestore so user-testing data
+        // captures the full exploration path, not just standard questions.
+        logQuestion({
+          question: `[${mode}] ${pinContext || 'general'}`,
+          observation: null,
+          answer: finalQuestion,
+          hintsUsed: 0,
+          timestamp: new Date().toISOString(),
+        });
         return NextResponse.json({
-          question: parsed.question || fallback,
+          question: finalQuestion,
           entriesUsed: Array.isArray(parsed.entriesUsed) ? parsed.entriesUsed : [],
         });
       } catch {
-        return NextResponse.json({ question: cleaned || fallback, entriesUsed: [] });
+        const finalQuestion = cleaned || fallback;
+        logQuestion({
+          question: `[${mode}] ${pinContext || 'general'}`,
+          observation: null,
+          answer: finalQuestion,
+          hintsUsed: 0,
+          timestamp: new Date().toISOString(),
+        });
+        return NextResponse.json({ question: finalQuestion, entriesUsed: [] });
       }
     }
 
@@ -246,7 +273,8 @@ export async function POST(req: NextRequest) {
         {
           observation: null,
           answer: `API error (${response.status}): ${detail}`,
-          entriesUsed: [],
+          observationEntries: [],
+          answerEntries: [],
         },
         { status: 200 }
       );
@@ -263,10 +291,14 @@ export async function POST(req: NextRequest) {
 
     try {
       const parsed = JSON.parse(cleaned);
+      // Backward-compat: fall back to the legacy single entriesUsed field if
+      // the model returned it instead of the new split fields.
+      const legacyEntries = Array.isArray(parsed.entriesUsed) ? parsed.entriesUsed : [];
       const result = {
         observation: parsed.observation || null,
         answer: parsed.answer || "I couldn't find an answer to that. Try asking about something you can see — the mosaics, windows, or architecture.",
-        entriesUsed: Array.isArray(parsed.entriesUsed) ? parsed.entriesUsed : [],
+        observationEntries: Array.isArray(parsed.observationEntries) ? parsed.observationEntries : legacyEntries,
+        answerEntries: Array.isArray(parsed.answerEntries) ? parsed.answerEntries : legacyEntries,
       };
       // Log to Firestore (non-blocking)
       logQuestion({
@@ -281,7 +313,8 @@ export async function POST(req: NextRequest) {
       const result = {
         observation: null,
         answer: cleaned || "I couldn't find an answer to that.",
-        entriesUsed: [] as string[],
+        observationEntries: [] as string[],
+        answerEntries: [] as string[],
       };
       logQuestion({
         question,
@@ -298,7 +331,8 @@ export async function POST(req: NextRequest) {
       {
         observation: null,
         answer: "Something went wrong. Try asking a simpler question about what you can see in the church.",
-        entriesUsed: [],
+        observationEntries: [],
+        answerEntries: [],
       },
       { status: 200 }
     );
