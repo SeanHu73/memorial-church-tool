@@ -1,11 +1,19 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Pin } from '@/lib/types';
+import { Pin, Photo, PinPhoto, SessionMemory } from '@/lib/types';
 import { seedPins } from '@/lib/seed-pins';
 import { getPins } from '@/lib/pins-store';
-import { incrementCount, resetCounter, shouldOfferZoomOut } from '@/lib/inquiry-counter';
-import { selectPhotoForResponse, collectAllPhotos } from '@/lib/photo-matcher';
+import { getPhotos } from '@/lib/photos-store';
+import {
+  loadSessionMemory,
+  saveSessionMemory,
+  recordTurn,
+  isZoomOutAvailable,
+  addOpenZoomOutQuestion,
+} from '@/lib/session-memory';
+import { selectPhotoForResponse } from '@/lib/photo-matcher';
+import { collectAllPinPhotos } from '@/lib/photo-retrieval';
 import { classifyQuestion } from '@/lib/hint-matcher';
 import PhotoDisplay from './PhotoDisplay';
 
@@ -29,20 +37,28 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
   const [deepenLoading, setDeepenLoading] = useState(false);
   const [contributionText, setContributionText] = useState('');
   const [contributionSent, setContributionSent] = useState(false);
-  const [offerZoomOut, setOfferZoomOut] = useState(false);
   const [observationEntries, setObservationEntries] = useState<string[]>([]);
   const [answerEntries, setAnswerEntries] = useState<string[]>([]);
   const [deepenEntriesUsed, setDeepenEntriesUsed] = useState<string[]>([]);
   const [allPins, setAllPins] = useState<Pin[]>(seedPins);
+  const [allPhotos, setAllPhotos] = useState<Photo[]>([]);
+  const [sessionMemory, setSessionMemory] = useState<SessionMemory>(() => loadSessionMemory());
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Persist session memory whenever it changes.
+  useEffect(() => {
+    saveSessionMemory(sessionMemory);
+  }, [sessionMemory]);
+
+  const offerZoomOut = useMemo(() => isZoomOutAvailable(sessionMemory), [sessionMemory]);
 
   // Find a suggested next pin (pick a random one for free-form questions)
   const suggestedPin: Pin | null = seedPins.length > 0 ? seedPins[Math.floor(Math.random() * seedPins.length)] : null;
 
-  // Photo matching: free-form Ask queries cross every pin's photos, since
-  // the question may reference anything in the church or the wider campus.
-  const allPhotos = useMemo(() => collectAllPhotos(allPins), [allPins]);
+  // Photo matching: free-form Ask queries cross every pin's photos via the
+  // new collection (with embedded fallback for pre-migration pins).
+  const allPinPhotos = useMemo(() => collectAllPinPhotos(allPins, allPhotos), [allPins, allPhotos]);
 
   const questionCategories = useMemo(
     () => (question ? classifyQuestion(question) : []),
@@ -52,33 +68,33 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
   const photoSelection = useMemo(
     () =>
       selectPhotoForResponse({
-        photos: allPhotos,
+        photos: allPinPhotos as PinPhoto[],
         currentLocation: null, // no specific location constraint for free-form Ask
         observationEntries,
         answerEntries,
         categories: questionCategories,
       }),
-    [allPhotos, observationEntries, answerEntries, questionCategories]
+    [allPinPhotos, observationEntries, answerEntries, questionCategories]
   );
 
   const deepenPhoto = useMemo(() => {
     if (!deepenQ) return null;
     const sel = selectPhotoForResponse({
-      photos: allPhotos,
+      photos: allPinPhotos as PinPhoto[],
       currentLocation: null,
       observationEntries: [],
       answerEntries: deepenEntriesUsed,
       categories: classifyQuestion(deepenQ),
     });
     return sel.answerPhoto;
-  }, [deepenQ, deepenEntriesUsed, allPhotos]);
+  }, [deepenQ, deepenEntriesUsed, allPinPhotos]);
 
   useEffect(() => {
-    setOfferZoomOut(shouldOfferZoomOut());
-    // Pull the latest pins (including Firestore-uploaded photos) so the matcher
-    // has the full photo pool, not just the seed baseline.
-    getPins().then(setAllPins).catch(() => {
-      // Already have seed as fallback
+    // Pull the latest pins (Firestore overrides) and the standalone photo
+    // collection in parallel. Both have safe fallbacks if Firestore is down.
+    Promise.allSettled([getPins(), getPhotos()]).then(([pinsR, photosR]) => {
+      if (pinsR.status === 'fulfilled') setAllPins(pinsR.value);
+      if (photosR.status === 'fulfilled') setAllPhotos(photosR.value);
     });
     if (initialQuestion) ask(initialQuestion);
     else inputRef.current?.focus();
@@ -99,25 +115,46 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
     setContributionSent(false);
     scrollRef.current?.scrollTo(0, 0);
 
+    // Capture memory state at request time. Updates to memory from this
+    // turn won't apply until after the response lands.
+    const memSnapshot = sessionMemory;
+    const categoriesAtAsk = classifyQuestion(q);
+
     try {
       const res = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: q }),
+        body: JSON.stringify({ question: q, sessionMemory: memSnapshot }),
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
-      setAnswer(data.answer || '');
-      setObservation(data.observation || null);
-      // Prefer the new split fields; fall back to legacy entriesUsed if the
-      // API happens to return only the old shape (e.g. before redeploy).
+      const finalAnswer = data.answer || '';
+      const finalObservation = data.observation || null;
       const legacy = Array.isArray(data.entriesUsed) ? data.entriesUsed : [];
-      setObservationEntries(Array.isArray(data.observationEntries) ? data.observationEntries : legacy);
-      setAnswerEntries(Array.isArray(data.answerEntries) ? data.answerEntries : legacy);
-      setPhase(data.observation ? 'observe' : 'answer');
-      // Count this as an inquiry once we have the answer
-      incrementCount();
-      setOfferZoomOut(shouldOfferZoomOut());
+      const obsEntries = Array.isArray(data.observationEntries) ? data.observationEntries : legacy;
+      const ansEntries = Array.isArray(data.answerEntries) ? data.answerEntries : legacy;
+      const anchor = typeof data.anchorUsed === 'string' && data.anchorUsed.trim() ? data.anchorUsed.trim() : null;
+      const quotations = Array.isArray(data.quotationsUsed) ? data.quotationsUsed.filter((s: unknown): s is string => typeof s === 'string' && !!s.trim()) : [];
+
+      setAnswer(finalAnswer);
+      setObservation(finalObservation);
+      setObservationEntries(obsEntries);
+      setAnswerEntries(ansEntries);
+      setPhase(finalObservation ? 'observe' : 'answer');
+
+      // Update session memory with this turn. "Substantive" = the model
+      // didn't bail out with an "I don't know" template.
+      const substantive = !isIDontKnow(finalAnswer);
+      setSessionMemory((prev) =>
+        recordTurn(prev, {
+          substantive,
+          anchorUsed: anchor,
+          quotationsUsed: quotations,
+          category: categoriesAtAsk[0] ?? null,
+          entriesUsed: Array.from(new Set([...obsEntries, ...ansEntries])),
+          location: null, // free-form ask isn't tied to a specific location
+        })
+      );
     } catch {
       setAnswer("I wasn't able to answer that right now. Try asking about something you can see in or around the church — the mosaics, windows, carvings, or the people who built it.");
       setObservation(null);
@@ -156,20 +193,33 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
           question: kind,
           mode: kind,
           pinContext: `Memorial Church (general area)`,
+          sessionMemory,
         }),
       });
       const data = await res.json();
-      setDeepenQ(data.question || (kind === 'zoom_out'
+      const finalQuestion = data.question || (kind === 'zoom_out'
         ? 'Turn around and look back across the Quad. How does this church fit into the larger story of what the Stanfords built here?'
-        : "What details here surprised you the most?"));
-      setDeepenEntriesUsed(Array.isArray(data.entriesUsed) ? data.entriesUsed : []);
+        : "What details here surprised you the most?");
+      const entries = Array.isArray(data.entriesUsed) ? data.entriesUsed : [];
 
-      if (kind === 'zoom_out') {
-        resetCounter();
-      } else {
-        incrementCount();
-      }
-      setOfferZoomOut(shouldOfferZoomOut());
+      setDeepenQ(finalQuestion);
+      setDeepenEntriesUsed(entries);
+
+      setSessionMemory((prev) => {
+        let next = recordTurn(prev, {
+          substantive: true,
+          entriesUsed: entries,
+          location: null,
+        });
+        if (kind === 'zoom_out') {
+          next = addOpenZoomOutQuestion(next, {
+            question: finalQuestion,
+            requiredCoverage: entries,
+            turnAsked: next.substantiveTurnCount,
+          });
+        }
+        return next;
+      });
     } catch {
       setDeepenQ(kind === 'zoom_out'
         ? 'Step back and look at the whole building. What would be missing from this campus if the church weren\'t here?'
@@ -227,7 +277,7 @@ export default function AskSheet({ initialQuestion, onClose, onNavigateToPin }: 
         </button>
       )}
 
-      {/* Option 2: Keep talking OR Step back */}
+      {/* Option 2: Keep talking OR Step back — coverage-gated */}
       {!deepenQ ? (
         offerZoomOut ? (
           <button

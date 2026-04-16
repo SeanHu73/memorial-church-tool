@@ -132,3 +132,47 @@ export interface Contribution {
   timestamp: string;
   verified: boolean;
 }
+
+/**
+ * Per-session conversational memory. Persisted to sessionStorage so it
+ * survives reloads but resets when the tab closes. The API route receives
+ * this on every /api/ask call and uses it to:
+ *   - prevent the model from recycling the same anchor or quotation
+ *   - vary question approach across turns
+ *   - gate the "Step back" zoom-out option on coverage
+ *   - resurface deferred zoom-out questions once enough has been covered
+ *
+ * Sets are serialised as arrays in storage. Use the helpers in
+ * `session-memory.ts` to load/save/update; don't mutate this directly.
+ */
+export interface SessionMemory {
+  recentObservationAnchors: string[];   // most recent first, capped at 3
+  recentQuotations: string[];           // most recent first, capped at 3
+  recentQuestionCategories: QuestionCategory[]; // most recent first, capped at 5
+  entriesEverUsed: string[];            // ever-seen knowledge entry IDs (acts as a Set)
+  locationsEverDiscussed: string[];     // ever-seen physicalLocationTag / pin areas
+  substantiveTurnCount: number;         // turns where the model gave a real answer
+  openZoomOutQuestions: OpenZoomOutQuestion[];
+}
+
+export interface OpenZoomOutQuestion {
+  question: string;
+  requiredCoverage: string[]; // entry IDs the question depends on
+  turnAsked: number;          // substantiveTurnCount value at time it was asked
+}
+
+/**
+ * Shape of the JSON the model is asked to return on standard /api/ask.
+ * `anchorUsed` is the short noun phrase naming the physical thing the
+ * observation points at (e.g. "the facade plaque"). `quotationsUsed` is
+ * any direct quotes embedded in the answer. Both feed into the recycled
+ * content checks in validateResponse().
+ */
+export interface AskResponse {
+  observation: string | null;
+  answer: string;
+  observationEntries: string[];
+  answerEntries: string[];
+  anchorUsed: string | null;
+  quotationsUsed: string[];
+}

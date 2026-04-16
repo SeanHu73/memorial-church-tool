@@ -1,9 +1,17 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Pin } from '@/lib/types';
-import { incrementCount, resetCounter, shouldOfferZoomOut } from '@/lib/inquiry-counter';
+import { Pin, Photo, PinPhoto, SessionMemory } from '@/lib/types';
+import {
+  loadSessionMemory,
+  saveSessionMemory,
+  recordTurn,
+  isZoomOutAvailable,
+  addOpenZoomOutQuestion,
+} from '@/lib/session-memory';
 import { selectPhotoForResponse } from '@/lib/photo-matcher';
+import { getPhotosForPin } from '@/lib/photo-retrieval';
+import { getPhotos } from '@/lib/photos-store';
 import { classifyQuestion } from '@/lib/hint-matcher';
 import PhotoDisplay from './PhotoDisplay';
 
@@ -21,34 +29,74 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
   const [deepenQ, setDeepenQ] = useState<string | null>(null);
   const [deepenMode, setDeepenMode] = useState<'deepen' | 'zoom_out'>('deepen');
   const [deepenLoading, setDeepenLoading] = useState(false);
-  const [deepenAnswer, setDeepenAnswer] = useState<string | null>(null);
-  const [deepenObservation, setDeepenObservation] = useState<string | null>(null);
   const [deepenPhase, setDeepenPhase] = useState<'idle' | 'question' | 'loading' | 'observe' | 'answer'>('idle');
   const [deepenEntriesUsed, setDeepenEntriesUsed] = useState<string[]>([]);
   const [contributionText, setContributionText] = useState('');
   const [contributionSent, setContributionSent] = useState(false);
-  const [offerZoomOut, setOfferZoomOut] = useState(false);
+  const [sessionMemory, setSessionMemory] = useState<SessionMemory>(() => loadSessionMemory());
+  const [allPhotos, setAllPhotos] = useState<Photo[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Pull all photos from the new collection on mount. Empty array (and
+  // therefore the embedded-fallback path in getPhotosForPin) is used until
+  // this resolves. Failures are silent — the fallback covers them.
+  useEffect(() => {
+    getPhotos().then(setAllPhotos).catch(() => {});
+  }, []);
+
+  // Reset per-pin UI state. We do NOT clear sessionMemory here — that
+  // persists across pins for the duration of the tab.
   useEffect(() => {
     setRevealed(false);
     setDeepenPhase('idle');
     setDeepenQ(null);
-    setDeepenAnswer(null);
-    setDeepenObservation(null);
     setDeepenMode('deepen');
     setDeepenEntriesUsed([]);
     setContributionSent(false);
-    setOfferZoomOut(shouldOfferZoomOut());
     scrollRef.current?.scrollTo(0, 0);
   }, [pin.id]);
 
+  // Keep sessionMemory in localStorage in lockstep with React state.
+  useEffect(() => {
+    saveSessionMemory(sessionMemory);
+  }, [sessionMemory]);
+
+  const offerZoomOut = useMemo(() => isZoomOutAvailable(sessionMemory), [sessionMemory]);
+
   const close = () => { setClosing(true); setTimeout(onClose, 300); };
+
+  // Photos available for this pin via the new retrieval helper.
+  const pinPhotos = useMemo(() => getPhotosForPin(pin, allPhotos), [pin, allPhotos]);
+
+  const photoCategories = useMemo(() => classifyQuestion(pin.inquiry.question), [pin.inquiry.question]);
+
+  const photoSelection = useMemo(
+    () =>
+      selectPhotoForResponse({
+        photos: pinPhotos as PinPhoto[],
+        currentLocation: pin.location.physicalArea,
+        observationEntries: pin.databaseEntryIds,
+        answerEntries: pin.databaseEntryIds,
+        categories: photoCategories,
+      }),
+    [pinPhotos, pin.location.physicalArea, pin.databaseEntryIds, photoCategories]
+  );
 
   const reveal = () => {
     setRevealed(true);
-    incrementCount();
-    setOfferZoomOut(shouldOfferZoomOut());
+    // Static (non-AI) inquiry reveal: count it as a substantive turn so the
+    // coverage gate progresses even on seed-pin browsing. We pass the pin's
+    // categories + entries + area so the model later sees full coverage.
+    setSessionMemory((prev) =>
+      recordTurn(prev, {
+        substantive: true,
+        category: photoCategories[0] ?? null,
+        entriesUsed: pin.databaseEntryIds,
+        location: pin.location.physicalArea,
+        // No anchor/quotation tracking for static inquiries — they're
+        // pre-authored and don't risk recycling against AI output.
+      })
+    );
     setTimeout(() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 80);
   };
 
@@ -69,22 +117,37 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
           question: kind,
           mode: kind,
           pinContext: `${pin.title} (${pin.location.physicalArea.replace(/_/g, ' ')})`,
+          sessionMemory,
         }),
       });
       const data = await res.json();
-      setDeepenQ(data.question || (kind === 'zoom_out'
+      const finalQuestion = data.question || (kind === 'zoom_out'
         ? 'Turn around and look back across the Quad. How does this church fit into the larger story of what the Stanfords built here?'
-        : "What details here surprised you the most?"));
-      setDeepenEntriesUsed(Array.isArray(data.entriesUsed) ? data.entriesUsed : []);
+        : "What details here surprised you the most?");
+      const entries = Array.isArray(data.entriesUsed) ? data.entriesUsed : [];
+
+      setDeepenQ(finalQuestion);
+      setDeepenEntriesUsed(entries);
       setDeepenPhase('question');
 
-      // If this was a zoom-out, reset the counter now; otherwise increment after a beat
-      if (kind === 'zoom_out') {
-        resetCounter();
-      } else {
-        incrementCount();
-      }
-      setOfferZoomOut(shouldOfferZoomOut());
+      // Record the deepen/zoom turn in memory. Zoom-out questions are
+      // additionally tracked in openZoomOutQuestions so we can resurface
+      // them later once coverage has grown.
+      setSessionMemory((prev) => {
+        let next = recordTurn(prev, {
+          substantive: true,
+          entriesUsed: entries,
+          location: kind === 'zoom_out' ? null : pin.location.physicalArea,
+        });
+        if (kind === 'zoom_out') {
+          next = addOpenZoomOutQuestion(next, {
+            question: finalQuestion,
+            requiredCoverage: entries,
+            turnAsked: next.substantiveTurnCount,
+          });
+        }
+        return next;
+      });
     } catch {
       setDeepenQ(kind === 'zoom_out'
         ? 'Step back and look at the whole building. What would be missing from this campus if the church weren\'t here?'
@@ -116,38 +179,20 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
 
   const areaLabel = pin.location.physicalArea.replace(/_/g, ' ');
 
-  // Photo matching: classify the inquiry question to get categories, then pick
-  // the best observation/answer photo out of this pin's photos. The pin's own
-  // databaseEntryIds stand in for both observation and answer entries since the
-  // static inquiry was authored against those entries; we don't have a per-slot
-  // split for static pins. (The AI-driven AskSheet does have a real split.)
-  const photoCategories = useMemo(() => classifyQuestion(pin.inquiry.question), [pin.inquiry.question]);
-  const photoSelection = useMemo(
-    () =>
-      selectPhotoForResponse({
-        photos: pin.photos,
-        currentLocation: pin.location.physicalArea,
-        observationEntries: pin.databaseEntryIds,
-        answerEntries: pin.databaseEntryIds,
-        categories: photoCategories,
-      }),
-    [pin.photos, pin.location.physicalArea, pin.databaseEntryIds, photoCategories]
-  );
-
   // Deepen / zoom-out photo — matched against the AI-generated question's entriesUsed.
   // Deepen/zoom responses are single questions (no observation slot), so we use
   // the one entries list for the answer slot only.
   const deepenPhoto = useMemo(() => {
     if (!deepenQ) return null;
     const sel = selectPhotoForResponse({
-      photos: pin.photos,
+      photos: pinPhotos as PinPhoto[],
       currentLocation: deepenMode === 'zoom_out' ? null : pin.location.physicalArea,
       observationEntries: [],
       answerEntries: deepenEntriesUsed,
       categories: classifyQuestion(deepenQ),
     });
     return sel.answerPhoto;
-  }, [deepenQ, deepenEntriesUsed, deepenMode, pin.photos, pin.location.physicalArea]);
+  }, [deepenQ, deepenEntriesUsed, deepenMode, pinPhotos, pin.location.physicalArea]);
 
   // Check if an answer looks like an "I don't know" response
   const isIDontKnow = (text: string) => {
@@ -179,7 +224,7 @@ export default function InquirySheet({ pin, onClose, onNavigateToPin, onAskQuest
         </button>
       )}
 
-      {/* Option 2: Keep talking OR Step back — alternates based on counter */}
+      {/* Option 2: Keep talking OR Step back — coverage-gated */}
       {offerZoomOut ? (
         <button
           onClick={() => handleDeepenOrZoom('zoom_out')}

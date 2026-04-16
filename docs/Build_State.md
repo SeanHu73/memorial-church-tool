@@ -1,28 +1,34 @@
 # Build State — Memorial Church Tool
 
 *Handoff document for the next Claude Code session. Last updated 2026-04-16
-after the photo-centric admin revamp and `photo_extraction_v1` migration.
-Read this instead of re-discovering the codebase.*
+after Change 7 retrieval cutover and Change 8 (session memory + post-response
+validation + coverage-based zoom-out). Read this instead of re-discovering
+the codebase.*
 
 ---
 
 ## 1. What's Built
 
 ### Changes 1–6 (from the build guide) — all complete
-- **Change 1** — Three-option inquiry loop ending with alternating "Keep talking" / "Step back" based on `inquiry-counter.ts` (random 2–4 direct inquiries between zoom-outs).
+- **Change 1** — Three-option inquiry loop ending with alternating "Keep talking" / "Step back". The `inquiry-counter.ts` random rhythm is **gone** as of Change 8 — coverage-based gating in `session-memory.ts::isZoomOutAvailable()` replaces it.
 - **Change 2** — Epistemic honesty rules baked into the system prompt in `src/app/api/ask/route.ts`.
 - **Change 3** — Learner contributions: `memorial-church-contributions` collection + UI path in `InquirySheet.tsx` / `AskSheet.tsx` when the model admits a gap. Writes via `/api/contribute`.
 - **Change 4** — Category-aware response differentiation (who/what/when/where/why/how) in the system prompt.
 - **Change 5** — Photo data model: `PinPhoto` shape with `type`, `physicalLocationTag`, `databaseEntries`, `categories`, `annotations`, plus `PhotoAnnotation` with per-category clues.
 - **Change 6** — Admin photo upload + annotation at `/admin` (see legacy pin-by-pin UI still present in `src/app/admin/page.tsx`). Firebase Storage under `memorial-church/photos/[type]/...`. Tap-to-annotate with per-category clues. First session where pins move from `seed-pins.ts` into Firestore.
 
-### Change 7 — Learner-facing photo display: **built but not yet cut over to the new photos collection**
-- `src/lib/photo-matcher.ts` exists with `selectPhotoForResponse()` and the full ranking logic (location → database-entry overlap → category → slot-based type preference → annotation tiebreaker). Critically, the matcher scores the observation slot against `observationEntries` and the answer slot against `answerEntries` separately, so observation photos don't spoil answers.
-- `src/components/PhotoDisplay.tsx` renders a single photo with numbered annotation dots, source attribution line, and a "Show hints" button that reveals category-appropriate clues.
-- `InquirySheet.tsx` and `AskSheet.tsx` both wire `selectPhotoForResponse()` into the observation slot, answer slot, and the follow-up "Deepen" / "Ask me something else" flows.
-- `src/app/api/ask/route.ts` returns `observationEntries` + `answerEntries` (the system prompt asks the model to list them). Client falls back to a legacy `entriesUsed` field for older responses.
+### Change 7 — Learner-facing photo display + retrieval cutover: **complete**
+- `src/lib/photo-matcher.ts` ranks photos: location → database-entry overlap → category → slot-based type preference → annotation tiebreaker. Observation slot scores against `observationEntries`; answer slot scores against `answerEntries` so observation photos don't spoil answers.
+- `src/components/PhotoDisplay.tsx` renders a single photo with numbered annotation dots, source attribution line, and "Show hints" button revealing category-appropriate clues.
+- **Cutover (this session)**: `src/lib/photo-retrieval.ts::getPhotosForPin(pin, allPhotos)` and `collectAllPinPhotos(pins, allPhotos)` now resolve photos from the standalone `memorial-church-photos` collection. Priority: `pin.photoIds` → inverse `photo.linkedPinIds.includes(pin.id)` → embedded `pin.photos` legacy fallback. `InquirySheet.tsx` / `AskSheet.tsx` use these instead of reading `pin.photos` directly.
+- `src/app/api/ask/route.ts` returns `observationEntries` + `answerEntries`. Client still falls back to a legacy `entriesUsed` field for older responses. (See Change 8 below for the additional `anchorUsed` / `quotationsUsed` fields.)
 
-**The gap**: `selectPhotoForResponse()` currently reads `pin.photos` (embedded), not the new `memorial-church-photos` collection. Retrieval cutover is still pending — see §3.
+### Change 8 — Session memory, post-response validation, coverage-based zoom-out: **complete**
+- **`src/lib/types.ts::SessionMemory`** — recent anchors (cap 3), recent quotations (cap 3), recent question categories (cap 5), `entriesEverUsed[]`, `locationsEverDiscussed[]`, `substantiveTurnCount`, `openZoomOutQuestions[]`. `AskResponse` now includes `anchorUsed: string | null` and `quotationsUsed: string[]`.
+- **`src/lib/session-memory.ts`** — sessionStorage persistence (`mc_session_memory_v1`), `loadSessionMemory()`, `saveSessionMemory()`, `recordTurn()`, `addOpenZoomOutQuestion()`, `isZoomOutAvailable()` (≥2 substantive turns AND ≥2 entries-or-locations covered).
+- **`src/app/api/ask/route.ts`** — accepts `sessionMemory` in body. Injects "SESSION SO FAR" block into the system prompt with recent anchors/quotations/categories/locations + turn count. The system prompt asks the model to return `anchorUsed` + `quotationsUsed` in the JSON response. After each model call, `validateResponse()` checks: word count >120, recycled anchor (case-insensitive), recycled quotation (`similarQuote()` substring matcher), banned phrases (`delve`, `tapestry`, `rich history`, `nestled`, `great question`, `let me break this down`, `here's the thing`). On failure the route appends the assistant's reply + a corrective user turn and retries up to 2× before shipping the last response. Zoom-out mode receives a `COVERAGE SO FAR` block listing entries + locations covered so the bridging question is concrete.
+- **`InquirySheet.tsx` / `AskSheet.tsx`** — load `SessionMemory` via `loadSessionMemory()`, persist on every change. Threading `sessionMemory` into every `/api/ask` request. After each turn (including static reveal-answer in InquirySheet), call `recordTurn()` to update memory. The "Step back and see the bigger picture" option is gated by `isZoomOutAvailable(sessionMemory)`. Zoom-out questions are recorded in `openZoomOutQuestions` with their required coverage.
+- **Retired**: `src/lib/inquiry-counter.ts` deleted. The localStorage random-counter is gone — gating is purely coverage-based now.
 
 ### Admin photo-library revamp (this session) — complete
 - **`/admin/photos`** — photo-centric library grid: search by caption/keyword/entry, filter by type, filter by pin (including "unattached"). Persistent "Migration artifacts" row when the flag is set, with "Download migration log" button.
@@ -42,29 +48,33 @@ Read this instead of re-discovering the codebase.*
 
 ## 2. What's In Progress
 
-**Nothing half-modified.** Working tree is clean apart from:
-- `.claude/settings.local.json` (local agent config, never committed).
-- `docs/.~lock.archival_photo_inventory.xlsx#` (Excel lock file, ignore).
+**Nothing half-modified.** Change 7 retrieval cutover and Change 8 (session memory + post-response validation + coverage-based zoom-out) just landed in this session and are uncommitted. Modified / new / deleted:
+- **Modified**: `src/lib/types.ts`, `src/app/api/ask/route.ts`, `src/components/InquirySheet.tsx`, `src/components/AskSheet.tsx`, `docs/Build_State.md`, `docs/Memorial_Church_Build_Guide.md`.
+- **New**: `src/lib/session-memory.ts`, `src/lib/photo-retrieval.ts`.
+- **Deleted**: `src/lib/inquiry-counter.ts` (random rhythm replaced by coverage-based gating).
+- Plus the usual locals: `.claude/settings.local.json` (never committed), `docs/.~lock.archival_photo_inventory.xlsx#` (Excel lock, ignored).
 
-All recent commits (last four: `daadc62`, `d64b18a`, `cd85d89`, `7521854`) are pushed to `origin/master`. `npx tsc --noEmit` is clean, `npx next build` is clean.
+`npx tsc --noEmit` is clean, `npx next build` is clean, `npm run lint` shows 10 problems (all pre-existing — verified by stashing changes and re-running; baseline was 12, so this session is a net improvement of 2).
 
 ---
 
 ## 3. What's Pending
 
-### Change 7 retrieval cutover (the real remaining work)
-The learner-facing photo display works, but it's still reading the embedded `pin.photos` array. To finish Change 7 properly:
-1. Update `selectPhotoForResponse()` in `photo-matcher.ts` (or its callers) to read from `memorial-church-photos` via `getPhotos()` + filter by `linkedPinIds`.
-2. Pull `pin.photoIds` as the authoritative list when present; fall back to `pin.photos` if it isn't.
-3. Once stable, delete the `photo-pin-sync.ts` mirror and the embedded `pin.photos` field. This is a second migration (`photo_embedding_removal_v1`) — don't do it casually.
+### Eventual `pin.photos` removal (`photo_embedding_removal_v1`)
+Now that retrieval reads `memorial-church-photos` via `photo-retrieval.ts`, the embedded `pin.photos` array is dead weight kept only as the third-tier fallback. Once Sean has confirmed the new retrieval path is solid in production, a second migration can:
+1. Delete `photo-pin-sync.ts` and stop double-writing.
+2. Strip `pin.photos` and `pin.photoIds` (or keep `photoIds` as the canonical link) from every pin doc.
+3. Remove the legacy `pin.photos` branch from `getPhotosForPin()` and the `PinPhoto` type itself.
 
-### Change 8 — Cowork archival spreadsheet ingestion (implied, not formally spec'd)
-Build guide lines 324 and 673 refer to this: ingest the 30+ archival photos Cowork curated (`docs/archival_photo_inventory.xlsx`) automatically instead of by hand. The HABS + Highsmith + Calisphere bytes are already under `public/photos/archival/` and registered in `archival-manifest.ts`, so "Change 8" at this point is mostly: compare the spreadsheet columns to what's already in the manifest, fill in missing metadata fields, and decide whether the bulk-import should move from the legacy `/admin` pin-walk to a new pass that writes directly into `memorial-church-photos`.
+Don't do this casually — the learner app would lose photos for any pin that hasn't yet been re-extracted.
+
+### Cowork archival spreadsheet ingestion
+Build guide lines 324 and 673 refer to ingesting the 30+ archival photos Cowork curated (`docs/archival_photo_inventory.xlsx`) automatically instead of by hand. The HABS + Highsmith + Calisphere bytes are already under `public/photos/archival/` and registered in `archival-manifest.ts`, so the remaining work is: compare the spreadsheet columns to what's already in the manifest, fill in missing metadata fields, and decide whether the bulk-import should move from the legacy `/admin` pin-walk to a new pass that writes directly into `memorial-church-photos`.
 
 ### Smaller loose ends
-- **Pin `photoIds` from first failed migration run**: pins 1–4 briefly had `photoIds: []` stamped on them before the successful retry overwrote them with real IDs. Cosmetic only; learner app reads `pin.photos`.
-- **Delete unused `_reused` and `useMemo` imports audit** — already done, mentioned only so next session doesn't re-lint.
-- **Pilot testing** — still blocked on Sean's verification pass through the photo library content.
+- **Pin `photoIds` from first failed migration run**: pins 1–4 briefly had `photoIds: []` stamped on them before the successful retry overwrote them with real IDs. Cosmetic only — retrieval falls through to inverse `linkedPinIds` lookup.
+- **Pilot testing** — still blocked on Sean's verification pass through the photo library content + a real walk-through of the Ask flow now that session memory is enforced.
+- **Firebase Storage upload diagnosis** (deferred from earlier this session) — uploads were stuck due to suspected CORS + bucket project mismatch. Picked back up only when needed.
 
 ---
 
@@ -101,7 +111,7 @@ Rules are permissive per-collection (test-mode pattern). There are now five sibl
 ## 5. Known Issues
 
 - **No authentication on `/admin`.** The URL is unlinked from the main app but not gated. Fine for a solo builder tool; needs a proper check before public launch.
-- **`pin.photos` is still the retrieval source** for the learner app. Edits through `/admin/photos` are mirrored back automatically, but the legacy `/admin` pin-by-pin form still writes only to `pin.photos` — those edits won't appear in `/admin/photos` until the pin's URL list gets re-extracted. Easy to forget.
+- **Retrieval now reads `memorial-church-photos`** via `photo-retrieval.ts`, but the embedded `pin.photos` array is still written by the legacy `/admin` pin-by-pin form and still kept in sync by `photo-pin-sync.ts` as the last-resort fallback. Any photo that only exists in the embedded array (and was never extracted into the standalone collection) will still render via the legacy fallback — easy to forget when debugging missing photos.
 - **Photo doc IDs are UUIDs**, not URL hashes. Dedupe is by URL *content*, not ID, so two concurrent admin sessions uploading the same URL could race and produce two Photo docs. Low probability for a solo tool; worth knowing.
 - **Migration flag won't unblock if you need to re-run.** Currently there's no UI to delete `memorial-church-migrations/photo_extraction_v1`; if you genuinely need to re-run the migration, delete the doc in the Firebase console first.
 - **TypeScript/lint clean, no test suite.** There are no automated tests; verification has been manual via `npx tsc --noEmit` + `npx next build` + clicking around. A test harness is a future task.
@@ -126,30 +136,37 @@ Rules are permissive per-collection (test-mode pattern). There are now five sibl
 | `docs/migration_log_photo_extraction_v1.md` | Log from the successful migration |
 | `docs/pin_backup_20260416.json` | Pre-migration pin snapshot (from first failed run — no mutations had occurred) |
 
+### New this session (Change 7 cutover + Change 8)
+| File | Purpose |
+|------|---------|
+| `src/lib/session-memory.ts` | sessionStorage-backed `SessionMemory` helpers: `loadSessionMemory`, `saveSessionMemory`, `recordTurn`, `addOpenZoomOutQuestion`, `isZoomOutAvailable` (≥2 substantive turns AND ≥2 entries-or-locations). |
+| `src/lib/photo-retrieval.ts` | `getPhotosForPin(pin, allPhotos)` + `collectAllPinPhotos(pins, allPhotos)`. Three-tier resolution: `pin.photoIds` → inverse `photo.linkedPinIds.includes(pin.id)` → embedded `pin.photos` legacy. |
+
 ### Existing key files
 | File | Purpose |
 |------|---------|
-| `src/app/api/ask/route.ts` | Claude API endpoint + system prompt; emits `observationEntries` / `answerEntries` |
+| `src/app/api/ask/route.ts` | Claude API endpoint + system prompt; emits `observationEntries` / `answerEntries` / `anchorUsed` / `quotationsUsed`; runs `validateResponse()` + retry loop (max 2) and threads `SessionMemory` from the client into the prompt. |
 | `src/app/api/contribute/route.ts` | Writes to `memorial-church-contributions` |
 | `src/app/admin/page.tsx` | Legacy pin-by-pin admin (still used for bulk archival import) |
 | `src/app/page.tsx` | Main map orchestration |
 | `src/app/globals.css` | Palette, `body { overflow: hidden; height: 100dvh }` |
 | `src/components/Map.tsx` | Google Maps with 3D view + geolocation |
-| `src/components/InquirySheet.tsx` | Pin-based inquiry sheet (photo-aware) |
-| `src/components/AskSheet.tsx` | Free-form question sheet (photo-aware) |
+| `src/components/InquirySheet.tsx` | Pin-based inquiry sheet. Loads photos via `getPhotos()` + `getPhotosForPin()`. Threads `SessionMemory`, gates zoom-out via `isZoomOutAvailable()`. |
+| `src/components/AskSheet.tsx` | Free-form question sheet. Parallel `Promise.allSettled([getPins(), getPhotos()])`. Threads `SessionMemory` into every `/api/ask`. Records anchor + quotations + entries after each turn. |
 | `src/components/PhotoDisplay.tsx` | Learner-facing photo renderer with annotation dots |
 | `src/components/ServiceWorkerRegistrar.tsx` | PWA service worker |
-| `src/lib/types.ts` | `Pin`, `PinPhoto`, `Photo`, `PhotoAnnotation`, `QuestionCategory`, etc. |
+| `src/lib/types.ts` | `Pin`, `PinPhoto`, `Photo`, `PhotoAnnotation`, `QuestionCategory`, `SessionMemory`, `OpenZoomOutQuestion`, `AskResponse`, etc. |
 | `src/lib/pins-store.ts` | `getPins` / `savePin` against `memorial-church-pins` |
 | `src/lib/seed-pins.ts` | 4-pin fallback when Firestore is empty |
 | `src/lib/knowledge-db.ts` | Inlined knowledge DB as a TS string constant |
 | `src/lib/hint-matcher.ts` | Question → category + hint injection |
-| `src/lib/inquiry-counter.ts` | Random 2–4 direct inquiries before zoom-out |
-| `src/lib/photo-matcher.ts` | `selectPhotoForResponse()` + `collectAllPhotos()` |
+| `src/lib/photo-matcher.ts` | `selectPhotoForResponse()` (slot-aware ranking against `observationEntries` / `answerEntries`). |
 | `src/lib/archival-manifest.ts` | Static archival-photo manifest for bulk import |
 | `src/lib/firebase.ts` | Client init (Firestore + Storage) |
 | `src/lib/firebase-admin.ts` | Question logging via REST |
 | `src/lib/sheets-logger.ts` | Google Sheets logger for learner interactions |
+
+**Removed this session**: `src/lib/inquiry-counter.ts` (random 2–4 rhythm replaced by coverage-based gating in `session-memory.ts`).
 
 ---
 
@@ -190,7 +207,7 @@ Any new collection requires a new `match` block before reads/writes work.
 - `npx tsc --noEmit` — clean.
 - `npx next build` — clean, 8 routes (static: `/`, `/admin`, `/admin/photos`, `/admin/photos/new`, `/_not-found`; dynamic: `/admin/photos/[id]`, `/api/ask`, `/api/contribute`).
 - `npm run dev` — starts on `localhost:3000` via Turbopack.
-- `npm run lint` — clean.
+- `npm run lint` — 10 problems, all pre-existing (verified by stashing this session's changes; baseline was 12, so net improvement of 2).
 
 ### Required `.env.local`
 ```
@@ -220,7 +237,7 @@ No `npm install` needed unless `package.json` changes. No SDK or CLI outside the
 - Archival photos served from `/public/photos/archival/*` (Vercel CDN). Firebase Storage holds admin uploads under `memorial-church/photos/[type]/...`.
 - PWA manifest is wired up (`src/app/layout.tsx` sets `manifest: '/manifest.json'`).
 
-### What works on the live site
+### What works on the live site (last deployed commit)
 - Map + all 4 pins.
 - Inquiry flow (pin tap → observe → answer → loop ending).
 - Ask flow (free-form question → observe → answer, with deepen + zoom-out).
@@ -231,10 +248,11 @@ No `npm install` needed unless `package.json` changes. No SDK or CLI outside the
 - Learner contribution writes.
 - Question + interaction logging.
 
-### What hasn't been exercised yet
-- The Change 7 retrieval cutover (reading from `memorial-church-photos` instead of `pin.photos`).
-- Any photo added *only* through `/admin/photos/new` that doesn't go through the bulk-import manifest or pre-existing embedded arrays. The sync mirror should handle it; needs a real test.
+### What hasn't been exercised yet (Change 7 cutover + Change 8 — uncommitted)
+- The new photo-retrieval path (`getPhotosForPin` reading the standalone `memorial-church-photos` collection). Build is green and types check, but no real walk-through has been done. Risk surface: pins with no `photoIds` and no `linkedPinIds` from the inverse lookup — those should still render via the legacy `pin.photos` fallback, but worth confirming.
+- Session-memory persistence + post-response validation on a real Ask flow. The validate/retry loop is server-side and will silently retry up to 2× on banned phrases / recycled anchors / recycled quotations / >120-word answers; whether it actually catches what we want it to catch needs a real conversation to verify.
+- Coverage-based zoom-out gating (`isZoomOutAvailable`). Needs a multi-turn Ask session to confirm it offers "Step back" only after ≥2 substantive turns + ≥2 entries-or-locations covered.
 
 ---
 
-*End of handoff. Recent commits on master: `7521854` (admin scroll), `cd85d89` (migration artifacts), `d64b18a` (log download UI), `daadc62` (photo library core).*
+*End of handoff. Recent commits on master: `374566e` (gitignore office locks + local perms), `7754217` (this Build_State doc itself, prior version), `7521854` (admin scroll), `cd85d89` (migration artifacts). Change 7 cutover + Change 8 work is uncommitted in the working tree.*

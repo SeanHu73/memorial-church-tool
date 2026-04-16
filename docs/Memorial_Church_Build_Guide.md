@@ -25,9 +25,9 @@ Answers, when revealed, should be told as **narrative** — not encyclopedia ent
 
 Context matters because it stirs the imagination. Seeing that a detail on a pendentive connects to a Byzantine church in Ravenna, or that the stones of the facade were shipped because San Jose quarries couldn't supply them fast enough, or that the same artists made the mosaics on the Cantor — these connections validate what the learner sees with the accumulated knowledge other humans have built about this place. They anchor the experience in history and community.
 
-**How this shows up in the inquiry loop:** the default question is always directly observational — look at this, notice that, touch this. But periodically (roughly every 2–3 inquiries, with some randomness so it doesn't feel like a preset pattern), the question should pull the learner back to see the bigger picture. What connects this to what you just saw? How does this fit into the wider campus? What was happening in the world when this was built? These zoom-out moments should not replace direct observation but punctuate it — shifting the focus from the object to the object-in-context, then back again.
+**How this shows up in the inquiry loop:** the default question is always directly observational — look at this, notice that, touch this. But once the learner has covered enough material in their conversation, an option appears to step back and see how it all connects. The model uses what's actually been discussed — the knowledge entries it has surfaced, the locations it has talked about, the questions the learner has asked — to craft a bigger-picture question that bridges what they've seen rather than demanding synthesis from material they don't yet know. Direct observation is always the path; context emerges from the cumulative weight of what's been observed.
 
-The implementation: after each direct-observation pin completes its inquiry loop, the system tracks how many consecutive direct-observation questions have been asked. On the 2nd, 3rd, or 4th (chosen randomly each time), the "Keep talking about this" option in the three-option ending is replaced by a "Step back and see the bigger picture" option — a question that connects what they just saw to something broader in time, place, or theme. The language model generates this broader question using the same knowledge base, but the system prompt flags it as a context-prompting response (not a direct-observation one). After the zoom-out, the pattern resets and the next few inquiries return to direct observation. This rhythm — close, close, pull back, close, close, pull back — mirrors how people actually learn to see a place.
+**The implementation: coverage, not counting.** Bigger-picture questions need foundation. A learner who has only worked through one inquiry isn't ready to synthesise — they don't have enough to synthesise from. So instead of a random counter triggering zoom-outs ("ask a bigger question every 2–4 turns"), the system tracks what has actually been covered in the conversation: which knowledge entries the AI has drawn from in its answers, which physical locations have been discussed, how many substantive turns deep the conversation is. The "Step back and see the bigger picture" option becomes available once a low threshold of coverage is met — typically 2 distinct entries or 2 distinct locations across at least 2 substantive turns. Once the option is used, any unanswered bigger questions are tracked as "open" so the system can offer them again later when the learner has covered more relevant ground. This way, a learner who has explored deeply gets bigger questions that match their depth, and a learner who has only just started doesn't get hit with a synthesis demand they can't meet. The rhythm is set by the conversation itself, not by a clock.
 
 ### 2. The knowledge base is contained, not live
 
@@ -112,10 +112,10 @@ The model should not repeat the same type of follow-up question consecutively. I
 **Step E: The learner chooses what's next.**
 After the response and follow-up question, the learner sees three options:
 1. **A suggested place to look next** — a tappable card showing another pin with a teaser: "This connects to something you can see in the chancel..." Tapping this restarts the loop at Step A for the new location.
-2. **"Keep talking about this" OR "Step back and see the bigger picture"** — only one of these appears at a time. By default, the option is "Keep talking about this" — a reflective, personal, or theory-building question about the current location that doesn't require moving. But after 2–3 consecutive direct-observation inquiries (chosen randomly — 2, 3, or 4 — so the pattern doesn't feel preset), this option is replaced with "Step back and see the bigger picture" — a context-prompting question that pulls the learner's attention away from the immediate object and toward its place in the larger story. Examples: "What does this detail tell you about what was happening in California when this church was built?" or "You've been looking at the mosaic up close — now turn around and look at the Quad. How does this church fit into the campus around it?" After a zoom-out question is asked, the counter resets and the next few inquiries return to direct-observation defaults.
+2. **"Keep talking about this" OR "Step back and see the bigger picture"** — only one appears at a time, based on what the learner has covered so far in the conversation. The default is "Keep talking about this" — a reflective or theory-building question that deepens the discussion at the current location. The "Step back" option only becomes available once the learner has built up enough conversational coverage to engage a bigger-picture question meaningfully. Coverage is measured by what the conversation has actually surfaced — how many distinct knowledge entries the AI has drawn from, how many physical locations have been discussed, how many turns deep the conversation has gone. The threshold is low at first (the option can appear after 2–3 substantive turns covering at least 2 distinct entries or locations), and once a zoom-out has been used, the system tracks any unanswered bigger questions as "open" and offers them again later when the learner has explored more. Examples of bigger-picture questions: "You've been looking at the facade and the chancel — both have empty spaces where things used to be. What does the church remembering its losses tell you about what was lost?" or "You've heard about the railroad money and seen the lavish materials — what do you think the people who built this place wanted you to feel walking in?" After a zoom-out, coverage continues to accumulate; the option remains available but new bigger questions may be offered as more is covered.
 3. **"Ask your own question"** — a text input where the learner types whatever they're curious about. The model finds the most relevant location in the database, directs the learner to look at that place (restarting at Step A), and generates a contextual response.
 
-The loop continues until the learner stops. Every path leads back to observation — but the rhythm of close-close-zoom-out ensures that learners don't get tunnel vision on a single object. They come to see the church as a web of relationships, not a sequence of isolated details.
+The loop continues until the learner stops. Every path leads back to observation — but the option to step back only appears when the learner has earned it through exploration. They come to see the church as a web of relationships, not a sequence of isolated details, and they're never asked to synthesise more than they've gathered.
 
 ### 5. Photo annotations as storyteller contributions
 
@@ -311,18 +311,21 @@ The physical location tag is the most important field across all layers — it's
 3. The Pendentive Angels (crossing) — entry 3.4
 4. The Chancel & Last Supper (chancel) — entry 3.5
 
-### Recently built (Changes 1–6, April 2026 session)
-- **Three-option inquiry loop ending** with alternating "Keep talking about this" / "Step back and see the bigger picture" based on a random counter (2, 3, or 4 consecutive direct-observation inquiries between zoom-outs).
+### Recently built (Changes 1–8, April 2026 sessions)
+- **Three-option inquiry loop ending** with alternating "Keep talking about this" / "Step back and see the bigger picture". The random 2–4 counter described in Change 1 below has been **retired** as of Change 8 — gating is now coverage-based via `isZoomOutAvailable()` (≥2 substantive turns AND ≥2 entries-or-locations covered). The behaviour is similar but driven by what's actually been discussed instead of a random rhythm.
 - **Epistemic honesty rules in system prompt** — model acknowledges gaps plainly, offers related context, turns questions back to the learner.
 - **Category-aware response differentiation** — who/what/when/where/why/how questions produce noticeably different emphasis.
 - **Photo data model** — array-based, multi-source, with physicalLocationTag, databaseEntries, categories, and annotations fields. Pins with empty photos array render normally.
 - **Learner contributions** — `memorial-church-contributions` Firestore collection and UI for when the model acknowledges a gap.
 - **Admin photo upload and annotation at `/admin`** — Sean can now upload on-site and archival photos, fill in all metadata fields, and tap-to-annotate specific points with category-tagged clues. Pins now read from Firestore (with seed-pins.ts as fallback).
+- **Photo-centric admin library at `/admin/photos`** — standalone `memorial-church-photos` collection, click-to-edit, multi-pin attachment, auto-generated descriptions/keywords. `photo_extraction_v1` migration extracted all embedded photos on 2026-04-16.
+- **Change 7 retrieval cutover** — `src/lib/photo-retrieval.ts` resolves photos for a pin via `pin.photoIds` → inverse `photo.linkedPinIds` → embedded `pin.photos` legacy. Both `InquirySheet` and `AskSheet` now read through this helper.
+- **Change 8 — session memory + post-response validation + coverage-based zoom-out**. `src/lib/session-memory.ts` persists `SessionMemory` in sessionStorage. `/api/ask` accepts it, injects a "SESSION SO FAR" block into the prompt, and runs `validateResponse()` post-response (word count >120, recycled anchor, recycled quotation, banned phrases) with up to 2 regeneration retries. Zoom-out mode receives a "COVERAGE SO FAR" block.
 
 ### What's NOT built yet
-- **Learner-facing photo display** — photos exist in the data model and can be uploaded via admin, but they don't appear in the inquiry flow yet. This is the next session (Change 7) and the final piece before the place-based experience is complete. Without it, the app tells learners to "look at the inscription" without showing the inscription.
-- **Ingestion of Cowork's archival spreadsheet** — the 30+ archival photos Cowork found are not yet in the app. Can be done manually through admin, or automated in a short follow-up session.
-- **Pilot testing** — waiting on Change 7 and real photo content.
+- **Eventual `pin.photos` removal** (`photo_embedding_removal_v1`) — Change 7 retrieval is now cut over: `src/lib/photo-retrieval.ts::getPhotosForPin()` resolves photos with priority `pin.photoIds` → inverse `photo.linkedPinIds` → embedded `pin.photos` legacy fallback, and both `InquirySheet`/`AskSheet` use it. The embedded `pin.photos` array and `photo-pin-sync.ts` mirror are kept only as the safety-net fallback. Once production has been verified, a follow-up migration can strip the embedded array and the sync helper. Don't do it casually — the learner app would lose photos for any pin that hasn't yet been re-extracted.
+- **Cowork archival spreadsheet reconciliation** — 33 archival photos are now in the app (HABS + Highsmith + Calisphere set, loaded via `archival-manifest.ts` and migrated into `memorial-church-photos` on 2026-04-16). What remains is comparing `docs/archival_photo_inventory.xlsx` to the manifest, filling in any missing metadata, and deciding whether new bulk imports should write directly into the standalone collection rather than going through the legacy pin-walk.
+- **Pilot testing** — waiting on Sean's verification pass through the photo library and a real walk-through of the Ask flow now that session memory is enforced.
 
 ### Key files
 | File | Purpose |
@@ -342,42 +345,70 @@ The physical location tag is the most important field across all layers — it's
 
 ### AI Response Protocol (implemented in `route.ts`)
 
-The model's system prompt enforces:
+The protocol has two layers: a tight system prompt focused on what only the model can do, and post-response code checks that enforce the things the model is unreliable at.
 
-**Identity:** A knowledgeable, warm companion. Not a textbook, chatbot, or scripted tour guide — a friend who has spent years falling in love with this building.
+#### What the system prompt says
 
-**Response format:** Raw JSON: `{"observation": "...or null", "answer": "..."}`
+**Identity and voice.** You are a knowledgeable friend who has spent years falling in love with Memorial Church. Not a tour guide, not a textbook, not an AI assistant. Write the way that friend would talk to two people standing in front of the church together — warm, specific, never glib. Vary how you open: sometimes a vivid detail, sometimes a human story, sometimes a surprise, sometimes what's missing or contested. Vary sentence rhythm. Avoid clichés ("delve," "tapestry," "rich history," "nestled"), bullet points, and AI-assistant phrases ("Here's the thing:", "Let me break this down").
 
-**Observation field (strongly preferred):**
-- Strong default is to include one. Before giving information, direct the group to look at something specific and physical.
-- Be specific and spatial — not "look around the church" but "Face the altar and look at the twelve golden niches that line the lower chancel walls."
-- 1–3 sentences. Address the group: "Together, look at..." / "Find the..." / "Turn toward..."
-- `null` only when the question genuinely has no physical connection. This should be rare.
-- Concrete anchors for abstract questions: "Who built it?" → carved stone arches or the plaque naming Jane Stanford. "Why was it built?" → the inscription on the facade. "When?" → the arcades connecting church to Quad. "What style?" → the exposed-timber ceiling.
+**Response format.** Raw JSON, no markdown. Six fields:
+```json
+{
+  "observation": "...or null",
+  "answer": "...",
+  "observationEntries": ["2.4"],
+  "answerEntries": ["1.3", "6.1"],
+  "anchorUsed": "the facade plaque",
+  "quotationsUsed": ["any direct quote you included"]
+}
+```
 
-**Answer field:**
-- When observation was given: write knowing the group has already been looking at what was pointed out. Connect narrative to what they just saw.
-- When null: lead with narrative directly.
+All four tracking fields (`observationEntries`, `answerEntries`, `anchorUsed`, `quotationsUsed`) are internal — the learner never sees them. They let the app track coverage and pick photos.
 
-**Voice — vary approach, never repeat the same pattern:**
-- Begin with a vivid detail
-- Begin with the human story
-- Begin with a surprise
-- Begin with what's missing
-- Begin with a gentle contradiction
-- Begin with an anecdote
+`observationEntries` and `answerEntries` are deliberately separate. `observationEntries` names the physical THING the learner is being directed to look at (if the observation says "look at the stone plaque on the facade," list the plaque's entry ID, not Jane Stanford's biography). `answerEntries` lists the entries that informed the narrative. The photo matcher uses `observationEntries` to pick a photo of the thing to find, and `answerEntries` to pick a secondary photo that illustrates the story — so the observation photo doesn't spoil the answer. **Don't collapse these back into a single `entriesUsed` field.** The spoiler-prevention depends on them being separate. (The route still accepts a legacy `entriesUsed` from older clients and mirrors it into both fields.)
 
-**Sentence rhythm:** Vary length. Short after long. Let some breathe and unfurl. Then stop short.
+If `observation` is `null`, set `observationEntries` to `[]` and `anchorUsed` to `null`. If the answer draws from nothing in the database (an "I don't know" response), set `answerEntries` to `[]`. If no direct quotes were embedded, `quotationsUsed` is `[]`.
 
-**What to avoid:** "Great question!" or meta-commentary. Bullet points or numbered lists. AI-assistant style ("Here's the thing:", "Let me break this down"). "Delve," "tapestry," "rich history," "nestled." Repetitive rhythm (short-short-short).
+**The observation field.** Strong default is to include one. Direct the group to look at something specific and physical — not "look around the church" but "Find the stone plaque below the mosaic and read whose name is carved there." If a question feels too abstract for an anchor, find one anyway. Example: "Why was it built?" → the inscription on the facade plaque IS the anchor; read it together first, then talk about why. `null` only when the question genuinely has no physical connection — rare.
 
-**Length:** 60–120 words.
+**The answer field.** When you've given an observation, write knowing the group is looking at the thing you pointed to. When `null`, lead with narrative directly. 60–120 words. End with a thread — a thing to look for, a question that opens, a tension unresolved. Never end with a summary closer that wraps the topic up ("she meant they were inseparable", "that was their answer to grief"). Let the learner draw conclusions.
 
-**Endings (vary which is used):** A specific thing to look for next. A question that deepens thinking. A thread to somewhere else in the church.
+**Engage tension; don't smooth it.** The knowledge base contains controversies — costs that drew criticism, opposition from David Starr Jordan, Jewish students worshipping in secret, the contradiction of Stanford wealth built on Chinese labour, contested mosaic naming, the choice not to rebuild the spire. When a question opens that door, walk through it. Don't deflect into inspiring narrative. Example: if asked about the cost, don't say "they spared no expense" — say "David Starr Jordan worried publicly that the money should have gone to the library." Friction is part of the story.
 
-**Honesty:** If the question is beyond the database, say so naturally and redirect to something observable. Never invent facts.
+**Honesty over invention.** If the knowledge base doesn't have what's being asked, say so plainly, offer what you do have, and turn the question back to the learner: "How would you try to find that out?" Never fabricate.
 
-**Observation hints:** When contributor-authored hints match the question's category (who/what/when/where/why/how), they're injected into the prompt as physical anchors the model can use to craft its observation. These come from `seed-pins.ts` via `hint-matcher.ts`.
+**Use the session context provided to you.** Each request includes a "SESSION SO FAR" block with what's already been covered (anchors used, quotations used, recent question categories, locations discussed, and a turn count). Don't repeat anchors or quotations from those lists. Don't keep delivering the same flavour of answer (four motivation questions in a row → vary your approach by the fourth). When the request includes `mode: "zoom_out"`, the system prompt instead receives a "COVERAGE SO FAR" block listing entries and locations covered so far — use the coverage to ask a question that bridges what's been seen, being specific about what was covered, not generic.
+
+#### What the code enforces (post-response checks)
+
+The model is unreliable at counting, remembering, and refusing patterns. `validateResponse()` in `route.ts` handles these so the prompt doesn't have to keep restating them. On any failed check, the route appends the assistant's reply + a corrective user turn listing the problems, and re-asks. Up to 2 regeneration attempts per request; after that, the last response ships anyway (with a `console.warn`) rather than failing the learner.
+
+1. **Word count.** Count the answer's words. If over 120, push back: `The answer is N words. Condense to under 120 words while keeping the voice and the ending.`
+
+2. **Recycled anchor.** If `anchorUsed` matches anything in `mem.recentObservationAnchors` (case-insensitive), push back: `The anchor "X" was already used recently. Pick a different physical detail to point the group at.`
+
+3. **Recycled quotations.** Each string in `quotationsUsed` is compared against `mem.recentQuotations` via `similarQuote()` — lowercase, whitespace-normalised, punctuation-stripped substring match either way (so "my soul is in that church" and "my soul is in that church." are caught as duplicates). On match: `The quotation "X" was already used recently. Paraphrase it or draw on a different quote.`
+
+4. **Banned phrases.** If the answer contains `delve`, `tapestry`, `rich history`, `nestled`, `great question`, `let me break this down`, or `here's the thing` (case-insensitive), push back: `Remove the phrase "X" — rewrite the sentence without it.`
+
+5. **JSON parsing.** If the response can't be parsed at all, the loop bails and ships the raw text as the answer (no retry, since further regeneration tends to compound the problem). Field defaults are applied by `parseAskJson()` for any missing field.
+
+#### What the request injection adds
+
+Each API request appends the following to the base system prompt before the call:
+
+- **Relevant observation hints** for the question, via `formatHintsForPrompt(findRelevantHints(question))`. (Already implemented; not new.)
+
+- **The classified question category** (one line): `DETECTED QUESTION CATEGORIES: who, what. Emphasise the who angle in your response.` This replaces the long per-category paragraphs that used to live in the system prompt.
+
+- **The "SESSION SO FAR" block**, when there's anything to surface (skipped on a brand-new session so the model doesn't see an empty preamble). Lists `recentObservationAnchors`, `recentQuotations`, `recentQuestionCategories`, `locationsEverDiscussed`, and `substantiveTurnCount`. The client (`InquirySheet` and `AskSheet`) sends `sessionMemory` on every request and persists it via `saveSessionMemory()`.
+
+- **The mode flag** routes to a different system prompt entirely:
+  - `mode: undefined` (default) → `SYSTEM_PROMPT` (the long one above).
+  - `mode: "deepen"` → `DEEPEN_PROMPT`: short prompt asking for a reflective/observational/personal/historical-imagination question at the current location. JSON is `{question, entriesUsed}`.
+  - `mode: "zoom_out"` → `ZOOM_OUT_PROMPT` + a "COVERAGE SO FAR" block listing `entriesEverUsed` and `locationsEverDiscussed`. JSON is `{question, entriesUsed}`. The client also tracks zoom-out questions in `openZoomOutQuestions` so they can be resurfaced later.
+
+The `pinContext` field on the request is woven into the user message for deepen / zoom-out modes ("The pair is currently at: ...") so the generated question can reference where they're standing.
 
 ---
 
@@ -578,11 +609,178 @@ This means: implement a simple `getPins()` function that tries Firestore first, 
 
 ---
 
-## Next Claude Code Session — Change 7: Learner-Facing Photo Display
+## Next Claude Code Session — Changes 7 & 8
 
-*Changes 1–6 are complete. This is now the next session's primary task. This needs to be built before pilot testing because photos are not decorative — they're central to the place-based experience. A question like "look at the narthex floor mosaic" without showing the floor mosaic is text pretending to be place-based.*
+*Changes 1–6 are complete. The next session has two coordinated changes: photo display (Change 7) and conversation quality / session memory (Change 8). Build them together — they both touch the API request pipeline and the system prompt. Build them before pilot testing.*
 
-### Core principle: photos appear when the AI directs attention to something observable
+---
+
+### Change 8: Session memory, coverage tracking, and conversation quality
+
+A pilot conversation revealed several failure modes the current setup doesn't prevent: the model recycled the same observation anchor across three answers, repeated the same Jane Stanford quotation three times in four turns, ran past the word limit, glossed over conflict material, ended answers with summary closers that wrapped the topic up, and delivered four consecutive inspiring-narrative answers to four consecutive motivation questions. The root cause is that the model sees each turn in isolation. Fixing this requires three coordinated pieces:
+
+1. **Session memory passed back to the model** so it knows what's been said.
+2. **Post-response code checks** so the prompt doesn't have to keep restating things the model is bad at (counting, refusing patterns, remembering banned phrases).
+3. **Coverage-based zoom-out availability** so bigger-picture questions only appear when the learner has the foundation for them — replacing the random-counter rhythm with something tied to what's actually been discussed.
+
+#### Part 1: Session memory infrastructure
+
+Maintain a `sessionMemory` object on the client (component state, persisted to sessionStorage so it survives reloads but is per-session):
+
+```typescript
+sessionMemory: {
+  // For preventing recycling
+  recentObservationAnchors: string[],   // last 3 physical things pointed to
+  recentQuotations: string[],            // last 3 direct quotes used in answers
+  
+  // For varying approach
+  recentQuestionCategories: string[],    // last 5 question categories
+  
+  // For coverage tracking (zoom-out readiness)
+  entriesEverUsed: Set<string>,          // all knowledge entry IDs the AI has ever used in this session
+  locationsEverDiscussed: Set<string>,   // all physical location tags ever surfaced
+  substantiveTurnCount: number,          // turns where the AI gave a real answer (not "I don't know")
+  
+  // For revisiting deferred questions
+  openZoomOutQuestions: { question: string, requiredCoverage: string[], turnAsked: number }[]
+}
+```
+
+After each AI response, update memory using the structured fields the model returned (`anchorUsed`, `quotationsUsed`, `entriesUsed`). No need to parse text — the model gives these fields directly.
+
+Pass relevant memory into every API request as a "Session so far" block:
+
+```
+SESSION SO FAR:
+- Anchors already used: ["facade plaque", "Latin door inscriptions", "Quad arcades"]
+- Quotations already used: ["my soul is in that church"]
+- Recent question types: [why, why, how, why]
+- Locations discussed: [exterior_facade, narthex]
+- Turns so far: 4
+
+Use this to vary your approach. Don't reuse anchors or quotations from these lists. If the recent questions cluster around one type or location, change angle or thread elsewhere.
+```
+
+#### Part 2: Post-response code checks
+
+The model is unreliable at counting words, remembering banned phrases, and refusing to use specific strings it just saw in a "do not use" list. Move these enforcement jobs to the API route in `src/app/api/ask/route.ts`. After the model responds, run these checks:
+
+```typescript
+function validateResponse(response, sessionMemory): { ok: boolean, problems: string[] } {
+  const problems = [];
+  
+  // 1. Word count
+  const wordCount = response.answer.split(/\s+/).length;
+  if (wordCount > 120) problems.push(`Answer is ${wordCount} words; condense to under 120.`);
+  
+  // 2. Recycled anchor
+  if (sessionMemory.recentObservationAnchors.includes(response.anchorUsed)) {
+    problems.push(`The anchor "${response.anchorUsed}" was already used. Pick a different physical detail.`);
+  }
+  
+  // 3. Recycled quotations
+  for (const q of response.quotationsUsed || []) {
+    if (sessionMemory.recentQuotations.some(used => similar(q, used))) {
+      problems.push(`The quotation "${q}" was already used. Paraphrase or use a different one.`);
+    }
+  }
+  
+  // 4. Banned phrases
+  const banned = ['delve', 'tapestry', 'rich history', 'nestled', 'great question', "let me break this down", "here's the thing"];
+  for (const phrase of banned) {
+    if (response.answer.toLowerCase().includes(phrase)) {
+      problems.push(`Remove the phrase "${phrase}".`);
+    }
+  }
+  
+  return { ok: problems.length === 0, problems };
+}
+```
+
+If `validateResponse` fails, send the response back to the model with the problems list and ask for a corrected version. Allow up to 2 retries. After that, ship what you have rather than blocking the user.
+
+This frees the system prompt from having to keep restating "60-120 words" and "don't use 'delve'" — the model can focus on the harder work of writing well, and code catches anything that slips through.
+
+#### Part 3: Coverage-based zoom-out availability
+
+Replace the current random-counter rhythm with coverage-based readiness.
+
+The "Step back and see the bigger picture" option becomes available when the learner has accumulated enough conversational coverage to engage a bigger question meaningfully. Specifically:
+
+```typescript
+function isZoomOutAvailable(sessionMemory): boolean {
+  return (
+    sessionMemory.substantiveTurnCount >= 2 &&
+    (sessionMemory.entriesEverUsed.size >= 2 || sessionMemory.locationsEverDiscussed.size >= 2)
+  );
+}
+```
+
+Threshold is intentionally low — 2 substantive turns covering 2 distinct entries OR 2 distinct locations. This is "early but not premature." A learner who has done one quick scan won't get hit with a synthesis demand; a learner who has explored a couple of things gets the option.
+
+When the learner taps "Step back and see the bigger picture," the API call sends `mode: "zoom_out"` along with the full coverage state. The model uses coverage to construct a question that bridges what's been seen, not abstract synthesis:
+
+```
+ZOOM OUT MODE:
+The learner has covered these entries: [1.1, 3.1, 6.1]
+And these locations: [exterior_facade, chancel]
+
+Generate a question that bridges what they've explored. Be specific to what they've actually seen. Don't ask abstract questions like "what do you think this place means?" — instead, ask things like "you've heard about the spire that fell in 1906 and seen the empty niches in the chancel where statues used to be — what do you think this church is choosing to remember about its losses?"
+
+If the learner can't answer your bigger question right away, that's fine. The conversation's purpose is to invite them to look at more. Suggest one or two specific things they might explore next that would help them think about it.
+```
+
+After the zoom-out question is asked, store it in `openZoomOutQuestions` with the entries it depended on. Coverage continues to accumulate. When the learner has substantively covered at least one new entry beyond what was needed for an open question, the model can resurface it: "Earlier we wondered about X. Now that you've also looked at Y, what do you think?"
+
+This integrates with the three-option ending: the "Step back" button is disabled (or hidden) until coverage threshold is met. Once met, it stays available. After being used, it remains available — but the coverage state has grown, so the next zoom-out the model offers will be different.
+
+#### Engaging tension — keep this as a system prompt rule
+
+Word the rule simply, with one example:
+
+```
+ENGAGE CONTESTED MATERIAL. The knowledge base contains controversies — costs that drew criticism, opposition from David Starr Jordan, Jewish students worshipping in secret, the contradiction of railroad wealth from Chinese labour, the contested naming of the facade mosaic. When a question opens that door, walk through. Don't deflect into inspiring narrative. If asked about cost, don't say "they spared no expense"; say "David Starr Jordan worried publicly that the money should have gone to the library."
+```
+
+One example does more than a list of every controversy. The model already has the full list available through the knowledge entries — pointing it at the right disposition is what matters.
+
+### Build priority for this session
+
+1. **Change 8: session memory infrastructure** — the `sessionMemory` object, sessionStorage persistence, the new structured response fields (`entriesUsed`, `anchorUsed`, `quotationsUsed`).
+2. **Change 8: post-response code checks** — word count, recycled content, banned phrases. Up to 2 regeneration attempts.
+3. **Change 8: coverage-based zoom-out availability** — `isZoomOutAvailable()` function gates the UI option, the `openZoomOutQuestions` tracking for revisiting deferred questions.
+4. **Change 8: tightened system prompt** — replace the long protocol section with the audited version (covered in the AI Response Protocol section above). Keep the "engage tension" rule and the new "use session context" rule. Move per-category emphasis from prompt to per-request injection.
+5. **Change 7: learner-facing photo display** — once Change 8 establishes `entriesUsed`, the photo matcher can use it.
+
+Both changes touch:
+- `src/app/api/ask/route.ts` (system prompt, post-response validation, response format)
+- `src/lib/types.ts` (sessionMemory type, response type)
+- `src/components/InquirySheet.tsx` and `src/components/AskSheet.tsx` (state management, threading sessionMemory through requests, gating the zoom-out button)
+
+### Tests for this session
+
+After Change 8:
+- Ask 4 motivation questions in a row about the facade. The 4th answer must not use the facade plaque as its anchor (rotates to arcades, cornerstone, threading elsewhere). The 4th answer must not include the "my soul is in that church" quote if it was used earlier. If the model produces a recycled response, the post-response check should regenerate.
+- Ask a question that touches conflict — "Did anyone object to building the church?" — and confirm the answer engages David Starr Jordan / costs / opposition material rather than glossing over.
+- Spot-check three responses for word count. All should be under 120.
+- Confirm "Step back and see the bigger picture" doesn't appear after just one turn.
+- Confirm it does appear after 2 substantive turns covering 2 different entries.
+- After using the zoom-out, confirm coverage continues to accumulate and the next zoom-out (after more turns) offers a different question.
+- Confirm an "open" zoom-out question can be revisited later when coverage has grown.
+
+After Change 7 (with photos uploaded via admin):
+- Tap the facade mosaic pin. A photo should appear alongside the observation.
+- Ask about the spire. An archival pre-1906 photo should appear.
+- Upload a photo with annotations through `/admin`, then view that pin. Dots should appear, "Show hints" should work.
+- Upload zero photos to a pin and confirm it still works text-only.
+
+---
+
+### Change 7: Learner-Facing Photo Display
+
+*Build this AFTER Change 8 establishes session memory. Photo retrieval uses the `entriesUsed` field that Change 8 adds to the API response.*
+
+#### Core principle: photos appear when the AI directs attention to something observable
 
 The rule is simple. Every time the AI's response includes an `observation` field (the field that directs the group to look at a specific physical thing), the app should try to show a photo of that thing alongside the observation. If no photo exists, the text observation still works — but when a photo IS available, showing it makes the instruction concrete.
 
