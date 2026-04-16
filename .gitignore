@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# office lock files (LibreOffice / Excel leave these while a doc is open)
+.~lock.*#
+~$*

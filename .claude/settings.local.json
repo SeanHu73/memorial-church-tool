@@ -16,7 +16,16 @@
       "WebFetch(domain:web.dev)",
       "Bash(npx next:*)",
       "Bash(ls public/photos/archival/*.jpg public/photos/archival/*.png)",
-      "Bash(ls docs/archival_photo_inventory.*)"
+      "Bash(ls docs/archival_photo_inventory.*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)",
+      "Bash(ls -la .env*)",
+      "Bash(npx tsc:*)",
+      "Bash(echo \"exit code: $?\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(npx eslint:*)",
+      "Bash(ls src/app/admin/photos/[id]/ src/app/admin/photos/new/)"
     ]
   }
 }
