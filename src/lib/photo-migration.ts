@@ -252,7 +252,12 @@ function logRow(photo: Photo): MigrationSummary['createdPhotoLog'][number] {
   };
 }
 
-function buildLogMarkdown(s: MigrationSummary): string {
+/**
+ * Rebuild the markdown log from a stored MigrationSummary. Exported so the
+ * admin UI can re-download the log after the fact by reading the
+ * migration flag document (which stores the full summary).
+ */
+export function buildLogMarkdown(s: MigrationSummary): string {
   const lines: string[] = [];
   lines.push(`# Migration log: ${s.migrationId}`);
   lines.push('');

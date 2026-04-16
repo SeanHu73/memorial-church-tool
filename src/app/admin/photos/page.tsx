@@ -23,13 +23,16 @@ import {
   MIGRATION_ID,
   runPhotoExtractionMigration,
   MigrationSummary,
+  buildLogMarkdown,
 } from '@/lib/photo-migration';
+import type { MigrationFlag } from '@/lib/migrations-store';
 
 export default function PhotosLibraryPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [pinsById, setPinsById] = useState<Record<string, string>>({});  // id → title
   const [loading, setLoading] = useState(true);
   const [migrationDone, setMigrationDone] = useState<boolean | null>(null);
+  const [migrationFlag, setMigrationFlag] = useState<MigrationFlag | null>(null);
 
   // Filter state
   const [query, setQuery] = useState('');
@@ -53,6 +56,7 @@ export default function PhotosLibraryPage() {
     setPhotos(ps);
     setPinsById(Object.fromEntries(pins.map((p) => [p.id, p.title])));
     setMigrationDone(!!flag);
+    setMigrationFlag(flag);
     setLoading(false);
   };
 
@@ -212,6 +216,30 @@ export default function PhotosLibraryPage() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Persistent migration artifacts — visible whenever the flag is set,
+            so Sean can re-download the log from the stored Firestore summary
+            even after the post-run banner has unmounted. */}
+        {migrationDone === true && migrationFlag && (
+          <div className="mb-5 p-3 rounded border border-stone-300 bg-stone-50 text-xs text-stone-700">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <span>
+                Migration <code className="bg-stone-200 px-1 rounded">{migrationFlag.id}</code>
+                {' '}completed at {migrationFlag.completedAt}.
+              </span>
+              <button
+                onClick={() => downloadText(
+                  `migration_log_${migrationFlag.id}.md`,
+                  buildLogMarkdown(migrationFlag.summary as unknown as MigrationSummary),
+                  'text/markdown',
+                )}
+                className="px-2 py-1 rounded bg-stone-700 text-white hover:bg-stone-800"
+              >
+                Download migration log
+              </button>
+            </div>
           </div>
         )}
 
