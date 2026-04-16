@@ -13,28 +13,37 @@ const Map = dynamic(() => import('@/components/Map'), { ssr: false });
 export default function Home() {
   // Start with seed pins for instant render; replace with Firestore-merged pins once loaded.
   const [pins, setPins] = useState<Pin[]>(seedPins);
-  const [selectedPin, setSelectedPin] = useState<Pin | null>(null);
+  // CRITICAL: store only the id of the selected pin, not the pin object. If
+  // we stored the object, a pin clicked before Firestore loads would be a
+  // stale seed-pin reference with empty photos. By storing the id and
+  // deriving the pin from the current `pins` array, the InquirySheet gets
+  // fresh pin data (with archival photos) as soon as Firestore merges in.
+  const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
   const [askQuestion, setAskQuestion] = useState<string | null>(null);
   const [bottomBarQ, setBottomBarQ] = useState('');
 
+  const selectedPin = selectedPinId ? pins.find((p) => p.id === selectedPinId) ?? null : null;
+
   useEffect(() => {
-    getPins().then(setPins).catch(() => {
-      // Already have seed pins as fallback — nothing to do.
+    getPins().then(setPins).catch((err) => {
+      // Visible in browser devtools. If this fires, Firestore reads are
+      // being rejected (most commonly: expired test-mode security rules).
+      // Photos won't show because the seed baseline has empty photo arrays.
+      console.error('[page] getPins failed, falling back to seed pins (photos will be empty):', err);
     });
   }, []);
 
   const handlePinSelect = useCallback((pin: Pin) => {
-    setSelectedPin(pin);
+    setSelectedPinId(pin.id);
     setAskQuestion(null);
   }, []);
 
   const handleNavigateToPin = useCallback((pinId: string) => {
-    const pin = pins.find((p) => p.id === pinId);
-    if (pin) setSelectedPin(pin);
-  }, [pins]);
+    setSelectedPinId(pinId);
+  }, []);
 
   const handleAskQuestion = useCallback((question: string) => {
-    setSelectedPin(null);
+    setSelectedPinId(null);
     setAskQuestion(question);
   }, []);
 
@@ -86,7 +95,7 @@ export default function Home() {
       {selectedPin && (
         <InquirySheet
           pin={selectedPin}
-          onClose={() => setSelectedPin(null)}
+          onClose={() => setSelectedPinId(null)}
           onNavigateToPin={handleNavigateToPin}
           onAskQuestion={handleAskQuestion}
         />
