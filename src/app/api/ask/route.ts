@@ -174,7 +174,7 @@ const BANNED_PHRASES = [
   "here's the thing",
 ];
 
-const MAX_REGENERATION_RETRIES = 2;
+const MAX_REGENERATION_RETRIES = 0;
 
 interface ValidationProblem {
   message: string;
@@ -325,7 +325,7 @@ async function callAnthropic(
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-sonnet-4-6',
       max_tokens: maxTokens,
       system: systemPrompt,
       messages,
