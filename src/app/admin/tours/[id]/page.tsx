@@ -313,6 +313,38 @@ export default function TourEditorPage() {
               </div>
             )}
           </label>
+
+          {/* Tour-level map pin */}
+          <div>
+            <span className="text-xs text-stone-600">Tour pin on map (the single marker learners tap to start this tour)</span>
+            <div className="mt-1 rounded border border-stone-300 overflow-hidden" style={{ height: 180 }}>
+              {MAPS_API_KEY ? (
+                <APIProvider apiKey={MAPS_API_KEY}>
+                  <StopMapPicker
+                    location={tour.location ?? null}
+                    onLocationChange={(loc) => updateField('location', loc)}
+                  />
+                </APIProvider>
+              ) : (
+                <div className="h-full flex items-center justify-center bg-stone-100 text-xs text-stone-400">
+                  Maps API key not configured
+                </div>
+              )}
+            </div>
+            {tour.location && (
+              <div className="flex items-center gap-3 mt-1">
+                <span className="text-[10px] text-stone-500 font-mono">
+                  {tour.location.lat.toFixed(6)}, {tour.location.lng.toFixed(6)}
+                </span>
+                <button
+                  onClick={() => updateField('location', null)}
+                  className="text-[10px] text-red-600 hover:underline"
+                >
+                  Remove pin
+                </button>
+              </div>
+            )}
+          </div>
         </section>
 
         {/* Stops list */}
@@ -343,12 +375,13 @@ export default function TourEditorPage() {
                     <span className="text-xs font-mono text-stone-400 w-6 text-center">{idx + 1}</span>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">
-                        {stop.seed.text
-                          ? stop.seed.text.slice(0, 80) + (stop.seed.text.length > 80 ? '...' : '')
-                          : <em className="text-stone-400">Empty seed</em>}
+                        {stop.title || <em className="text-stone-400">Untitled stop</em>}
                       </div>
                       <div className="text-xs text-stone-500 mt-0.5">
-                        {stop.physicalLocationTag} &middot; {stop.wonder === null ? 'No wonder' : stop.wonder.question ? 'Wonder set' : 'Wonder empty'} &middot; {stop.reveal.text ? 'Reveal set' : 'No reveal'}
+                        {stop.physicalLocationTag}
+                        {stop.location && <> &middot; <span className="text-amber-700">has map pin</span></>}
+                        {' '}&middot; {stop.wonder === null ? 'No wonder' : stop.wonder.question ? 'Wonder set' : 'Wonder empty'}
+                        {' '}&middot; {stop.reveal.text ? 'Reveal set' : 'No reveal'}
                       </div>
                     </div>
                     <div className="flex gap-1">
@@ -421,6 +454,17 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
 
   return (
     <div className="border-t border-stone-200 p-4 space-y-5">
+      {/* ── Stop title ── */}
+      <label className="block">
+        <span className="text-xs text-stone-600 font-semibold">Stop title</span>
+        <input
+          value={stop.title}
+          onChange={(e) => onChange({ title: e.target.value })}
+          className="mt-1 w-full px-3 py-1.5 border border-stone-300 rounded text-sm"
+          placeholder="e.g., The Facade Mosaic"
+        />
+      </label>
+
       {/* ── Seed ── */}
       <fieldset className="space-y-2">
         <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide flex items-center gap-2">
@@ -613,9 +657,9 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
       <fieldset className="space-y-2">
         <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#B8694A] inline-block" />
-          Map location
+          Map pin (optional)
         </legend>
-        <p className="text-[10px] text-stone-400 italic">Click the map to place a pin where the learner stands for this stop.</p>
+        <p className="text-[10px] text-stone-400 italic">Only needed if this stop is at a different location (e.g., walking to the rear). Most stops inside the church don&apos;t need their own pin.</p>
         <div className="rounded border border-stone-300 overflow-hidden" style={{ height: 220 }}>
           {MAPS_API_KEY ? (
             <APIProvider apiKey={MAPS_API_KEY}>

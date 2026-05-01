@@ -19,7 +19,12 @@ import ReflectCard from './cards/ReflectCard';
 import BranchCard from './cards/BranchCard';
 import EndCard from './cards/EndCard';
 
-export default function Journal() {
+interface JournalProps {
+  /** If provided, renders a "View on map" button (for stops at a different location). */
+  onMapPeek?: () => void;
+}
+
+export default function Journal({ onMapPeek }: JournalProps) {
   const {
     tour,
     session,
@@ -52,16 +57,31 @@ export default function Journal() {
           {phase !== 'end' && currentStop && (
             <p className="text-[11px] text-[#6B5D4F] uppercase tracking-wide">
               Stop {stopNum} of {tour.stops.length}
+              {currentStop.title && <> &middot; {currentStop.title}</>}
             </p>
           )}
         </div>
-        <button
-          onClick={endTour}
-          className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B5D4F] hover:bg-[#D4BFA0]/30 text-sm"
-          title="Exit tour"
-        >
-          &times;
-        </button>
+        <div className="flex items-center gap-1">
+          {onMapPeek && phase !== 'end' && (
+            <button
+              onClick={onMapPeek}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B5D4F] hover:bg-[#D4BFA0]/30 text-sm"
+              title="View on map"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                <circle cx="12" cy="9" r="2.5"/>
+              </svg>
+            </button>
+          )}
+          <button
+            onClick={endTour}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B5D4F] hover:bg-[#D4BFA0]/30 text-sm"
+            title="Exit tour"
+          >
+            &times;
+          </button>
+        </div>
       </div>
 
       {/* Card area — scrollable */}

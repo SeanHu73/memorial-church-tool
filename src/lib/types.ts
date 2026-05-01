@@ -190,6 +190,9 @@ export interface Tour {
   };
   description: string;               // Brief intro shown on journal peek
   coverPhotoUrl: string;             // Photo for the journal peek
+  // The "parent" pin on the map — the single marker visible before a
+  // tour starts. Tapping it opens the journal peek.
+  location: { lat: number; lng: number } | null;
   stops: Stop[];                     // Ordered array of stops
   connectionWeb: WebNode[];          // Pre-authored node/connection structure
   createdAt: string;                 // ISO 8601
@@ -199,8 +202,11 @@ export interface Tour {
 export interface Stop {
   id: string;
   order: number;                     // Position in the tour sequence
+  title: string;                     // "The Facade Mosaic", "Jane Stanford's Vision"
 
-  // Map location — where the learner stands for this stop
+  // Map location — only needed for stops at a DIFFERENT physical
+  // location (e.g., walking to the rear of the church). Most stops
+  // inside the building share the tour's parent pin and leave this null.
   location: {
     lat: number;
     lng: number;
