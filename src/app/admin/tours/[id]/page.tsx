@@ -18,10 +18,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { APIProvider, Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
 import { Tour, Stop } from '@/lib/types';
 import { getTour, saveTour, deleteTour, blankStop } from '@/lib/tours-store';
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
+const MEMORIAL_CHURCH = { lat: 37.42700, lng: -122.17015 };
+const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 const LOCATION_TAGS = [
   'exterior_facade', 'exterior_sides', 'exterior_rear',
@@ -581,6 +585,42 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
         </label>
       </fieldset>
 
+      {/* ── Location ── */}
+      <fieldset className="space-y-2">
+        <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#B8694A] inline-block" />
+          Map location
+        </legend>
+        <p className="text-[10px] text-stone-400 italic">Click the map to place a pin where the learner stands for this stop.</p>
+        <div className="rounded border border-stone-300 overflow-hidden" style={{ height: 220 }}>
+          {MAPS_API_KEY ? (
+            <APIProvider apiKey={MAPS_API_KEY}>
+              <StopMapPicker
+                location={stop.location}
+                onLocationChange={(loc) => onChange({ location: loc })}
+              />
+            </APIProvider>
+          ) : (
+            <div className="h-full flex items-center justify-center bg-stone-100 text-xs text-stone-400">
+              Maps API key not configured
+            </div>
+          )}
+        </div>
+        {stop.location && (
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] text-stone-500 font-mono">
+              {stop.location.lat.toFixed(6)}, {stop.location.lng.toFixed(6)}
+            </span>
+            <button
+              onClick={() => onChange({ location: null })}
+              className="text-[10px] text-red-600 hover:underline"
+            >
+              Remove pin
+            </button>
+          </div>
+        )}
+      </fieldset>
+
       {/* ── Metadata ── */}
       <fieldset className="space-y-2">
         <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide">Metadata</legend>
@@ -782,5 +822,52 @@ function StopPreview({ stop, phase, onNext, onPrev, onClose }: StopPreviewProps)
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── Map Picker for Stop Location ───────────────────────────────────
+
+interface StopMapPickerProps {
+  location: { lat: number; lng: number } | null;
+  onLocationChange: (loc: { lat: number; lng: number }) => void;
+}
+
+function StopMapPicker({ location, onLocationChange }: StopMapPickerProps) {
+  const center = location || MEMORIAL_CHURCH;
+
+  return (
+    <GoogleMap
+      defaultCenter={center}
+      defaultZoom={18}
+      mapId="tour-stop-picker"
+      gestureHandling="greedy"
+      disableDefaultUI={true}
+      zoomControl={true}
+      onClick={(e) => {
+        if (e.detail.latLng) {
+          onLocationChange({
+            lat: e.detail.latLng.lat,
+            lng: e.detail.latLng.lng,
+          });
+        }
+      }}
+      style={{ width: '100%', height: '100%' }}
+    >
+      {location && (
+        <AdvancedMarker position={location}>
+          <div
+            className="flex items-center justify-center rounded-full shadow-md"
+            style={{
+              width: 28,
+              height: 28,
+              background: '#B8694A',
+              border: '3px solid #F0E0C8',
+            }}
+          >
+            <div className="w-2.5 h-2.5 rounded-full bg-[#F0E0C8]" />
+          </div>
+        </AdvancedMarker>
+      )}
+    </GoogleMap>
   );
 }

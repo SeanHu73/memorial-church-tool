@@ -200,6 +200,12 @@ export interface Stop {
   id: string;
   order: number;                     // Position in the tour sequence
 
+  // Map location — where the learner stands for this stop
+  location: {
+    lat: number;
+    lng: number;
+  } | null;
+
   // Seed phase
   seed: {
     text: string;                    // 2–3 sentences of context
