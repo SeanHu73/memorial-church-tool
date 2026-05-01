@@ -12,6 +12,7 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import { Tour, Stop, TourSession, BankedQuestion } from '@/lib/types';
 import { getTour } from '@/lib/tours-store';
 import { persistTourSession } from '@/lib/tour-sessions-store';
+import { logReflection, logQuestionRouted, logTourComplete } from '@/lib/tour-logger';
 import {
   createSession,
   advancePhase as advancePhaseImpl,
@@ -96,7 +97,18 @@ export function TourProvider({ children }: { children: ReactNode }) {
 
   const advanceStop = useCallback(() => {
     if (!session || !tour) return;
-    persist(advanceToNextStopImpl(session, tour));
+    const next = advanceToNextStopImpl(session, tour);
+    persist(next);
+    if (next.currentPhase === 'end') {
+      logTourComplete({
+        tourId: tour.id,
+        sessionId: session.id,
+        tourTitle: tour.title,
+        stopsCompleted: next.completedStops.length,
+        totalStops: tour.stops.length,
+        startedAt: session.startedAt,
+      });
+    }
   }, [session, tour, persist]);
 
   const enterBranch = useCallback(() => {
@@ -110,14 +122,31 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, [session, tour, persist]);
 
   const addReflection = useCallback((score: number) => {
-    if (!session || !currentStop) return;
+    if (!session || !currentStop || !tour) return;
     persist(addReflectionScoreImpl(session, currentStop.id, score));
-  }, [session, currentStop, persist]);
+    logReflection({
+      tourId: tour.id,
+      sessionId: session.id,
+      tourTitle: tour.title,
+      stopIndex: session.currentStopIndex,
+      stopTitle: currentStop.title || `Stop ${session.currentStopIndex + 1}`,
+      score,
+    });
+  }, [session, currentStop, tour, persist]);
 
   const bankQuestionFn = useCallback((q: BankedQuestion) => {
-    if (!session) return;
+    if (!session || !tour) return;
     persist(bankQuestionImpl(session, q));
-  }, [session, persist]);
+    logQuestionRouted({
+      tourId: tour.id,
+      sessionId: session.id,
+      tourTitle: tour.title,
+      stopIndex: session.currentStopIndex,
+      stopTitle: currentStop?.title || `Stop ${session.currentStopIndex + 1}`,
+      questionText: q.questionText,
+      routing: q.aiResponse,
+    });
+  }, [session, tour, currentStop, persist]);
 
   const endTour = useCallback(() => {
     setTour(null);
