@@ -10,6 +10,7 @@
  * in tour-session.ts determines the next phase.
  */
 
+import { useState, useRef, useCallback } from 'react';
 import { useTour } from '@/context/TourContext';
 import SeedCard from './cards/SeedCard';
 import NoticeCard from './cards/NoticeCard';
@@ -37,10 +38,36 @@ export default function Journal({ onMapPeek }: JournalProps) {
     endTour,
   } = useTour();
 
+  const [paused, setPaused] = useState(false);
+  const lastTapRef = useRef(0);
+
+  const handlePauseDoubleTap = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 400) {
+      setPaused(false);
+    }
+    lastTapRef.current = now;
+  }, []);
+
   if (!tour || !session) return null;
 
   const phase = session.currentPhase;
   const stopNum = session.currentStopIndex + 1;
+
+  // Pause overlay — dark screen, double-tap to return
+  if (paused) {
+    return (
+      <div
+        className="fixed inset-0 z-40 bg-black flex items-center justify-center"
+        onClick={handlePauseDoubleTap}
+        onTouchEnd={handlePauseDoubleTap}
+      >
+        <p className="text-white/40 text-sm tracking-wide animate-gentle-pulse select-none">
+          Double tap to return to tour
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -120,6 +147,16 @@ export default function Journal({ onMapPeek }: JournalProps) {
           <EndCard />
         )}
       </div>
+
+      {/* Pause button — bottom left */}
+      {phase !== 'end' && (
+        <button
+          onClick={() => setPaused(true)}
+          className="absolute bottom-5 left-5 text-xs text-[#6B5D4F]/60 hover:text-[#6B5D4F] transition-colors"
+        >
+          We&apos;re taking it in...
+        </button>
+      )}
     </div>
   );
 }
