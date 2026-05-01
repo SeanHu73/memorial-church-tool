@@ -224,6 +224,8 @@ export interface Stop {
   notice: {
     prompt: string;                  // Observation directive
     timerSeconds: number;            // Default 30
+    photoUrl: string | null;         // Optional photo to help locate the feature
+    photoCaption: string | null;
   };
 
   // Wonder phase — null means skip (notice goes straight to reveal)

@@ -88,7 +88,7 @@ export function blankStop(order: number): import('./types').Stop {
     title: '',
     location: null,
     seed: { text: '', photoUrl: null, photoCaption: null, ttsText: null },
-    notice: { prompt: '', timerSeconds: 30 },
+    notice: { prompt: '', timerSeconds: 30, photoUrl: null, photoCaption: null },
     wonder: { question: '' },
     reveal: { text: '', photoUrl: null, photoCaption: null, bridgeText: '' },
     physicalLocationTag: 'general',

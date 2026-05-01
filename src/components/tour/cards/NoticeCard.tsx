@@ -27,6 +27,23 @@ export default function NoticeCard({ stop, onContinue }: Props) {
 
   return (
     <div className="animate-fade-in space-y-6">
+      {/* Optional photo — helps locate the feature */}
+      {stop.notice.photoUrl && (
+        <div className="rounded-lg overflow-hidden shadow-md border border-[#D4BFA0]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={stop.notice.photoUrl}
+            alt={stop.notice.photoCaption || ''}
+            className="w-full h-40 object-cover"
+          />
+          {stop.notice.photoCaption && (
+            <p className="text-xs text-[#6B5D4F] px-3 py-1.5 bg-[#F0E0C8]/50 italic">
+              {stop.notice.photoCaption}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Observation prompt */}
       <p className="text-[19px] leading-relaxed font-serif text-[#2C2418]">
         {stop.notice.prompt}
