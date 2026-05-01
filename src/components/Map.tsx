@@ -2,14 +2,24 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { APIProvider, Map as GoogleMap, AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
-import { Pin } from '@/lib/types';
+import { Pin, Stop } from '@/lib/types';
 
 const MEMORIAL_CHURCH = { lat: 37.42700, lng: -122.17015 };
+
+export interface TourStopMarkerData {
+  stop: Stop;
+  index: number;
+  isActive: boolean;
+  isCompleted: boolean;
+}
 
 interface MapProps {
   pins: Pin[];
   selectedPinId: string | null;
   onPinSelect: (pin: Pin) => void;
+  tourStops?: TourStopMarkerData[];
+  onTourStopSelect?: (stop: Stop) => void;
+  hidePins?: boolean;
 }
 
 function PinMarker({ pin, isSelected, onClick }: { pin: Pin; isSelected: boolean; onClick: () => void }) {
@@ -123,7 +133,37 @@ function UserLocationTracker({ following, onLocationUpdate }: { following: boole
   return null;
 }
 
-export default function MapContainer({ pins, selectedPinId, onPinSelect }: MapProps) {
+function TourStopPin({ data, onClick }: { data: TourStopMarkerData; onClick: () => void }) {
+  if (!data.stop.location) return null;
+  const size = data.isActive ? 40 : 32;
+  return (
+    <AdvancedMarker
+      position={data.stop.location}
+      onClick={onClick}
+      zIndex={data.isActive ? 10 : 2}
+    >
+      <div className="flex flex-col items-center">
+        <div
+          className="flex items-center justify-center rounded-full shadow-md transition-all duration-200"
+          style={{
+            width: size,
+            height: size,
+            background: data.isCompleted ? '#7A7A5E' : '#B8694A',
+            border: `3px solid ${data.isActive ? '#FFF8EE' : '#F0E0C8'}`,
+            boxShadow: data.isActive
+              ? '0 0 0 3px rgba(184,105,74,0.3), 0 2px 8px rgba(0,0,0,0.3)'
+              : '0 2px 6px rgba(0,0,0,0.25)',
+            opacity: data.isCompleted && !data.isActive ? 0.7 : 1,
+          }}
+        >
+          <span className="text-[11px] font-bold text-white">{data.index + 1}</span>
+        </div>
+      </div>
+    </AdvancedMarker>
+  );
+}
+
+export default function MapContainer({ pins, selectedPinId, onPinSelect, tourStops, onTourStopSelect, hidePins }: MapProps) {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [following, setFollowing] = useState(false);
 
@@ -156,12 +196,19 @@ export default function MapContainer({ pins, selectedPinId, onPinSelect }: MapPr
         >
           <UserLocationTracker following={following} onLocationUpdate={handleLocationUpdate} />
           {userLocation && <UserLocationDot position={userLocation} />}
-          {pins.map((pin) => (
+          {!hidePins && pins.map((pin) => (
             <PinMarker
               key={pin.id}
               pin={pin}
               isSelected={pin.id === selectedPinId}
               onClick={() => onPinSelect(pin)}
+            />
+          ))}
+          {tourStops?.map((data) => (
+            <TourStopPin
+              key={data.stop.id}
+              data={data}
+              onClick={() => onTourStopSelect?.(data.stop)}
             />
           ))}
         </GoogleMap>
