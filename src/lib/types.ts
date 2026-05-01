@@ -176,3 +176,106 @@ export interface AskResponse {
   anchorUsed: string | null;
   quotationsUsed: string[];
 }
+
+// ─── Provenance v2: Tours ─────────────────────────────────────────
+
+export interface Tour {
+  id: string;
+  title: string;                     // "Memorial Church"
+  subtitle: string;                  // "Stanford University · Main Quad"
+  guide: {
+    name: string;                    // "Prof. Elena Ruiz"
+    role: string;                    // "Art History · Stanford"
+    initials: string;                // "ER"
+  };
+  description: string;               // Brief intro shown on journal peek
+  coverPhotoUrl: string;             // Photo for the journal peek
+  stops: Stop[];                     // Ordered array of stops
+  connectionWeb: WebNode[];          // Pre-authored node/connection structure
+  createdAt: string;                 // ISO 8601
+  updatedAt: string;                 // ISO 8601
+}
+
+export interface Stop {
+  id: string;
+  order: number;                     // Position in the tour sequence
+
+  // Seed phase
+  seed: {
+    text: string;                    // 2–3 sentences of context
+    photoUrl: string | null;         // Photo for the postcard card
+    photoCaption: string | null;
+    ttsText: string | null;          // Optional override for TTS
+  };
+
+  // Notice phase
+  notice: {
+    prompt: string;                  // Observation directive
+    timerSeconds: number;            // Default 30
+  };
+
+  // Wonder phase
+  wonder: {
+    question: string;                // Discussion prompt (no options)
+  };
+
+  // Reveal phase
+  reveal: {
+    text: string;                    // The authored insight
+    photoUrl: string | null;         // Optional archival/contextual photo
+    photoCaption: string | null;
+    bridgeText: string;              // Forward-pointing sentence to next stop
+  };
+
+  // Metadata
+  physicalLocationTag: string;       // Where in the site this stop is
+  relatedEntryIds: string[];         // Knowledge base entries this stop draws from
+  upcomingTopics: string[];          // Keywords for AI question routing
+}
+
+export interface WebNode {
+  id: string;
+  type: 'seed' | 'notice' | 'wonder';
+  label: string;                     // Short label shown after completion
+  stopId: string;                    // Which stop this node belongs to
+  connections: string[];             // IDs of connected nodes
+  x: number;                        // Position in the web layout (0–100)
+  y: number;
+}
+
+export interface TourSession {
+  id: string;
+  tourId: string;
+  currentStopIndex: number;
+  currentPhase: 'seed' | 'notice' | 'wonder' | 'reveal' | 'reflect' | 'branch' | 'off_path' | 'end';
+  completedStops: string[];
+  reflectionScores: Array<{ stopId: string; score: number }>;  // 0–1 scale
+  bankedQuestions: BankedQuestion[];
+  startedAt: string;
+  completedAt: string | null;
+}
+
+export interface BankedQuestion {
+  id: string;
+  tourId: string;
+  sessionId: string;
+  questionText: string;
+  askedAfterStopId: string;
+  aiResponse: 'coming_up' | 'answered_off_path' | 'banked';
+  timestamp: string;
+}
+
+export interface CommunalQuestion {
+  id: string;
+  tourId: string;
+  questionText: string;
+  askedBySessionCount: number;
+  responses: CommunalResponse[];
+  createdAt: string;
+}
+
+export interface CommunalResponse {
+  sessionId: string;
+  responseText: string;
+  timestamp: string;
+}
