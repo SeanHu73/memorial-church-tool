@@ -11,6 +11,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { Tour, Stop, TourSession, BankedQuestion } from '@/lib/types';
 import { getTour } from '@/lib/tours-store';
+import { persistTourSession } from '@/lib/tour-sessions-store';
 import {
   createSession,
   advancePhase as advancePhaseImpl,
@@ -70,6 +71,8 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const persist = useCallback((s: TourSession) => {
     setSession(s);
     saveTourSession(s);
+    // Fire-and-forget write to Firestore for analytics
+    persistTourSession(s);
   }, []);
 
   const currentStop = tour && session

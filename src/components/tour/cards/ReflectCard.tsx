@@ -5,6 +5,7 @@ import { Stop } from '@/lib/types';
 
 interface Props {
   stop: Stop;
+  hasWonder: boolean;
   isLastStop: boolean;
   onAskQuestion: () => void;
   onContinue: () => void;
@@ -13,13 +14,14 @@ interface Props {
 
 export default function ReflectCard({
   stop,
+  hasWonder,
   isLastStop,
   onAskQuestion,
   onContinue,
   onAddReflection,
 }: Props) {
   const [score, setScore] = useState(0.5);
-  const [reflected, setReflected] = useState(false);
+  const [reflected, setReflected] = useState(!hasWonder); // skip slider if no wonder
 
   const handleReflect = () => {
     onAddReflection(score);
@@ -30,7 +32,7 @@ export default function ReflectCard({
     <div className="animate-fade-in space-y-6">
       {!reflected ? (
         <>
-          {/* Reflection prompt */}
+          {/* Reflection prompt — only shown when there was a wonder */}
           <p className="text-sm font-semibold text-[#2C2418]">
             How close was your theory?
           </p>
@@ -61,7 +63,7 @@ export default function ReflectCard({
         </>
       ) : (
         <>
-          {/* Post-reflection: bridge + branch */}
+          {/* Post-reflection (or no-wonder): bridge + branch */}
           {stop.reveal.bridgeText && (
             <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
               {stop.reveal.bridgeText}
