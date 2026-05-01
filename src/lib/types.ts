@@ -220,10 +220,10 @@ export interface Stop {
     timerSeconds: number;            // Default 30
   };
 
-  // Wonder phase
+  // Wonder phase — null means skip (notice goes straight to reveal)
   wonder: {
     question: string;                // Discussion prompt (no options)
-  };
+  } | null;
 
   // Reveal phase
   reveal: {

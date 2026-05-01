@@ -348,7 +348,7 @@ export default function TourEditorPage() {
                           : <em className="text-stone-400">Empty seed</em>}
                       </div>
                       <div className="text-xs text-stone-500 mt-0.5">
-                        {stop.physicalLocationTag} &middot; {stop.wonder.question ? 'Wonder set' : 'No wonder'} &middot; {stop.reveal.text ? 'Reveal set' : 'No reveal'}
+                        {stop.physicalLocationTag} &middot; {stop.wonder === null ? 'No wonder' : stop.wonder.question ? 'Wonder set' : 'Wonder empty'} &middot; {stop.reveal.text ? 'Reveal set' : 'No reveal'}
                       </div>
                     </div>
                     <div className="flex gap-1">
@@ -508,19 +508,43 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
           <span className="w-2 h-2 rounded-full bg-[#C4923A] inline-block" />
           Wonder (discussion prompt)
         </legend>
-        <label className="block">
-          <span className="text-xs text-stone-500">Question (prompts group conversation)</span>
-          <textarea
-            value={stop.wonder.question}
-            onChange={(e) => onChange({ wonder: { question: e.target.value } })}
-            rows={3}
-            className="mt-1 w-full px-3 py-1.5 border border-stone-300 rounded text-sm"
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={stop.wonder !== null}
+            onChange={(e) => {
+              if (e.target.checked) {
+                onChange({ wonder: { question: '' } });
+              } else {
+                onChange({ wonder: null });
+              }
+            }}
+            className="rounded"
           />
-          <p className="text-[10px] text-stone-400 mt-1 italic">
-            Write a question that prompts group conversation. There are no right or wrong answers &mdash;
-            the reveal will complicate their thinking.
-          </p>
+          <span className="text-xs text-stone-600">Include a wonder phase for this stop</span>
         </label>
+        {stop.wonder !== null && (
+          <>
+            <label className="block">
+              <span className="text-xs text-stone-500">Question (prompts group conversation)</span>
+              <textarea
+                value={stop.wonder.question}
+                onChange={(e) => onChange({ wonder: { question: e.target.value } })}
+                rows={3}
+                className="mt-1 w-full px-3 py-1.5 border border-stone-300 rounded text-sm"
+              />
+              <p className="text-[10px] text-stone-400 mt-1 italic">
+                Write a question that prompts group conversation. There are no right or wrong answers &mdash;
+                the reveal will complicate their thinking.
+              </p>
+            </label>
+          </>
+        )}
+        {stop.wonder === null && (
+          <p className="text-[10px] text-stone-400 italic">
+            Wonder skipped &mdash; learners will go directly from Notice to Reveal.
+          </p>
+        )}
       </fieldset>
 
       {/* ── Reveal ── */}
@@ -683,8 +707,23 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
 
 // ─── Stop Preview ───────────────────────────────────────────────────
 
-const PHASE_NAMES = ['Seed', 'Notice', 'Wonder', 'Reveal', 'Reflect'] as const;
-const PHASE_COLORS = ['#7A7A5E', '#2B4C5E', '#C4923A', '#C4923A', '#6B5D4F'];
+type PhaseName = 'Seed' | 'Notice' | 'Wonder' | 'Reveal' | 'Reflect';
+
+const PHASE_COLOR: Record<PhaseName, string> = {
+  Seed: '#7A7A5E',
+  Notice: '#2B4C5E',
+  Wonder: '#C4923A',
+  Reveal: '#C4923A',
+  Reflect: '#6B5D4F',
+};
+
+/** Build the phase sequence for a stop, skipping Wonder if null. */
+function phasesForStop(stop: Stop): PhaseName[] {
+  const phases: PhaseName[] = ['Seed', 'Notice'];
+  if (stop.wonder !== null) phases.push('Wonder');
+  phases.push('Reveal', 'Reflect');
+  return phases;
+}
 
 interface StopPreviewProps {
   stop: Stop;
@@ -695,31 +734,35 @@ interface StopPreviewProps {
 }
 
 function StopPreview({ stop, phase, onNext, onPrev, onClose }: StopPreviewProps) {
+  const phases = phasesForStop(stop);
+  const maxPhase = phases.length - 1;
+  const currentPhase = phases[Math.min(phase, maxPhase)];
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-[#F0E0C8] rounded-lg shadow-2xl w-full max-w-sm overflow-hidden">
         {/* Phase indicator */}
         <div className="flex items-center justify-between px-4 py-2 border-b border-[#D4BFA0]">
           <div className="flex gap-1">
-            {PHASE_NAMES.map((name, i) => (
+            {phases.map((name, i) => (
               <span
                 key={name}
                 className="w-2 h-2 rounded-full"
                 style={{
-                  backgroundColor: i <= phase ? PHASE_COLORS[i] : '#D4BFA0',
+                  backgroundColor: i <= phase ? PHASE_COLOR[name] : '#D4BFA0',
                 }}
               />
             ))}
           </div>
-          <span className="text-xs font-semibold" style={{ color: PHASE_COLORS[phase] }}>
-            {PHASE_NAMES[phase]}
+          <span className="text-xs font-semibold" style={{ color: PHASE_COLOR[currentPhase] }}>
+            {currentPhase}
           </span>
           <button onClick={onClose} className="text-stone-500 hover:text-stone-800 text-sm">&times;</button>
         </div>
 
         {/* Phase content */}
         <div className="p-5 min-h-[280px] flex flex-col justify-between">
-          {phase === 0 && (
+          {currentPhase === 'Seed' && (
             <div className="space-y-3">
               {stop.seed.photoUrl && (
                 <div className="rounded overflow-hidden border border-[#D4BFA0]">
@@ -736,7 +779,7 @@ function StopPreview({ stop, phase, onNext, onPrev, onClose }: StopPreviewProps)
             </div>
           )}
 
-          {phase === 1 && (
+          {currentPhase === 'Notice' && (
             <div className="space-y-4">
               <p className="text-[19px] leading-relaxed font-serif text-[#2C2418]">
                 {stop.notice.prompt || <em className="text-stone-400">No notice prompt</em>}
@@ -750,7 +793,7 @@ function StopPreview({ stop, phase, onNext, onPrev, onClose }: StopPreviewProps)
             </div>
           )}
 
-          {phase === 2 && (
+          {currentPhase === 'Wonder' && stop.wonder && (
             <div className="space-y-4">
               <p className="text-xs uppercase tracking-widest text-[#C4923A] font-semibold">Wonder together</p>
               <p className="text-[19px] leading-relaxed font-serif text-[#2C2418]">
@@ -760,7 +803,7 @@ function StopPreview({ stop, phase, onNext, onPrev, onClose }: StopPreviewProps)
             </div>
           )}
 
-          {phase === 3 && (
+          {currentPhase === 'Reveal' && (
             <div className="space-y-3">
               <p className="text-[17px] leading-relaxed font-serif text-[#2C2418] border-l-4 border-[#C4923A] pl-3">
                 {stop.reveal.text || <em className="text-stone-400">No reveal text</em>}
@@ -780,7 +823,7 @@ function StopPreview({ stop, phase, onNext, onPrev, onClose }: StopPreviewProps)
             </div>
           )}
 
-          {phase === 4 && (
+          {currentPhase === 'Reflect' && (
             <div className="space-y-4">
               <p className="text-sm font-semibold text-stone-700">How close was your theory?</p>
               <div className="h-2 bg-[#D4BFA0] rounded-full relative">
@@ -812,11 +855,11 @@ function StopPreview({ stop, phase, onNext, onPrev, onClose }: StopPreviewProps)
               className="text-xs text-stone-500 hover:text-stone-800 disabled:opacity-30"
             >&larr; Previous</button>
             <button
-              onClick={phase === 4 ? onClose : onNext}
+              onClick={phase >= maxPhase ? onClose : onNext}
               className="text-xs font-semibold"
-              style={{ color: PHASE_COLORS[Math.min(phase + 1, 4)] }}
+              style={{ color: PHASE_COLOR[phases[Math.min(phase + 1, maxPhase)]] }}
             >
-              {phase === 4 ? 'Close preview' : `Next: ${PHASE_NAMES[phase + 1]} \u2192`}
+              {phase >= maxPhase ? 'Close preview' : `Next: ${phases[phase + 1]} \u2192`}
             </button>
           </div>
         </div>
