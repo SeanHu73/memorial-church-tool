@@ -26,23 +26,34 @@ export default function ToursListPage() {
     });
   }, []);
 
+  const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+
   const createTour = async () => {
-    const id = newTourId();
-    const now = new Date().toISOString();
-    const tour: Tour = {
-      id,
-      title: 'Untitled Tour',
-      subtitle: '',
-      guide: { name: '', role: '', initials: '' },
-      description: '',
-      coverPhotoUrl: '',
-      stops: [],
-      connectionWeb: [],
-      createdAt: now,
-      updatedAt: now,
-    };
-    await saveTour(tour);
-    router.push(`/admin/tours/${id}`);
+    setCreating(true);
+    setError(null);
+    try {
+      const id = newTourId();
+      const now = new Date().toISOString();
+      const tour: Tour = {
+        id,
+        title: 'Untitled Tour',
+        subtitle: '',
+        guide: { name: '', role: '', initials: '' },
+        description: '',
+        coverPhotoUrl: '',
+        stops: [],
+        connectionWeb: [],
+        createdAt: now,
+        updatedAt: now,
+      };
+      await saveTour(tour);
+      router.push(`/admin/tours/${id}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg);
+      setCreating(false);
+    }
   };
 
   return (
@@ -60,14 +71,28 @@ export default function ToursListPage() {
             <div className="flex gap-3 text-sm">
               <button
                 onClick={createTour}
-                className="px-3 py-1.5 rounded bg-blue-700 text-white hover:bg-blue-800"
+                disabled={creating}
+                className="px-3 py-1.5 rounded bg-blue-700 text-white hover:bg-blue-800 disabled:opacity-50"
               >
-                + New tour
+                {creating ? 'Creating...' : '+ New tour'}
               </button>
               <Link href="/admin" className="text-blue-700 hover:underline self-center">&larr; Admin</Link>
             </div>
           </div>
         </header>
+
+        {error && (
+          <div className="mb-4 p-3 rounded border border-red-300 bg-red-50 text-red-800 text-sm">
+            <strong>Error:</strong> {error}
+            {error.includes('permissions') && (
+              <p className="mt-1 text-xs">
+                Add this Firestore rule: <code className="bg-red-100 px-1 rounded">
+                {'match /memorial-church-tours/{doc} { allow read, write: if true; }'}
+                </code>
+              </p>
+            )}
+          </div>
+        )}
 
         {loading ? (
           <p className="text-stone-600 text-sm">Loading tours...</p>
