@@ -41,12 +41,16 @@ export default function Journal({ onMapPeek }: JournalProps) {
   const [paused, setPaused] = useState(false);
   const lastTapRef = useRef(0);
 
-  const handlePauseDoubleTap = useCallback(() => {
+  // Double-tap handler: two taps within 400ms
+  const handleDoubleTap = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     const now = Date.now();
     if (now - lastTapRef.current < 400) {
       setPaused(false);
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
     }
-    lastTapRef.current = now;
   }, []);
 
   if (!tour || !session) return null;
@@ -58,11 +62,11 @@ export default function Journal({ onMapPeek }: JournalProps) {
   if (paused) {
     return (
       <div
-        className="fixed inset-0 z-40 bg-black flex items-center justify-center"
-        onClick={handlePauseDoubleTap}
-        onTouchEnd={handlePauseDoubleTap}
+        className="fixed inset-0 z-40 bg-black flex items-center justify-center select-none"
+        onClick={handleDoubleTap}
+        onTouchEnd={handleDoubleTap}
       >
-        <p className="text-white/40 text-sm tracking-wide animate-gentle-pulse select-none">
+        <p className="text-white/40 text-sm tracking-wide animate-gentle-pulse pointer-events-none">
           Double tap to return to tour
         </p>
       </div>
@@ -148,14 +152,16 @@ export default function Journal({ onMapPeek }: JournalProps) {
         )}
       </div>
 
-      {/* Pause button — bottom left */}
+      {/* Footer bar with pause button */}
       {phase !== 'end' && (
-        <button
-          onClick={() => setPaused(true)}
-          className="absolute bottom-5 left-5 text-xs text-[#6B5D4F]/60 hover:text-[#6B5D4F] transition-colors"
-        >
-          We&apos;re taking it in...
-        </button>
+        <div className="shrink-0 px-5 py-3 border-t" style={{ borderColor: '#D4BFA0' }}>
+          <button
+            onClick={() => setPaused(true)}
+            className="px-4 py-2 rounded-lg text-xs text-[#6B5D4F]/70 hover:text-[#6B5D4F] hover:bg-[#D4BFA0]/20 transition-colors"
+          >
+            We&apos;re taking it in...
+          </button>
+        </div>
       )}
     </div>
   );
