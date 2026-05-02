@@ -90,7 +90,7 @@ export function blankStop(order: number): import('./types').Stop {
     seed: { text: '', photoUrl: null, photoCaption: null, ttsText: null },
     notice: { prompt: '', timerSeconds: 30, photoUrl: null, photoCaption: null },
     wonder: { question: '' },
-    reveal: { text: '', photoUrl: null, photoCaption: null, bridgeText: '' },
+    reveal: { text: '', photoUrl: null, photoCaption: null, photos: [], bridgeText: '' },
     reflect: {
       sliderPrompt: 'How much did that change your thinking?',
       sliderLeftLabel: 'Confirmed what we thought',

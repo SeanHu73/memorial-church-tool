@@ -35,22 +35,34 @@ export default function RevealCard({
         </p>
       </div>
 
-      {/* Optional photo */}
-      {stop.reveal.photoUrl && (
-        <div className="rounded-lg overflow-hidden shadow-md border border-[#D4BFA0]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={stop.reveal.photoUrl}
-            alt={stop.reveal.photoCaption || ''}
-            className="w-full h-40 object-cover"
-          />
-          {stop.reveal.photoCaption && (
-            <p className="text-xs text-[#6B5D4F] px-3 py-1.5 bg-[#F0E0C8]/50 italic">
-              {stop.reveal.photoCaption}
-            </p>
-          )}
-        </div>
-      )}
+      {/* Photos */}
+      {(() => {
+        // Merge legacy single photo + new photos array
+        const photos = [
+          ...(stop.reveal.photoUrl ? [{ url: stop.reveal.photoUrl, caption: stop.reveal.photoCaption }] : []),
+          ...(stop.reveal.photos || []),
+        ].filter((p) => p.url);
+        if (photos.length === 0) return null;
+        return (
+          <div className="space-y-3">
+            {photos.map((photo, i) => (
+              <div key={i} className="rounded-lg overflow-hidden shadow-md border border-[#D4BFA0]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={photo.url}
+                  alt={photo.caption || ''}
+                  className="w-full h-40 object-cover"
+                />
+                {photo.caption && (
+                  <p className="text-xs text-[#6B5D4F] px-3 py-1.5 bg-[#F0E0C8]/50 italic">
+                    {photo.caption}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       {hasReflect ? (
         <>

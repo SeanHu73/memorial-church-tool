@@ -236,8 +236,9 @@ export interface Stop {
   // Reveal phase
   reveal: {
     text: string;                    // The authored insight
-    photoUrl: string | null;         // Optional archival/contextual photo
+    photoUrl: string | null;         // Legacy single photo (kept for backward compat)
     photoCaption: string | null;
+    photos: Array<{ url: string; caption: string | null }>; // Multiple photos
     bridgeText: string;              // Forward-pointing sentence to next stop
   };
 

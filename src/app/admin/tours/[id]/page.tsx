@@ -642,40 +642,67 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
           />
           <span className="text-[10px] text-stone-400">{wordCount(stop.reveal.text)} words</span>
         </label>
-        <div className="flex gap-4">
-          <label className="flex-1 block">
-            <span className="text-xs text-stone-500">Photo URL (optional)</span>
-            <div className="flex gap-2 mt-1">
-              <input
-                value={stop.reveal.photoUrl || ''}
-                onChange={(e) => onChange({ reveal: { ...stop.reveal, photoUrl: e.target.value || null } })}
-                className="flex-1 px-2 py-1 border border-stone-300 rounded text-xs"
-                placeholder="/photos/archival/..."
-              />
-              <label className="px-2 py-1 rounded bg-stone-200 text-stone-700 text-xs cursor-pointer hover:bg-stone-300">
-                Upload
+        {/* Photos — multiple allowed */}
+        <div className="space-y-2">
+          <span className="text-xs text-stone-500">Photos (optional)</span>
+          {(stop.reveal.photos || []).map((photo, i) => (
+            <div key={i} className="flex gap-2 items-start">
+              <div className="flex-1 flex gap-2">
                 <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const url = await onUploadPhoto(file, `memorial-church/photos/tours/${tourId}/reveal_${stop.id}_${file.name}`);
-                    onChange({ reveal: { ...stop.reveal, photoUrl: url } });
+                  value={photo.url}
+                  onChange={(e) => {
+                    const photos = [...(stop.reveal.photos || [])];
+                    photos[i] = { ...photos[i], url: e.target.value };
+                    onChange({ reveal: { ...stop.reveal, photos } });
                   }}
+                  className="flex-1 px-2 py-1 border border-stone-300 rounded text-xs"
+                  placeholder="/photos/archival/..."
                 />
-              </label>
+                <input
+                  value={photo.caption || ''}
+                  onChange={(e) => {
+                    const photos = [...(stop.reveal.photos || [])];
+                    photos[i] = { ...photos[i], caption: e.target.value || null };
+                    onChange({ reveal: { ...stop.reveal, photos } });
+                  }}
+                  className="w-40 px-2 py-1 border border-stone-300 rounded text-xs"
+                  placeholder="Caption"
+                />
+                <label className="px-2 py-1 rounded bg-stone-200 text-stone-700 text-xs cursor-pointer hover:bg-stone-300 shrink-0">
+                  Upload
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const url = await onUploadPhoto(file, `memorial-church/photos/tours/${tourId}/reveal_${stop.id}_${i}_${file.name}`);
+                      const photos = [...(stop.reveal.photos || [])];
+                      photos[i] = { ...photos[i], url };
+                      onChange({ reveal: { ...stop.reveal, photos } });
+                    }}
+                  />
+                </label>
+              </div>
+              <button
+                onClick={() => {
+                  const photos = (stop.reveal.photos || []).filter((_, j) => j !== i);
+                  onChange({ reveal: { ...stop.reveal, photos } });
+                }}
+                className="px-1.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded"
+              >&times;</button>
             </div>
-          </label>
-          <label className="flex-1 block">
-            <span className="text-xs text-stone-500">Photo caption</span>
-            <input
-              value={stop.reveal.photoCaption || ''}
-              onChange={(e) => onChange({ reveal: { ...stop.reveal, photoCaption: e.target.value || null } })}
-              className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
-            />
-          </label>
+          ))}
+          <button
+            onClick={() => {
+              const photos = [...(stop.reveal.photos || []), { url: '', caption: null }];
+              onChange({ reveal: { ...stop.reveal, photos } });
+            }}
+            className="text-xs text-blue-700 hover:underline"
+          >
+            + Add photo
+          </button>
         </div>
         <label className="block">
           <span className="text-xs text-stone-500">Bridge text (forward-pointing sentence to next stop)</span>
