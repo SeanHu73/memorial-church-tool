@@ -77,7 +77,7 @@ export default function ReflectCard({
       {!submitted ? (
         <>
           {/* Title */}
-          <p className="text-sm uppercase tracking-[0.14em] text-[#6B5D4F] font-semibold">
+          <p className="text-xl uppercase tracking-[0.14em] text-[#6B5D4F] font-semibold">
             Reflect...
           </p>
 
