@@ -4,19 +4,18 @@ import { Stop } from '@/lib/types';
 
 interface Props {
   stop: Stop;
-  hasWonder: boolean;
+  hasReflect: boolean;
   isLastStop: boolean;
-  onContinue: () => void;
-  /** Called when wonder exists — advances to reflect phase */
+  /** Advances to reflect phase */
   onAdvancePhase: () => void;
-  /** Called from the no-wonder branch buttons */
+  /** Branch buttons when reflect is skipped */
   onAskQuestion: () => void;
   onAdvanceStop: () => void;
 }
 
 export default function RevealCard({
   stop,
-  hasWonder,
+  hasReflect,
   isLastStop,
   onAdvancePhase,
   onAskQuestion,
@@ -53,9 +52,8 @@ export default function RevealCard({
         </div>
       )}
 
-      {hasWonder ? (
+      {hasReflect ? (
         <>
-          {/* Bridge text shown before reflect */}
           {stop.reveal.bridgeText && (
             <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
               {stop.reveal.bridgeText}
@@ -70,7 +68,7 @@ export default function RevealCard({
         </>
       ) : (
         <>
-          {/* No wonder → no reflection. Show bridge + branch buttons inline. */}
+          {/* No reflection — show bridge + branch buttons inline */}
           <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold mt-2">
             What&apos;s next...
           </p>

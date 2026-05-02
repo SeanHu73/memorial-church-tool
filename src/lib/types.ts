@@ -241,7 +241,7 @@ export interface Stop {
     bridgeText: string;              // Forward-pointing sentence to next stop
   };
 
-  // Reflection phase — configurable per stop
+  // Reflection phase — null means skip entirely
   reflect: {
     sliderPrompt: string;            // Default: "How much did that change your thinking?"
     sliderLeftLabel: string;         // Default: "Confirmed what we thought"
@@ -249,7 +249,7 @@ export interface Stop {
     followUp: 'what_shifted' | 'reasoning_source' | null;
     // Custom options — if null, defaults are used
     followUpOptions: string[] | null;
-  };
+  } | null;
 
   // Metadata
   physicalLocationTag: string;       // Where in the site this stop is

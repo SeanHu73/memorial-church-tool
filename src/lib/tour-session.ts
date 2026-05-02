@@ -28,7 +28,7 @@ export function nextPhase(current: TourPhase, stop: Stop): TourPhase {
     case 'seed': return 'notice';
     case 'notice': return stop.wonder !== null ? 'wonder' : 'reveal';
     case 'wonder': return 'reveal';
-    case 'reveal': return stop.wonder !== null ? 'reflect' : 'reveal'; // no-wonder: stay on reveal (branch buttons are inline)
+    case 'reveal': return stop.reflect !== null ? 'reflect' : 'reveal'; // no reflect: stay on reveal (branch buttons are inline)
     default: return current; // reflect, branch, off_path, end — handled by callers
   }
 }
