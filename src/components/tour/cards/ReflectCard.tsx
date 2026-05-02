@@ -34,9 +34,9 @@ export default function ReflectCard({
   onAddReflection,
 }: Props) {
   const [sliderValue, setSliderValue] = useState(0.5);
-  const [sliderMoved, setSliderMoved] = useState(!hasWonder); // skip slider if no wonder
+  const [sliderReleased, setSliderReleased] = useState(false);
   const [followUpChoice, setFollowUpChoice] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(!hasWonder); // skip to buttons if no wonder
+  const [submitted, setSubmitted] = useState(!hasWonder);
 
   const reflect = stop.reflect ?? {
     sliderPrompt: 'How much did that change your thinking?',
@@ -57,13 +57,18 @@ export default function ReflectCard({
       ? 'Where did your thinking come from?'
       : null;
 
-  const handleSliderChange = (val: number) => {
-    setSliderValue(val);
-    if (!sliderMoved) setSliderMoved(true);
+  const handleSliderRelease = () => {
+    if (!sliderReleased) setSliderReleased(true);
   };
 
   const handleSubmit = () => {
     onAddReflection(sliderValue, followUpChoice);
+    setSubmitted(true);
+  };
+
+  const handleSkip = () => {
+    // Log with default values so the row exists but shows it was skipped
+    onAddReflection(-1, 'skipped');
     setSubmitted(true);
   };
 
@@ -82,7 +87,9 @@ export default function ReflectCard({
               max="1"
               step="0.01"
               value={sliderValue}
-              onChange={(e) => handleSliderChange(parseFloat(e.target.value))}
+              onChange={(e) => setSliderValue(parseFloat(e.target.value))}
+              onMouseUp={handleSliderRelease}
+              onTouchEnd={handleSliderRelease}
               className="w-full accent-[#C4923A]"
             />
             <div className="flex justify-between text-[11px] text-[#6B5D4F]">
@@ -91,8 +98,8 @@ export default function ReflectCard({
             </div>
           </div>
 
-          {/* Follow-up — fades in after slider is moved */}
-          {sliderMoved && followUpOptions && followUpQuestion && (
+          {/* Follow-up — fades in after slider is released */}
+          {sliderReleased && followUpOptions && followUpQuestion && (
             <div className="animate-fade-in space-y-3">
               <p className="text-sm font-semibold text-[#2C2418]">
                 {followUpQuestion}
@@ -115,8 +122,8 @@ export default function ReflectCard({
             </div>
           )}
 
-          {/* Submit — visible once slider has been moved */}
-          {sliderMoved && (
+          {/* Continue — visible once slider has been released */}
+          {sliderReleased && (
             <button
               onClick={handleSubmit}
               className="w-full py-3 rounded-lg text-sm font-semibold bg-[#6B5D4F] text-white animate-fade-in"
@@ -124,6 +131,14 @@ export default function ReflectCard({
               Continue
             </button>
           )}
+
+          {/* Skip */}
+          <button
+            onClick={handleSkip}
+            className="text-xs text-[#6B5D4F]/50 hover:text-[#6B5D4F] transition-colors"
+          >
+            Skip reflection
+          </button>
         </>
       ) : (
         <>
