@@ -469,7 +469,7 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
       <fieldset className="space-y-2">
         <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#7A7A5E] inline-block" />
-          Seed (context card)
+          Background (seed &mdash; context card)
         </legend>
         <label className="block">
           <span className="text-xs text-stone-500">Text (2-3 sentences of context)</span>
@@ -630,7 +630,7 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
       <fieldset className="space-y-2">
         <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#C4923A] inline-block" />
-          Reveal (context reveal)
+          Context (reveal)
         </legend>
         <label className="block">
           <span className="text-xs text-stone-500">Text (the authored insight)</span>

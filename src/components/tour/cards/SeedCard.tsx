@@ -10,6 +10,11 @@ interface Props {
 export default function SeedCard({ stop, onContinue }: Props) {
   return (
     <div className="animate-fade-in space-y-4 min-h-full flex flex-col justify-center">
+      {/* Title */}
+      <p className="text-xs uppercase tracking-[0.14em] text-[#7A7A5E] font-semibold">
+        Background...
+      </p>
+
       {/* Photo inset — postcard feel */}
       {stop.seed.photoUrl && (
         <div className="rounded-lg overflow-hidden shadow-md border-4 border-[#FFF8EE]">
