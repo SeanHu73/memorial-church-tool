@@ -13,8 +13,8 @@ export default function WonderCard({ stop, onContinue }: Props) {
   return (
     <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
       {/* Wonder label */}
-      <p className="text-xs uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
-        Wonder together
+      <p className="text-sm uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
+        Wonder together...
       </p>
 
       {/* Discussion prompt */}

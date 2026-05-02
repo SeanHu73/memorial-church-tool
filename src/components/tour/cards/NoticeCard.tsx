@@ -27,6 +27,11 @@ export default function NoticeCard({ stop, onContinue }: Props) {
 
   return (
     <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
+      {/* Title */}
+      <p className="text-sm uppercase tracking-[0.14em] text-[#2B4C5E] font-semibold">
+        Look around...
+      </p>
+
       {/* Optional photo — helps locate the feature */}
       {stop.notice.photoUrl && (
         <div className="rounded-lg overflow-hidden shadow-md border border-[#D4BFA0]">

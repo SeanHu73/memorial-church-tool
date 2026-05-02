@@ -76,6 +76,11 @@ export default function ReflectCard({
     <div className="animate-fade-in flex flex-col justify-center min-h-full space-y-6">
       {!submitted ? (
         <>
+          {/* Title */}
+          <p className="text-sm uppercase tracking-[0.14em] text-[#6B5D4F] font-semibold">
+            Reflect...
+          </p>
+
           {/* Slider */}
           <div className="space-y-3">
             <p className="text-sm font-semibold text-[#2C2418]">
@@ -154,7 +159,7 @@ export default function ReflectCard({
               onClick={onAskQuestion}
               className="w-full py-3 rounded-lg text-sm font-semibold border-2 border-[#C4923A] text-[#C4923A] bg-[#C4923A]/10"
             >
-              Ask our own question
+              Ask any remaining questions
             </button>
             <button
               onClick={onContinue}

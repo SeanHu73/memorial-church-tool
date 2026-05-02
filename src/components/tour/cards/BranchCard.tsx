@@ -58,6 +58,9 @@ export default function BranchCard() {
   if (!result) {
     return (
       <div className="animate-fade-in space-y-4 min-h-full flex flex-col justify-center">
+        <p className="text-sm uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
+          What&apos;s next...
+        </p>
         <p className="text-sm font-semibold text-[#2C2418]">
           What are you curious about?
         </p>
