@@ -148,6 +148,9 @@ export default function ReflectCard({
       ) : (
         <>
           {/* Post-reflection: bridge + branch */}
+          <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
+            What&apos;s next...
+          </p>
           {stop.reveal.bridgeText && (
             <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
               {stop.reveal.bridgeText}
