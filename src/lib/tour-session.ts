@@ -42,7 +42,7 @@ export function createSession(tourId: string): TourSession {
     currentStopIndex: 0,
     currentPhase: 'seed',
     completedStops: [],
-    reflectionScores: [],
+    reflections: [],
     bankedQuestions: [],
     startedAt: new Date().toISOString(),
     completedAt: null,
@@ -88,14 +88,15 @@ export function returnFromBranch(session: TourSession, tour: Tour): TourSession 
   return advanceToNextStop(session, tour);
 }
 
-export function addReflectionScore(
+export function addReflection(
   session: TourSession,
   stopId: string,
-  score: number
+  sliderValue: number,
+  followUpResponse: string | null
 ): TourSession {
   return {
     ...session,
-    reflectionScores: [...session.reflectionScores, { stopId, score }],
+    reflections: [...session.reflections, { stopId, sliderValue, followUpResponse }],
   };
 }
 

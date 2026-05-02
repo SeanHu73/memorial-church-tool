@@ -3,13 +3,26 @@
 import { useState } from 'react';
 import { Stop } from '@/lib/types';
 
+const DEFAULT_WHAT_SHIFTED = [
+  'We learned something new',
+  'We changed our mind',
+  'We had part of it',
+  'It was as we expected',
+];
+
+const DEFAULT_REASONING_SOURCE = [
+  'What we observed here',
+  'Something we already knew',
+  'A guess',
+];
+
 interface Props {
   stop: Stop;
   hasWonder: boolean;
   isLastStop: boolean;
   onAskQuestion: () => void;
   onContinue: () => void;
-  onAddReflection: (score: number) => void;
+  onAddReflection: (sliderValue: number, followUpResponse: string | null) => void;
 }
 
 export default function ReflectCard({
@@ -20,50 +33,101 @@ export default function ReflectCard({
   onContinue,
   onAddReflection,
 }: Props) {
-  const [score, setScore] = useState(0.5);
-  const [reflected, setReflected] = useState(!hasWonder); // skip slider if no wonder
+  const [sliderValue, setSliderValue] = useState(0.5);
+  const [sliderMoved, setSliderMoved] = useState(!hasWonder); // skip slider if no wonder
+  const [followUpChoice, setFollowUpChoice] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(!hasWonder); // skip to buttons if no wonder
 
-  const handleReflect = () => {
-    onAddReflection(score);
-    setReflected(true);
+  const reflect = stop.reflect ?? {
+    sliderPrompt: 'How much did that change your thinking?',
+    sliderLeftLabel: 'Confirmed what we thought',
+    sliderRightLabel: 'Shifted our thinking completely',
+    followUp: null,
+    followUpOptions: null,
+  };
+
+  const followUpOptions: string[] | null = reflect.followUp
+    ? reflect.followUpOptions ??
+      (reflect.followUp === 'what_shifted' ? DEFAULT_WHAT_SHIFTED : DEFAULT_REASONING_SOURCE)
+    : null;
+
+  const followUpQuestion = reflect.followUp === 'what_shifted'
+    ? 'What shifted?'
+    : reflect.followUp === 'reasoning_source'
+      ? 'Where did your thinking come from?'
+      : null;
+
+  const handleSliderChange = (val: number) => {
+    setSliderValue(val);
+    if (!sliderMoved) setSliderMoved(true);
+  };
+
+  const handleSubmit = () => {
+    onAddReflection(sliderValue, followUpChoice);
+    setSubmitted(true);
   };
 
   return (
-    <div className="animate-fade-in space-y-6">
-      {!reflected ? (
+    <div className="animate-fade-in flex flex-col justify-center min-h-full space-y-6">
+      {!submitted ? (
         <>
-          {/* Reflection prompt — only shown when there was a wonder */}
-          <p className="text-sm font-semibold text-[#2C2418]">
-            How close was your theory?
-          </p>
-
-          {/* Sliding scale */}
-          <div className="space-y-2">
+          {/* Slider */}
+          <div className="space-y-3">
+            <p className="text-sm font-semibold text-[#2C2418]">
+              {reflect.sliderPrompt}
+            </p>
             <input
               type="range"
               min="0"
               max="1"
               step="0.01"
-              value={score}
-              onChange={(e) => setScore(parseFloat(e.target.value))}
+              value={sliderValue}
+              onChange={(e) => handleSliderChange(parseFloat(e.target.value))}
               className="w-full accent-[#C4923A]"
             />
             <div className="flex justify-between text-[11px] text-[#6B5D4F]">
-              <span>Not what we expected</span>
-              <span>Exactly what we thought</span>
+              <span>{reflect.sliderLeftLabel}</span>
+              <span>{reflect.sliderRightLabel}</span>
             </div>
           </div>
 
-          <button
-            onClick={handleReflect}
-            className="w-full py-3 rounded-lg text-sm font-semibold bg-[#6B5D4F] text-white"
-          >
-            Submit reflection
-          </button>
+          {/* Follow-up — fades in after slider is moved */}
+          {sliderMoved && followUpOptions && followUpQuestion && (
+            <div className="animate-fade-in space-y-3">
+              <p className="text-sm font-semibold text-[#2C2418]">
+                {followUpQuestion}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {followUpOptions.map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => setFollowUpChoice(followUpChoice === option ? null : option)}
+                    className={`px-3 py-1.5 rounded-full text-xs transition-all ${
+                      followUpChoice === option
+                        ? 'bg-[#C4923A]/20 border-2 border-[#C4923A] text-[#2C2418] font-semibold'
+                        : 'bg-[#F0E0C8] border-2 border-transparent text-[#6B5D4F] hover:border-[#D4BFA0]'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Submit — visible once slider has been moved */}
+          {sliderMoved && (
+            <button
+              onClick={handleSubmit}
+              className="w-full py-3 rounded-lg text-sm font-semibold bg-[#6B5D4F] text-white animate-fade-in"
+            >
+              Continue
+            </button>
+          )}
         </>
       ) : (
         <>
-          {/* Post-reflection (or no-wonder): bridge + branch */}
+          {/* Post-reflection: bridge + branch */}
           {stop.reveal.bridgeText && (
             <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
               {stop.reveal.bridgeText}

@@ -13,6 +13,7 @@ export function logReflection(opts: {
   stopIndex: number;
   stopTitle: string;
   score: number;
+  followUpResponse: string | null;
 }): void {
   fire({
     event: 'reflection',
@@ -22,6 +23,7 @@ export function logReflection(opts: {
     stopIndex: opts.stopIndex,
     stopTitle: opts.stopTitle,
     reflectionScore: opts.score,
+    followUpResponse: opts.followUpResponse,
     timestamp: new Date().toISOString(),
   });
 }

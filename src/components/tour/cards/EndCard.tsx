@@ -10,7 +10,7 @@ export default function EndCard() {
   const banked = session.bankedQuestions.filter((q) => q.aiResponse === 'banked');
 
   return (
-    <div className="animate-fade-in space-y-6">
+    <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
       <div className="text-center space-y-2">
         <p className="text-xs uppercase tracking-[0.14em] text-[#7A7A5E] font-semibold">
           Tour complete
@@ -22,26 +22,26 @@ export default function EndCard() {
       </div>
 
       {/* Reflection summary */}
-      {session.reflectionScores.length > 0 && (
+      {session.reflections.length > 0 && (
         <div className="p-3 rounded-lg bg-[#F0E0C8] border border-[#D4BFA0]">
           <p className="text-xs text-[#6B5D4F] font-semibold uppercase tracking-wide mb-2">
             Your reflections
           </p>
           <div className="flex gap-1">
-            {session.reflectionScores.map((r, i) => (
+            {session.reflections.map((r, i) => (
               <div
                 key={i}
                 className="flex-1 h-2 rounded-full"
                 style={{
-                  backgroundColor: `rgba(196, 146, 58, ${0.3 + r.score * 0.7})`,
+                  backgroundColor: `rgba(196, 146, 58, ${0.3 + r.sliderValue * 0.7})`,
                 }}
-                title={`Stop ${i + 1}: ${Math.round(r.score * 100)}%`}
+                title={`Stop ${i + 1}: ${Math.round(r.sliderValue * 100)}%`}
               />
             ))}
           </div>
           <div className="flex justify-between text-[10px] text-[#6B5D4F] mt-1">
-            <span>Surprised</span>
-            <span>Expected</span>
+            <span>Confirmed</span>
+            <span>Shifted</span>
           </div>
         </div>
       )}

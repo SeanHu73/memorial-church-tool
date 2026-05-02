@@ -9,7 +9,7 @@ interface Props {
 
 export default function RevealCard({ stop, onContinue }: Props) {
   return (
-    <div className="animate-fade-in space-y-4">
+    <div className="animate-fade-in space-y-4 min-h-full flex flex-col justify-center">
       {/* Reveal text — blur-to-sharp animation */}
       <div className="animate-blur-reveal border-l-4 border-[#C4923A] pl-4">
         <p className="text-[17px] leading-relaxed font-serif text-[#2C2418]">

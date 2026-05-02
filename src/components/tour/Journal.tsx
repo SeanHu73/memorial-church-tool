@@ -140,7 +140,7 @@ export default function Journal({ onMapPeek }: JournalProps) {
             isLastStop={isLastStop}
             onAskQuestion={enterBranch}
             onContinue={advanceStop}
-            onAddReflection={addReflection}
+            onAddReflection={(sliderValue, followUpResponse) => addReflection(sliderValue, followUpResponse)}
           />
         )}
 

@@ -91,6 +91,13 @@ export function blankStop(order: number): import('./types').Stop {
     notice: { prompt: '', timerSeconds: 30, photoUrl: null, photoCaption: null },
     wonder: { question: '' },
     reveal: { text: '', photoUrl: null, photoCaption: null, bridgeText: '' },
+    reflect: {
+      sliderPrompt: 'How much did that change your thinking?',
+      sliderLeftLabel: 'Confirmed what we thought',
+      sliderRightLabel: 'Shifted our thinking completely',
+      followUp: null,
+      followUpOptions: null,
+    },
     physicalLocationTag: 'general',
     relatedEntryIds: [],
     upcomingTopics: [],

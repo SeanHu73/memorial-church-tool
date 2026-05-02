@@ -26,7 +26,7 @@ export default function NoticeCard({ stop, onContinue }: Props) {
   const progress = timerDone ? 0 : (secondsLeft / stop.notice.timerSeconds) * circumference;
 
   return (
-    <div className="animate-fade-in space-y-6">
+    <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
       {/* Optional photo — helps locate the feature */}
       {stop.notice.photoUrl && (
         <div className="rounded-lg overflow-hidden shadow-md border border-[#D4BFA0]">

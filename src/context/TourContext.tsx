@@ -19,7 +19,7 @@ import {
   advanceToNextStop as advanceToNextStopImpl,
   enterBranch as enterBranchImpl,
   returnFromBranch as returnFromBranchImpl,
-  addReflectionScore as addReflectionScoreImpl,
+  addReflection as addReflectionImpl,
   bankQuestion as bankQuestionImpl,
   loadTourSession,
   saveTourSession,
@@ -37,7 +37,7 @@ interface TourContextValue {
   advanceStop: () => void;
   enterBranch: () => void;
   returnFromBranch: () => void;
-  addReflection: (score: number) => void;
+  addReflection: (sliderValue: number, followUpResponse: string | null) => void;
   bankQuestion: (q: BankedQuestion) => void;
   endTour: () => void;
 }
@@ -121,16 +121,17 @@ export function TourProvider({ children }: { children: ReactNode }) {
     persist(returnFromBranchImpl(session, tour));
   }, [session, tour, persist]);
 
-  const addReflection = useCallback((score: number) => {
+  const addReflection = useCallback((sliderValue: number, followUpResponse: string | null) => {
     if (!session || !currentStop || !tour) return;
-    persist(addReflectionScoreImpl(session, currentStop.id, score));
+    persist(addReflectionImpl(session, currentStop.id, sliderValue, followUpResponse));
     logReflection({
       tourId: tour.id,
       sessionId: session.id,
       tourTitle: tour.title,
       stopIndex: session.currentStopIndex,
       stopTitle: currentStop.title || `Stop ${session.currentStopIndex + 1}`,
-      score,
+      score: sliderValue,
+      followUpResponse,
     });
   }, [session, currentStop, tour, persist]);
 

@@ -11,7 +11,7 @@ export default function WonderCard({ stop, onContinue }: Props) {
   if (!stop.wonder) return null;
 
   return (
-    <div className="animate-fade-in space-y-6">
+    <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
       {/* Wonder label */}
       <p className="text-xs uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
         Wonder together

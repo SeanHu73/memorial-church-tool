@@ -688,6 +688,81 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
         </label>
       </fieldset>
 
+      {/* ── Reflection ── */}
+      <fieldset className="space-y-2">
+        <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#6B5D4F] inline-block" />
+          Reflection
+        </legend>
+        <div className="grid grid-cols-3 gap-3">
+          <label className="block">
+            <span className="text-xs text-stone-500">Slider prompt</span>
+            <input
+              value={stop.reflect?.sliderPrompt ?? 'How much did that change your thinking?'}
+              onChange={(e) => onChange({ reflect: { ...(stop.reflect ?? { sliderPrompt: '', sliderLeftLabel: 'Confirmed what we thought', sliderRightLabel: 'Shifted our thinking completely', followUp: null, followUpOptions: null }), sliderPrompt: e.target.value } })}
+              className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs text-stone-500">Left label</span>
+            <input
+              value={stop.reflect?.sliderLeftLabel ?? 'Confirmed what we thought'}
+              onChange={(e) => onChange({ reflect: { ...(stop.reflect ?? { sliderPrompt: 'How much did that change your thinking?', sliderLeftLabel: '', sliderRightLabel: 'Shifted our thinking completely', followUp: null, followUpOptions: null }), sliderLeftLabel: e.target.value } })}
+              className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs text-stone-500">Right label</span>
+            <input
+              value={stop.reflect?.sliderRightLabel ?? 'Shifted our thinking completely'}
+              onChange={(e) => onChange({ reflect: { ...(stop.reflect ?? { sliderPrompt: 'How much did that change your thinking?', sliderLeftLabel: 'Confirmed what we thought', sliderRightLabel: '', followUp: null, followUpOptions: null }), sliderRightLabel: e.target.value } })}
+              className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+            />
+          </label>
+        </div>
+        <div>
+          <span className="text-xs text-stone-500">Optional follow-up reflection</span>
+          <div className="mt-1 space-y-1">
+            {([
+              { value: null, label: 'None', desc: '' },
+              { value: 'what_shifted' as const, label: '"What shifted?"', desc: 'Ask the group to categorise how the reveal changed their thinking.' },
+              { value: 'reasoning_source' as const, label: '"Where did your thinking come from?"', desc: 'Ask the group what they based their discussion on.' },
+            ]).map((opt) => (
+              <label key={String(opt.value)} className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name={`followup-${stop.id}`}
+                  checked={(stop.reflect?.followUp ?? null) === opt.value}
+                  onChange={() => onChange({ reflect: { ...(stop.reflect ?? { sliderPrompt: 'How much did that change your thinking?', sliderLeftLabel: 'Confirmed what we thought', sliderRightLabel: 'Shifted our thinking completely', followUp: null, followUpOptions: null }), followUp: opt.value, followUpOptions: null } })}
+                  className="mt-0.5"
+                />
+                <div>
+                  <span className="text-xs font-medium text-stone-700">{opt.label}</span>
+                  {opt.desc && <p className="text-[10px] text-stone-400">{opt.desc}</p>}
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+        {stop.reflect?.followUp && (
+          <label className="block">
+            <span className="text-xs text-stone-500">Custom options (one per line &mdash; leave blank for defaults)</span>
+            <textarea
+              value={(stop.reflect?.followUpOptions ?? []).join('\n')}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                onChange({ reflect: { ...stop.reflect!, followUpOptions: lines.length > 0 ? lines : null } });
+              }}
+              rows={3}
+              className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs font-mono"
+              placeholder={stop.reflect.followUp === 'what_shifted'
+                ? "We learned something new\nWe changed our mind\nWe had part of it\nIt was as we expected"
+                : "What we observed here\nSomething we already knew\nA guess"}
+            />
+          </label>
+        )}
+      </fieldset>
+
       {/* ── Location ── */}
       <fieldset className="space-y-2">
         <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide flex items-center gap-2">

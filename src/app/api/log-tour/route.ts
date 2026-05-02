@@ -19,6 +19,7 @@ interface TourLogEntry {
   stopTitle?: string;
   // Reflection
   reflectionScore?: number;
+  followUpResponse?: string | null;
   // Question
   questionText?: string;
   questionRouting?: 'coming_up' | 'answered_off_path' | 'banked';

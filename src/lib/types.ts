@@ -241,6 +241,16 @@ export interface Stop {
     bridgeText: string;              // Forward-pointing sentence to next stop
   };
 
+  // Reflection phase — configurable per stop
+  reflect: {
+    sliderPrompt: string;            // Default: "How much did that change your thinking?"
+    sliderLeftLabel: string;         // Default: "Confirmed what we thought"
+    sliderRightLabel: string;        // Default: "Shifted our thinking completely"
+    followUp: 'what_shifted' | 'reasoning_source' | null;
+    // Custom options — if null, defaults are used
+    followUpOptions: string[] | null;
+  };
+
   // Metadata
   physicalLocationTag: string;       // Where in the site this stop is
   relatedEntryIds: string[];         // Knowledge base entries this stop draws from
@@ -263,7 +273,11 @@ export interface TourSession {
   currentStopIndex: number;
   currentPhase: 'seed' | 'notice' | 'wonder' | 'reveal' | 'reflect' | 'branch' | 'off_path' | 'end';
   completedStops: string[];
-  reflectionScores: Array<{ stopId: string; score: number }>;  // 0–1 scale
+  reflections: Array<{
+    stopId: string;
+    sliderValue: number;              // 0–1
+    followUpResponse: string | null;  // Text of selected option, or null
+  }>;
   bankedQuestions: BankedQuestion[];
   startedAt: string;
   completedAt: string | null;

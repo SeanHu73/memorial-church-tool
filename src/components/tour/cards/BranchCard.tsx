@@ -57,7 +57,7 @@ export default function BranchCard() {
   // Pre-result: show the question input
   if (!result) {
     return (
-      <div className="animate-fade-in space-y-4">
+      <div className="animate-fade-in space-y-4 min-h-full flex flex-col justify-center">
         <p className="text-sm font-semibold text-[#2C2418]">
           What are you curious about?
         </p>
@@ -93,7 +93,7 @@ export default function BranchCard() {
 
   // Post-result: show the response
   return (
-    <div className="animate-fade-in space-y-4">
+    <div className="animate-fade-in space-y-4 min-h-full flex flex-col justify-center">
       {/* Question echo */}
       <p className="text-xs text-[#6B5D4F] uppercase tracking-wide font-semibold">You asked</p>
       <p className="text-sm font-serif text-[#2C2418] italic">&ldquo;{question}&rdquo;</p>

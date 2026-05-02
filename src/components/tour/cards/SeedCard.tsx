@@ -9,7 +9,7 @@ interface Props {
 
 export default function SeedCard({ stop, onContinue }: Props) {
   return (
-    <div className="animate-fade-in space-y-4">
+    <div className="animate-fade-in space-y-4 min-h-full flex flex-col justify-center">
       {/* Photo inset — postcard feel */}
       {stop.seed.photoUrl && (
         <div className="rounded-lg overflow-hidden shadow-md border-4 border-[#FFF8EE]">
