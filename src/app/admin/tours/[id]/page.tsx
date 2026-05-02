@@ -633,7 +633,7 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
           Context (reveal)
         </legend>
         <label className="block">
-          <span className="text-xs text-stone-500">Text (the authored insight)</span>
+          <span className="text-xs text-stone-500">Text (the authored insight) &mdash; use <code className="bg-stone-200 px-1 rounded">[photo:1]</code>, <code className="bg-stone-200 px-1 rounded">[photo:2]</code> etc. to place photos within the text</span>
           <textarea
             value={stop.reveal.text}
             onChange={(e) => onChange({ reveal: { ...stop.reveal, text: e.target.value } })}
