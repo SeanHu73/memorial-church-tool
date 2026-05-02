@@ -130,7 +130,15 @@ export default function Journal({ onMapPeek }: JournalProps) {
         )}
 
         {phase === 'reveal' && currentStop && (
-          <RevealCard stop={currentStop} onContinue={advancePhase} />
+          <RevealCard
+            stop={currentStop}
+            hasWonder={currentStop.wonder !== null}
+            isLastStop={isLastStop}
+            onContinue={advancePhase}
+            onAdvancePhase={advancePhase}
+            onAskQuestion={enterBranch}
+            onAdvanceStop={advanceStop}
+          />
         )}
 
         {phase === 'reflect' && currentStop && (
