@@ -39,9 +39,9 @@ export default function SeedCard({ stop, onContinue }: Props) {
       />
 
       {/* Timer (if enabled) */}
-      {timerActive && (
+      {timerActive && !timerDone && (
         <p className="text-xs text-[#6B5D4F] text-center">
-          Take your time processing this...{!timerDone && <> {secondsLeft}s...</>} or continue whenever you are ready
+          Take your time processing this... {secondsLeft}s... or continue whenever you are ready
         </p>
       )}
 
