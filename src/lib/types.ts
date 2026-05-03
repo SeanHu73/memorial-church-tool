@@ -219,6 +219,7 @@ export interface Stop {
     photoCaption: string | null;
     photos: Array<{ url: string; caption: string | null }>; // Multiple photos
     ttsText: string | null;          // Optional override for TTS
+    timerSeconds: number | null;     // Optional reading timer (null = no timer)
   };
 
   // Notice phase

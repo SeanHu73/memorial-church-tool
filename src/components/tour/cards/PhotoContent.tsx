@@ -3,7 +3,11 @@
 /**
  * Shared component that renders text interleaved with photos using
  * [photo:N] markers. Used by SeedCard, NoticeCard, and RevealCard.
+ * Text is rendered with FormattedText to support **bold**, *italic*,
+ * and {{#color}}colored{{/}} text.
  */
+
+import FormattedText from './FormattedText';
 
 interface Photo {
   url: string;
@@ -42,7 +46,7 @@ export default function PhotoContent({
       <div className="space-y-5">
         {text.trim() && (
           <div className={borderColor ? `border-l-4 pl-4` : ''} style={borderColor ? { borderColor } : undefined}>
-            <p className={textClass}>{text}</p>
+            <FormattedText text={text} className={textClass} />
           </div>
         )}
         {allPhotos.map((photo, i) => (
@@ -75,7 +79,7 @@ export default function PhotoContent({
             className={borderColor ? `border-l-4 pl-4` : ''}
             style={borderColor ? { borderColor } : undefined}
           >
-            <p className={textClass}>{trimmed}</p>
+            <FormattedText text={trimmed} className={textClass} />
           </div>
         );
       })}

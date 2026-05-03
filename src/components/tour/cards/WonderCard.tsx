@@ -1,6 +1,7 @@
 'use client';
 
 import { Stop } from '@/lib/types';
+import FormattedText from './FormattedText';
 
 interface Props {
   stop: Stop;
@@ -18,9 +19,10 @@ export default function WonderCard({ stop, onContinue }: Props) {
       </p>
 
       {/* Discussion prompt */}
-      <p className="text-[19px] leading-relaxed font-serif text-[#2C2418]">
-        {stop.wonder.question}
-      </p>
+      <FormattedText
+        text={stop.wonder.question}
+        className="text-[19px] leading-relaxed font-serif text-[#2C2418] block"
+      />
 
       {/* Explicit group instruction */}
       <p className="text-sm text-[#6B5D4F] italic">

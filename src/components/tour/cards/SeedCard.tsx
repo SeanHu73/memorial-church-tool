@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Stop } from '@/lib/types';
 import PhotoContent from './PhotoContent';
 
@@ -9,6 +10,19 @@ interface Props {
 }
 
 export default function SeedCard({ stop, onContinue }: Props) {
+  const timerDuration = stop.seed.timerSeconds ?? null;
+  const [secondsLeft, setSecondsLeft] = useState(timerDuration);
+  const timerActive = timerDuration !== null;
+  const timerDone = !timerActive || (secondsLeft !== null && secondsLeft <= 0);
+
+  useEffect(() => {
+    if (!timerActive || timerDone) return;
+    const interval = setInterval(() => {
+      setSecondsLeft((s) => Math.max((s ?? 0) - 1, 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timerActive, timerDone]);
+
   return (
     <div className="animate-fade-in space-y-4 min-h-full flex flex-col justify-center">
       {/* Title */}
@@ -24,11 +38,21 @@ export default function SeedCard({ stop, onContinue }: Props) {
         legacyPhotoCaption={stop.seed.photoCaption}
       />
 
+      {/* Timer (if enabled) */}
+      {timerActive && !timerDone && (
+        <p className="text-xs text-[#6B5D4F] text-center">
+          Take a moment to read... {secondsLeft}s
+        </p>
+      )}
+
       {/* Continue */}
       <button
         onClick={onContinue}
-        className="w-full py-3 rounded-lg text-sm font-semibold text-white transition-colors"
-        style={{ backgroundColor: '#7A7A5E' }}
+        className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors ${
+          timerDone
+            ? 'bg-[#7A7A5E] text-white'
+            : 'bg-[#7A7A5E]/20 text-[#7A7A5E]'
+        }`}
       >
         Continue &rarr;
       </button>
