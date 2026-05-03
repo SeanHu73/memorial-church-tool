@@ -170,7 +170,7 @@ export default function Journal({ onMapPeek }: JournalProps) {
           }
           // Extra round reveal — build a virtual stop
           const extra = extras[round - 1];
-          if (!extra) return null;
+          if (!extra?.reveal) return null;
           const virtualStop = {
             ...currentStop,
             reveal: {
@@ -178,7 +178,7 @@ export default function Journal({ onMapPeek }: JournalProps) {
               photoUrl: null,
               photoCaption: null,
               photos: extra.reveal.photos || [],
-              bridgeText: extra.reveal.bridgeText || '',
+              bridgeText: '', // bridge lives on the main reveal, not extra rounds
             },
           };
           return (

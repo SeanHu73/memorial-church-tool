@@ -795,16 +795,9 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
           uploadPath={`memorial-church/photos/tours/${tourId}/reveal_${stop.id}`}
           onUploadPhoto={onUploadPhoto}
         />
-        <RichTextarea
-          label="Bridge text (forward-pointing sentence to next stop)"
-          value={stop.reveal.bridgeText}
-          onChange={(bridgeText) => onChange({ reveal: { ...stop.reveal, bridgeText } })}
-          rows={2}
-          hideItalic
-        />
       </fieldset>
 
-      {/* ── Extra Wonder + Reveal Rounds ── */}
+      {/* ── Extra Wonder + Context Rounds ── */}
       <fieldset className="space-y-2">
         <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#C4923A] inline-block" />
@@ -856,39 +849,47 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
                   )}
                 </div>
 
-                {/* Reveal (always present) */}
-                <RichTextarea
-                  label="Context (reveal) text"
-                  value={round.reveal.text}
-                  onChange={(text) => {
-                    const next = [...(stop.extraRounds || [])];
-                    next[i] = { ...next[i], reveal: { ...next[i].reveal, text } };
-                    onChange({ extraRounds: next });
-                  }}
-                  rows={4}
-                  wordCount
-                />
-                <PhotoListEditor
-                  photos={round.reveal.photos || []}
-                  onChange={(photos) => {
-                    const next = [...(stop.extraRounds || [])];
-                    next[i] = { ...next[i], reveal: { ...next[i].reveal, photos } };
-                    onChange({ extraRounds: next });
-                  }}
-                  uploadPath={`memorial-church/photos/tours/${tourId}/extra_${stop.id}_${i}`}
-                  onUploadPhoto={onUploadPhoto}
-                />
-                <RichTextarea
-                  label="Bridge text"
-                  value={round.reveal.bridgeText || ''}
-                  onChange={(bridgeText) => {
-                    const next = [...(stop.extraRounds || [])];
-                    next[i] = { ...next[i], reveal: { ...next[i].reveal, bridgeText } };
-                    onChange({ extraRounds: next });
-                  }}
-                  rows={2}
-                  hideItalic
-                />
+                {/* Context toggle */}
+                <div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={round.reveal !== null}
+                      onChange={(e) => {
+                        const next = [...(stop.extraRounds || [])];
+                        next[i] = { ...next[i], reveal: e.target.checked ? { text: '', photos: [] } : null };
+                        onChange({ extraRounds: next });
+                      }}
+                      className="rounded"
+                    />
+                    <span className="text-xs text-stone-600">Include context (reveal)</span>
+                  </label>
+                  {round.reveal !== null && (
+                    <>
+                      <RichTextarea
+                        label="Context (reveal) text"
+                        value={round.reveal.text}
+                        onChange={(text) => {
+                          const next = [...(stop.extraRounds || [])];
+                          next[i] = { ...next[i], reveal: { ...next[i].reveal!, text } };
+                          onChange({ extraRounds: next });
+                        }}
+                        rows={4}
+                        wordCount
+                      />
+                      <PhotoListEditor
+                        photos={round.reveal.photos || []}
+                        onChange={(photos) => {
+                          const next = [...(stop.extraRounds || [])];
+                          next[i] = { ...next[i], reveal: { ...next[i].reveal!, photos } };
+                          onChange({ extraRounds: next });
+                        }}
+                        uploadPath={`memorial-church/photos/tours/${tourId}/extra_${stop.id}_${i}`}
+                        onUploadPhoto={onUploadPhoto}
+                      />
+                    </>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
@@ -897,13 +898,28 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
           onClick={() => onChange({
             extraRounds: [...(stop.extraRounds || []), {
               wonder: { question: '' },
-              reveal: { text: '', photos: [], bridgeText: '' },
+              reveal: { text: '', photos: [] },
             }],
           })}
           className="text-xs text-blue-700 hover:underline"
         >
           + Add another wonder + context round
         </button>
+      </fieldset>
+
+      {/* ── Bridge text (after all rounds) ── */}
+      <fieldset className="space-y-2">
+        <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#6B5D4F] inline-block" />
+          Bridge
+        </legend>
+        <RichTextarea
+          label="Bridge text (forward-pointing sentence to next stop)"
+          value={stop.reveal.bridgeText}
+          onChange={(bridgeText) => onChange({ reveal: { ...stop.reveal, bridgeText } })}
+          rows={2}
+          hideItalic
+        />
       </fieldset>
 
       {/* ── Reflection ── */}

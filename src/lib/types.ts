@@ -259,14 +259,13 @@ export interface Stop {
     bridgeText: string;              // Forward-pointing sentence to next stop
   };
 
-  // Extra wonder → reveal rounds (optional, after the initial reveal)
+  // Extra wonder + context rounds (optional, after the initial reveal, before the bridge)
   extraRounds: Array<{
     wonder: { question: string } | null;
     reveal: {
       text: string;
       photos: Array<{ url: string; caption: string | null }>;
-      bridgeText: string;
-    };
+    } | null;
   }>;
 
   // Reflection phase — null means skip entirely

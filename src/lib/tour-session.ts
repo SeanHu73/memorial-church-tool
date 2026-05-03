@@ -25,6 +25,30 @@ export type TourPhase = TourSession['currentPhase'];
  * to the next round's wonder (or reveal if wonder is null). If not,
  * advance to reflect (or stay on reveal if reflect is null).
  */
+/** After a reveal (or skipped reveal), check for next round or go to reflect. */
+function advanceFromReveal(
+  currentRound: number,
+  extras: Stop['extraRounds'],
+  stop: Stop
+): { phase: TourPhase; round: number } {
+  const nextRoundIndex = currentRound; // extraRounds[0] = round 1
+  if (nextRoundIndex < extras.length) {
+    const nextExtra = extras[nextRoundIndex];
+    if (nextExtra.wonder !== null) {
+      return { phase: 'wonder', round: currentRound + 1 };
+    }
+    if (nextExtra.reveal !== null) {
+      return { phase: 'reveal', round: currentRound + 1 };
+    }
+    // Both null — skip this round entirely, try the next
+    return advanceFromReveal(currentRound + 1, extras, stop);
+  }
+  // No more rounds
+  return stop.reflect !== null
+    ? { phase: 'reflect', round: currentRound }
+    : { phase: 'reveal', round: currentRound };
+}
+
 function nextPhaseAndRound(
   current: TourPhase,
   currentRound: number,
@@ -44,23 +68,21 @@ function nextPhaseAndRound(
         : { phase: 'reveal', round: 0 };
     }
 
-    case 'wonder':
-      return { phase: 'reveal', round: currentRound };
-
-    case 'reveal': {
-      // Check if there's a next round
-      const nextRoundIndex = currentRound; // extraRounds[0] = round 1
-      if (nextRoundIndex < extras.length) {
-        const nextExtra = extras[nextRoundIndex];
-        return nextExtra.wonder !== null
-          ? { phase: 'wonder', round: currentRound + 1 }
-          : { phase: 'reveal', round: currentRound + 1 };
+    case 'wonder': {
+      // Check if this round has a reveal
+      if (currentRound === 0) {
+        return { phase: 'reveal', round: 0 }; // main reveal always exists
       }
-      // No more rounds — go to reflect or stay
-      return stop.reflect !== null
-        ? { phase: 'reflect', round: currentRound }
-        : { phase: 'reveal', round: currentRound }; // stay on reveal (inline buttons)
+      const extra = extras[currentRound - 1];
+      if (extra?.reveal !== null) {
+        return { phase: 'reveal', round: currentRound };
+      }
+      // No reveal for this round — advance to next round or reflect
+      return advanceFromReveal(currentRound, extras, stop);
     }
+
+    case 'reveal':
+      return advanceFromReveal(currentRound, extras, stop);
 
     default:
       return { phase: current, round: currentRound };
