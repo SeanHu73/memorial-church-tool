@@ -449,29 +449,72 @@ interface StopEditorProps {
   onUploadPhoto: (file: File, path: string) => Promise<string>;
 }
 
-function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) {
+function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEditorProps) {
   const wordCount = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
+
+  // Defensive defaults for older stop data that may be missing newer fields
+  const stop: Stop = {
+    ...rawStop,
+    title: rawStop.title ?? '',
+    seed: rawStop.seed ?? { text: '', photoUrl: null, photoCaption: null, photos: [], ttsText: null },
+    notice: rawStop.notice ?? { prompt: '', timerSeconds: 30, photoUrl: null, photoCaption: null, photos: [] },
+    wonder: rawStop.wonder === undefined ? { question: '' } : rawStop.wonder,
+    reveal: rawStop.reveal ?? { text: '', photoUrl: null, photoCaption: null, photos: [], bridgeText: '' },
+    reflect: rawStop.reflect === undefined ? null : rawStop.reflect,
+    detours: rawStop.detours ?? [],
+  };
   const seedTextRef = useRef<HTMLTextAreaElement>(null);
   const noticeTextRef = useRef<HTMLTextAreaElement>(null);
   const revealTextRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-migrate legacy single photos into the photos array on first render
+  // Normalize stop data on first render — ensures all newer fields exist
+  // and migrates legacy single photos into the photos array.
   useEffect(() => {
-    let changed = false;
-    const patch: Partial<Stop> = {};
-    if (stop.seed.photoUrl && !(stop.seed.photos || []).some((p) => p.url === stop.seed.photoUrl)) {
-      patch.seed = { ...stop.seed, photos: [{ url: stop.seed.photoUrl, caption: stop.seed.photoCaption }, ...(stop.seed.photos || [])], photoUrl: null, photoCaption: null };
-      changed = true;
+    try {
+      const patch: Partial<Stop> = {};
+      let changed = false;
+
+      // Ensure title exists
+      if (stop.title === undefined) { patch.title = ''; changed = true; }
+
+      // Ensure photos arrays exist + migrate legacy photoUrl
+      const seed = stop.seed || { text: '', photoUrl: null, photoCaption: null, photos: [], ttsText: null };
+      const seedPhotos = seed.photos || [];
+      if (seed.photoUrl && !seedPhotos.some((p) => p.url === seed.photoUrl)) {
+        patch.seed = { ...seed, photos: [{ url: seed.photoUrl, caption: seed.photoCaption ?? null }, ...seedPhotos], photoUrl: null, photoCaption: null };
+        changed = true;
+      } else if (!seed.photos) {
+        patch.seed = { ...seed, photos: [] };
+        changed = true;
+      }
+
+      const notice = stop.notice || { prompt: '', timerSeconds: 30, photoUrl: null, photoCaption: null, photos: [] };
+      const noticePhotos = notice.photos || [];
+      if (notice.photoUrl && !noticePhotos.some((p) => p.url === notice.photoUrl)) {
+        patch.notice = { ...notice, photos: [{ url: notice.photoUrl, caption: notice.photoCaption ?? null }, ...noticePhotos], photoUrl: null, photoCaption: null };
+        changed = true;
+      } else if (!notice.photos) {
+        patch.notice = { ...notice, photos: [] };
+        changed = true;
+      }
+
+      const reveal = stop.reveal || { text: '', photoUrl: null, photoCaption: null, photos: [], bridgeText: '' };
+      const revealPhotos = reveal.photos || [];
+      if (reveal.photoUrl && !revealPhotos.some((p) => p.url === reveal.photoUrl)) {
+        patch.reveal = { ...reveal, photos: [{ url: reveal.photoUrl, caption: reveal.photoCaption ?? null }, ...revealPhotos], photoUrl: null, photoCaption: null };
+        changed = true;
+      } else if (!reveal.photos) {
+        patch.reveal = { ...reveal, photos: [] };
+        changed = true;
+      }
+
+      // Ensure detours array exists
+      if (!stop.detours) { patch.detours = []; changed = true; }
+
+      if (changed) onChange(patch);
+    } catch (err) {
+      console.error('[StopEditor] normalization failed:', err);
     }
-    if (stop.notice.photoUrl && !(stop.notice.photos || []).some((p) => p.url === stop.notice.photoUrl)) {
-      patch.notice = { ...stop.notice, photos: [{ url: stop.notice.photoUrl, caption: stop.notice.photoCaption }, ...(stop.notice.photos || [])], photoUrl: null, photoCaption: null };
-      changed = true;
-    }
-    if (stop.reveal.photoUrl && !(stop.reveal.photos || []).some((p) => p.url === stop.reveal.photoUrl)) {
-      patch.reveal = { ...stop.reveal, photos: [{ url: stop.reveal.photoUrl, caption: stop.reveal.photoCaption }, ...(stop.reveal.photos || [])], photoUrl: null, photoCaption: null };
-      changed = true;
-    }
-    if (changed) onChange(patch);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stop.id]);
 
