@@ -91,7 +91,7 @@ export default function EqFinalReflectCard({ onComplete }: Props) {
 
           {/* Reasoning source — multi-select */}
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-[#2C2418]">Where did your thinking come from?</p>
+            <p className="text-sm font-semibold text-[#2C2418]">Why did it shift or not?</p>
             <div className="flex flex-wrap gap-2">
               {REASONING_SOURCE_OPTIONS.map((opt) => (
                 <button

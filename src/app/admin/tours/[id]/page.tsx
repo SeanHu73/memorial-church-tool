@@ -865,7 +865,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
                 {([
                   { value: null, label: 'None', desc: '' },
                   { value: 'what_shifted' as const, label: '"What shifted?"', desc: 'Ask the group to categorise how the reveal changed their thinking.' },
-                  { value: 'reasoning_source' as const, label: '"Where did your thinking come from?"', desc: 'Ask the group what they based their discussion on.' },
+                  { value: 'reasoning_source' as const, label: '"Why did it shift or not?"', desc: 'Ask the group what they based their discussion on.' },
                 ]).map((opt) => (
                   <label key={String(opt.value)} className="flex items-start gap-2 cursor-pointer">
                     <input
@@ -885,18 +885,19 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
             </div>
             {stop.reflect.followUp && (
               <label className="block">
-                <span className="text-xs text-stone-500">Custom options (one per line &mdash; leave blank for defaults)</span>
+                <span className="text-xs text-stone-500">Options (one per line &mdash; edit to customise)</span>
                 <textarea
-                  value={(stop.reflect.followUpOptions ?? []).join('\n')}
+                  value={(stop.reflect.followUpOptions ?? (
+                    stop.reflect.followUp === 'what_shifted'
+                      ? ['We learned something new', 'We changed our mind', 'We had part of it', 'It was as we expected']
+                      : ['What we observed here', 'Something we discussed', 'Something we already knew', 'A guess']
+                  )).join('\n')}
                   onChange={(e) => {
                     const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
                     onChange({ reflect: { ...stop.reflect!, followUpOptions: lines.length > 0 ? lines : null } });
                   }}
-                  rows={3}
+                  rows={4}
                   className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs font-mono"
-                  placeholder={stop.reflect.followUp === 'what_shifted'
-                    ? "We learned something new\nWe changed our mind\nWe had part of it\nIt was as we expected"
-                    : "What we observed here\nSomething we already knew\nA guess"}
                 />
               </label>
             )}

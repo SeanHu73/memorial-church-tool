@@ -54,7 +54,7 @@ export default function ReflectCard({
   const followUpQuestion = reflect.followUp === 'what_shifted'
     ? 'What shifted?'
     : reflect.followUp === 'reasoning_source'
-      ? 'Where did your thinking come from?'
+      ? 'Why did it shift or not?'
       : null;
 
   const handleSliderRelease = () => {
