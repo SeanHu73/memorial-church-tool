@@ -20,6 +20,7 @@ import NoticeCard from './cards/NoticeCard';
 import WonderCard from './cards/WonderCard';
 import RevealCard from './cards/RevealCard';
 import ReflectCard from './cards/ReflectCard';
+import WhatsNext from './cards/WhatsNext';
 import BranchCard from './cards/BranchCard';
 import EndCard from './cards/EndCard';
 
@@ -150,25 +151,11 @@ export default function Journal({ onMapPeek }: JournalProps) {
         {phase === 'reveal' && currentStop && (() => {
           const round = session.currentRound;
           const extras = currentStop.extraRounds || [];
-          const isLastRound = round >= extras.length;
-          // Only the last round's reveal shows reflect/branch buttons
-          const hasReflect = isLastRound && currentStop.reflect !== null;
 
           if (round === 0) {
-            // Main reveal
-            return (
-              <RevealCard
-                key="reveal-0"
-                stop={currentStop}
-                hasReflect={hasReflect}
-                isLastStop={isLastStop}
-                onAdvancePhase={advancePhase}
-                onAskQuestion={enterBranch}
-                onAdvanceStop={advanceStop}
-              />
-            );
+            return <RevealCard key="reveal-0" stop={currentStop} onContinue={advancePhase} />;
           }
-          // Extra round reveal — build a virtual stop
+          // Extra round reveal
           const extra = extras[round - 1];
           if (!extra?.reveal) return null;
           const virtualStop = {
@@ -182,18 +169,19 @@ export default function Journal({ onMapPeek }: JournalProps) {
               bridgePhotos: [],
             },
           };
-          return (
-            <RevealCard
-              key={`reveal-${round}`}
-              stop={virtualStop}
-              hasReflect={hasReflect}
-              isLastStop={isLastStop}
-              onAdvancePhase={advancePhase}
-              onAskQuestion={enterBranch}
-              onAdvanceStop={advanceStop}
-            />
-          );
+          return <RevealCard key={`reveal-${round}`} stop={virtualStop} onContinue={advancePhase} />;
         })()}
+
+        {phase === 'whats_next' && currentStop && (
+          <div className="animate-fade-in flex flex-col justify-center min-h-full space-y-6">
+            <WhatsNext
+              stop={currentStop}
+              isLastStop={isLastStop}
+              onAskQuestion={enterBranch}
+              onContinue={advanceStop}
+            />
+          </div>
+        )}
 
         {phase === 'reflect' && currentStop && (
           <ReflectCard

@@ -43,10 +43,10 @@ function advanceFromReveal(
     // Both null — skip this round entirely, try the next
     return advanceFromReveal(currentRound + 1, extras, stop);
   }
-  // No more rounds
+  // No more rounds — go to reflect or straight to whats_next
   return stop.reflect !== null
     ? { phase: 'reflect', round: currentRound }
-    : { phase: 'reveal', round: currentRound };
+    : { phase: 'whats_next', round: currentRound };
 }
 
 function nextPhaseAndRound(

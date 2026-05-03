@@ -327,7 +327,7 @@ export interface TourSession {
   id: string;
   tourId: string;
   currentStopIndex: number;
-  currentPhase: 'eq_opening' | 'seed' | 'notice' | 'wonder' | 'reveal' | 'reflect' | 'branch' | 'off_path' | 'eq_closing' | 'eq_final_reflect' | 'end';
+  currentPhase: 'eq_opening' | 'seed' | 'notice' | 'wonder' | 'reveal' | 'reflect' | 'whats_next' | 'branch' | 'off_path' | 'eq_closing' | 'eq_final_reflect' | 'end';
   currentRound: number;               // 0 = main wonder+reveal, 1+ = extra rounds
   completedStops: string[];
   reflections: Array<{

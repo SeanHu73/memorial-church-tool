@@ -108,6 +108,14 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
           Let&apos;s find the first stop...
         </button>
       )}
+
+      {/* Skip */}
+      <button
+        onClick={() => onComplete('', '')}
+        className="text-xs text-[#6B5D4F]/50 hover:text-[#6B5D4F] transition-colors"
+      >
+        Skip for now
+      </button>
     </div>
   );
 }
