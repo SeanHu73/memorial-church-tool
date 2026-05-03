@@ -21,6 +21,9 @@ import {
   returnFromBranch as returnFromBranchImpl,
   addReflection as addReflectionImpl,
   recordDetourVisit as recordDetourVisitImpl,
+  completeEqOpening as completeEqOpeningImpl,
+  completeEqClosing as completeEqClosingImpl,
+  completeEqFinalReflect as completeEqFinalReflectImpl,
   bankQuestion as bankQuestionImpl,
   loadTourSession,
   saveTourSession,
@@ -42,6 +45,9 @@ interface TourContextValue {
   bankQuestion: (q: BankedQuestion) => void;
   recordDetourVisit: (detourId: string) => void;
   isDetourVisited: (detourId: string) => boolean;
+  completeEqOpening: (theory: string, reasoning: string) => void;
+  completeEqClosing: (finalReflection: string, finalReasoning: string) => void;
+  completeEqFinalReflect: (cognitive: number, perceptual: number | null, whatShifted: string[] | null, reasoningSource: string[] | null) => void;
   endTour: () => void;
 }
 
@@ -88,7 +94,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
     : false;
 
   const startTour = useCallback((t: Tour) => {
-    const s = createSession(t.id);
+    const s = createSession(t);
     setTour(t);
     persist(s);
   }, [persist]);
@@ -162,6 +168,21 @@ export function TourProvider({ children }: { children: ReactNode }) {
     return session.detourVisits.some((v) => v.detourId === detourId);
   }, [session]);
 
+  const completeEqOpeningFn = useCallback((theory: string, reasoning: string) => {
+    if (!session) return;
+    persist(completeEqOpeningImpl(session, theory, reasoning));
+  }, [session, persist]);
+
+  const completeEqClosingFn = useCallback((finalReflection: string, finalReasoning: string) => {
+    if (!session) return;
+    persist(completeEqClosingImpl(session, finalReflection, finalReasoning));
+  }, [session, persist]);
+
+  const completeEqFinalReflectFn = useCallback((cognitive: number, perceptual: number | null, whatShifted: string[] | null, reasoningSource: string[] | null) => {
+    if (!session) return;
+    persist(completeEqFinalReflectImpl(session, cognitive, perceptual, whatShifted, reasoningSource));
+  }, [session, persist]);
+
   const endTour = useCallback(() => {
     setTour(null);
     setSession(null);
@@ -173,7 +194,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
       tour,
       session,
       currentStop,
-      isActive: tour !== null && session !== null && session.currentPhase !== 'end',
+      isActive: tour !== null && session !== null && !['end'].includes(session.currentPhase),
       isLastStop,
       startTour,
       advancePhase,
@@ -184,6 +205,9 @@ export function TourProvider({ children }: { children: ReactNode }) {
       bankQuestion: bankQuestionFn,
       recordDetourVisit: recordDetourVisitFn,
       isDetourVisited,
+      completeEqOpening: completeEqOpeningFn,
+      completeEqClosing: completeEqClosingFn,
+      completeEqFinalReflect: completeEqFinalReflectFn,
       endTour,
     }}>
       {children}

@@ -195,6 +195,20 @@ export interface Tour {
   location: { lat: number; lng: number } | null;
   stops: Stop[];                     // Ordered array of stops
   connectionWeb: WebNode[];          // Pre-authored node/connection structure
+  // Essential question — optional framing that bookends the tour
+  essentialQuestion: {
+    question: string;                  // "What is this place for?"
+    openingFraming: string;            // "Before we begin, take a moment..."
+    closingFraming: string;            // "You answered this question before..."
+    theoryPrompt: string;              // "What might your theory be?"
+    theoryPlaceholder: string;
+    reasoningPrompt: string;           // "What makes you think that?"
+    reasoningPlaceholder: string;
+    finalReflectionPrompt: string;     // "Your interpretation now..."
+    finalReflectionPlaceholder: string;
+    finalReasoningPrompt: string;      // "What did you discuss or see..."
+    finalReasoningPlaceholder: string;
+  } | null;
   createdAt: string;                 // ISO 8601
   updatedAt: string;                 // ISO 8601
 }
@@ -302,7 +316,7 @@ export interface TourSession {
   id: string;
   tourId: string;
   currentStopIndex: number;
-  currentPhase: 'seed' | 'notice' | 'wonder' | 'reveal' | 'reflect' | 'branch' | 'off_path' | 'end';
+  currentPhase: 'eq_opening' | 'seed' | 'notice' | 'wonder' | 'reveal' | 'reflect' | 'branch' | 'off_path' | 'eq_closing' | 'eq_final_reflect' | 'end';
   completedStops: string[];
   reflections: Array<{
     stopId: string;
@@ -311,6 +325,16 @@ export interface TourSession {
   }>;
   bankedQuestions: BankedQuestion[];
   detourVisits: Array<{ stopId: string; detourId: string; timestamp: string }>;
+  essentialQuestionResponses: {
+    initialTheory: string;
+    initialReasoning: string;
+    finalReflection: string;
+    finalReasoning: string;
+    finalCognitiveSlider: number;          // 0–1
+    finalPerceptualSlider: number | null;  // 0–1
+    whatShiftedResponse: string[] | null;  // multi-select
+    reasoningSourceResponse: string[] | null; // multi-select
+  } | null;
   startedAt: string;
   completedAt: string | null;
 }

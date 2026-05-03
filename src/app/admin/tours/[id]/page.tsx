@@ -348,6 +348,136 @@ export default function TourEditorPage() {
           </div>
         </section>
 
+        {/* Essential question */}
+        <section className="mb-8 p-4 rounded border border-stone-300 bg-white space-y-4">
+          <h2 className="font-semibold text-sm text-stone-700 uppercase tracking-wide">Essential Question</h2>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={tour.essentialQuestion !== null && tour.essentialQuestion !== undefined}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  updateField('essentialQuestion', {
+                    question: 'What is this place for?',
+                    openingFraming: 'Before we begin, take a moment. Based on what you see and what you already know — what would you say?',
+                    closingFraming: 'You answered this question before the tour began. Now that we have explored this place, how would you respond?',
+                    theoryPrompt: 'What might your theory be?',
+                    theoryPlaceholder: 'Based on what you\'re thinking now...',
+                    reasoningPrompt: 'What makes you think that?',
+                    reasoningPlaceholder: 'What are you drawing on — something you see, something you know, a hunch?',
+                    finalReflectionPrompt: 'Your interpretation now...',
+                    finalReflectionPlaceholder: 'What is your interpretation now? Has anything changed? Or has it stayed mostly the same?',
+                    finalReasoningPrompt: 'What did you discuss or see to reach this interpretation?',
+                    finalReasoningPlaceholder: 'What observations, conversations, or revelations shaped your thinking?',
+                  });
+                } else {
+                  updateField('essentialQuestion', null);
+                }
+              }}
+              className="rounded"
+            />
+            <span className="text-xs text-stone-600">Include an essential question for this tour</span>
+          </label>
+          {tour.essentialQuestion && (
+            <div className="space-y-3">
+              <label className="block">
+                <span className="text-xs text-stone-500">The question</span>
+                <input
+                  value={tour.essentialQuestion.question}
+                  onChange={(e) => updateField('essentialQuestion', { ...tour.essentialQuestion!, question: e.target.value })}
+                  className="mt-1 w-full px-3 py-1.5 border border-stone-300 rounded text-sm"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs text-stone-500">Opening framing (before tour begins)</span>
+                <textarea
+                  value={tour.essentialQuestion.openingFraming}
+                  onChange={(e) => updateField('essentialQuestion', { ...tour.essentialQuestion!, openingFraming: e.target.value })}
+                  rows={2}
+                  className="mt-1 w-full px-3 py-1.5 border border-stone-300 rounded text-sm"
+                />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="text-xs text-stone-500">Theory prompt</span>
+                  <input
+                    value={tour.essentialQuestion.theoryPrompt}
+                    onChange={(e) => updateField('essentialQuestion', { ...tour.essentialQuestion!, theoryPrompt: e.target.value })}
+                    className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs text-stone-500">Theory placeholder</span>
+                  <input
+                    value={tour.essentialQuestion.theoryPlaceholder}
+                    onChange={(e) => updateField('essentialQuestion', { ...tour.essentialQuestion!, theoryPlaceholder: e.target.value })}
+                    className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs text-stone-500">Reasoning prompt</span>
+                  <input
+                    value={tour.essentialQuestion.reasoningPrompt}
+                    onChange={(e) => updateField('essentialQuestion', { ...tour.essentialQuestion!, reasoningPrompt: e.target.value })}
+                    className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs text-stone-500">Reasoning placeholder</span>
+                  <input
+                    value={tour.essentialQuestion.reasoningPlaceholder}
+                    onChange={(e) => updateField('essentialQuestion', { ...tour.essentialQuestion!, reasoningPlaceholder: e.target.value })}
+                    className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+                  />
+                </label>
+              </div>
+              <label className="block">
+                <span className="text-xs text-stone-500">Closing framing (after tour ends)</span>
+                <textarea
+                  value={tour.essentialQuestion.closingFraming}
+                  onChange={(e) => updateField('essentialQuestion', { ...tour.essentialQuestion!, closingFraming: e.target.value })}
+                  rows={2}
+                  className="mt-1 w-full px-3 py-1.5 border border-stone-300 rounded text-sm"
+                />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="text-xs text-stone-500">Final reflection prompt</span>
+                  <input
+                    value={tour.essentialQuestion.finalReflectionPrompt}
+                    onChange={(e) => updateField('essentialQuestion', { ...tour.essentialQuestion!, finalReflectionPrompt: e.target.value })}
+                    className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs text-stone-500">Final reflection placeholder</span>
+                  <input
+                    value={tour.essentialQuestion.finalReflectionPlaceholder}
+                    onChange={(e) => updateField('essentialQuestion', { ...tour.essentialQuestion!, finalReflectionPlaceholder: e.target.value })}
+                    className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs text-stone-500">Final reasoning prompt</span>
+                  <input
+                    value={tour.essentialQuestion.finalReasoningPrompt}
+                    onChange={(e) => updateField('essentialQuestion', { ...tour.essentialQuestion!, finalReasoningPrompt: e.target.value })}
+                    className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs text-stone-500">Final reasoning placeholder</span>
+                  <input
+                    value={tour.essentialQuestion.finalReasoningPlaceholder}
+                    onChange={(e) => updateField('essentialQuestion', { ...tour.essentialQuestion!, finalReasoningPlaceholder: e.target.value })}
+                    className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+        </section>
+
         {/* Stops list */}
         <section className="mb-8">
           <div className="flex items-center justify-between mb-3">

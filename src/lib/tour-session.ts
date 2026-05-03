@@ -7,7 +7,7 @@
  * a single group visit.
  */
 
-import { Tour, Stop, TourSession, BankedQuestion } from './types';
+import type { Tour, Stop, TourSession, BankedQuestion } from './types';
 
 const STORAGE_KEY = 'mc_tour_session_v1';
 
@@ -35,16 +35,17 @@ export function nextPhase(current: TourPhase, stop: Stop): TourPhase {
 
 // ── Session CRUD ────────────────────────────────────────────────
 
-export function createSession(tourId: string): TourSession {
+export function createSession(tour: Tour): TourSession {
   return {
     id: `ts_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
-    tourId,
+    tourId: tour.id,
     currentStopIndex: 0,
-    currentPhase: 'seed',
+    currentPhase: tour.essentialQuestion ? 'eq_opening' : 'seed',
     completedStops: [],
     reflections: [],
     bankedQuestions: [],
     detourVisits: [],
+    essentialQuestionResponses: null,
     startedAt: new Date().toISOString(),
     completedAt: null,
   };
@@ -58,9 +59,10 @@ export function advanceToNextStop(session: TourSession, tour: Tour): TourSession
   const currentStop = tour.stops[session.currentStopIndex];
   const nextIndex = session.currentStopIndex + 1;
   if (nextIndex >= tour.stops.length) {
+    const endPhase = tour.essentialQuestion ? 'eq_closing' : 'end';
     return {
       ...session,
-      currentPhase: 'end',
+      currentPhase: endPhase,
       completedStops: currentStop
         ? [...session.completedStops, currentStop.id]
         : session.completedStops,
@@ -109,6 +111,64 @@ export function recordDetourVisit(
   return {
     ...session,
     detourVisits: [...session.detourVisits, { stopId, detourId, timestamp: new Date().toISOString() }],
+  };
+}
+
+export function completeEqOpening(
+  session: TourSession,
+  theory: string,
+  reasoning: string
+): TourSession {
+  return {
+    ...session,
+    currentPhase: 'seed',
+    essentialQuestionResponses: {
+      initialTheory: theory,
+      initialReasoning: reasoning,
+      finalReflection: '',
+      finalReasoning: '',
+      finalCognitiveSlider: 0.5,
+      finalPerceptualSlider: null,
+      whatShiftedResponse: null,
+      reasoningSourceResponse: null,
+    },
+  };
+}
+
+export function completeEqClosing(
+  session: TourSession,
+  finalReflection: string,
+  finalReasoning: string
+): TourSession {
+  return {
+    ...session,
+    currentPhase: 'eq_final_reflect',
+    essentialQuestionResponses: session.essentialQuestionResponses
+      ? { ...session.essentialQuestionResponses, finalReflection, finalReasoning }
+      : null,
+  };
+}
+
+export function completeEqFinalReflect(
+  session: TourSession,
+  cognitiveSlider: number,
+  perceptualSlider: number | null,
+  whatShifted: string[] | null,
+  reasoningSource: string[] | null
+): TourSession {
+  return {
+    ...session,
+    currentPhase: 'end',
+    essentialQuestionResponses: session.essentialQuestionResponses
+      ? {
+          ...session.essentialQuestionResponses,
+          finalCognitiveSlider: cognitiveSlider,
+          finalPerceptualSlider: perceptualSlider,
+          whatShiftedResponse: whatShifted,
+          reasoningSourceResponse: reasoningSource,
+        }
+      : null,
+    completedAt: new Date().toISOString(),
   };
 }
 

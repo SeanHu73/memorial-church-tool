@@ -12,6 +12,9 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { useTour } from '@/context/TourContext';
+import EqOpeningCard from './cards/EqOpeningCard';
+import EqClosingCard from './cards/EqClosingCard';
+import EqFinalReflectCard from './cards/EqFinalReflectCard';
 import SeedCard from './cards/SeedCard';
 import NoticeCard from './cards/NoticeCard';
 import WonderCard from './cards/WonderCard';
@@ -35,6 +38,9 @@ export default function Journal({ onMapPeek }: JournalProps) {
     advanceStop,
     enterBranch,
     addReflection,
+    completeEqOpening,
+    completeEqClosing,
+    completeEqFinalReflect,
     endTour,
   } = useTour();
 
@@ -117,6 +123,10 @@ export default function Journal({ onMapPeek }: JournalProps) {
 
       {/* Card area — scrollable */}
       <div className="flex-1 overflow-y-auto px-5 py-6">
+        {phase === 'eq_opening' && tour.essentialQuestion && (
+          <EqOpeningCard tour={tour} onComplete={completeEqOpening} />
+        )}
+
         {phase === 'seed' && currentStop && (
           <SeedCard stop={currentStop} onContinue={advancePhase} />
         )}
@@ -153,6 +163,14 @@ export default function Journal({ onMapPeek }: JournalProps) {
 
         {phase === 'branch' && (
           <BranchCard />
+        )}
+
+        {phase === 'eq_closing' && tour.essentialQuestion && (
+          <EqClosingCard tour={tour} onComplete={completeEqClosing} />
+        )}
+
+        {phase === 'eq_final_reflect' && (
+          <EqFinalReflectCard onComplete={completeEqFinalReflect} />
         )}
 
         {phase === 'end' && (

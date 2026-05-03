@@ -46,6 +46,56 @@ export default function EndCard() {
         </div>
       )}
 
+      {/* Learning arc takeaway */}
+      {tour.essentialQuestion && session.essentialQuestionResponses && (
+        <div className="p-4 rounded-lg bg-white border border-[#D4BFA0] space-y-3">
+          <p className="text-xs text-[#C4923A] font-semibold uppercase tracking-wide">
+            Your learning arc
+          </p>
+          <p className="text-sm font-serif font-semibold text-[#2C2418]">
+            &ldquo;{tour.essentialQuestion.question}&rdquo;
+          </p>
+          <div className="space-y-1">
+            <p className="text-[10px] text-[#6B5D4F] uppercase tracking-wide">Before</p>
+            <p className="text-sm font-serif text-[#2C2418]">
+              {session.essentialQuestionResponses.initialTheory}
+            </p>
+            <p className="text-xs text-[#6B5D4F] italic">
+              Because: {session.essentialQuestionResponses.initialReasoning}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] text-[#6B5D4F] uppercase tracking-wide">After</p>
+            <p className="text-sm font-serif text-[#2C2418]">
+              {session.essentialQuestionResponses.finalReflection}
+            </p>
+          </div>
+          {/* Slider visualization */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-[10px] text-[#6B5D4F]">Thinking shifted</p>
+              <div className="h-1.5 bg-[#D4BFA0] rounded-full mt-1 relative">
+                <div
+                  className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#C4923A] border border-white shadow"
+                  style={{ left: `${session.essentialQuestionResponses.finalCognitiveSlider * 100}%` }}
+                />
+              </div>
+            </div>
+            {session.essentialQuestionResponses.finalPerceptualSlider != null && (
+              <div>
+                <p className="text-[10px] text-[#6B5D4F]">Place looks different</p>
+                <div className="h-1.5 bg-[#D4BFA0] rounded-full mt-1 relative">
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#C4923A] border border-white shadow"
+                    style={{ left: `${session.essentialQuestionResponses.finalPerceptualSlider * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Banked questions */}
       {banked.length > 0 && (
         <div className="space-y-2">
