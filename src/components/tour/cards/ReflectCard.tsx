@@ -52,9 +52,9 @@ export default function ReflectCard({
     : null;
 
   const followUpQuestion = reflect.followUp === 'what_shifted'
-    ? 'What shifted?'
+    ? 'What changed?'
     : reflect.followUp === 'reasoning_source'
-      ? 'Why did it shift or not?'
+      ? 'Why did it change or not?'
       : null;
 
   const handleSliderRelease = () => {

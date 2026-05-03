@@ -864,8 +864,8 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
               <div className="mt-1 space-y-1">
                 {([
                   { value: null, label: 'None', desc: '' },
-                  { value: 'what_shifted' as const, label: '"What shifted?"', desc: 'Ask the group to categorise how the reveal changed their thinking.' },
-                  { value: 'reasoning_source' as const, label: '"Why did it shift or not?"', desc: 'Ask the group what they based their discussion on.' },
+                  { value: 'what_shifted' as const, label: '"What changed?"', desc: 'Ask the group to categorise how the reveal changed their thinking.' },
+                  { value: 'reasoning_source' as const, label: '"Why did it change or not?"', desc: 'Ask the group what they based their discussion on.' },
                 ]).map((opt) => (
                   <label key={String(opt.value)} className="flex items-start gap-2 cursor-pointer">
                     <input
