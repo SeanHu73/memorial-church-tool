@@ -793,15 +793,12 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
           uploadPath={`memorial-church/photos/tours/${tourId}/reveal_${stop.id}`}
           onUploadPhoto={onUploadPhoto}
         />
-        <label className="block">
-          <span className="text-xs text-stone-500">Bridge text (forward-pointing sentence to next stop)</span>
-          <textarea
-            value={stop.reveal.bridgeText}
-            onChange={(e) => onChange({ reveal: { ...stop.reveal, bridgeText: e.target.value } })}
-            rows={2}
-            className="mt-1 w-full px-3 py-1.5 border border-stone-300 rounded text-sm"
-          />
-        </label>
+        <RichTextarea
+          label="Bridge text (forward-pointing sentence to next stop)"
+          value={stop.reveal.bridgeText}
+          onChange={(bridgeText) => onChange({ reveal: { ...stop.reveal, bridgeText } })}
+          rows={2}
+        />
       </fieldset>
 
       {/* ── Reflection ── */}

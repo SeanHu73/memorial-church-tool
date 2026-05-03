@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { Stop, Detour } from '@/lib/types';
+import FormattedText from './FormattedText';
 import { useTour } from '@/context/TourContext';
 import DetourFlow from './DetourFlow';
 
@@ -51,7 +52,7 @@ export default function WhatsNext({ stop, isLastStop, onAskQuestion, onContinue 
       </p>
       {stop.reveal.bridgeText && (
         <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
-          {stop.reveal.bridgeText}
+          <FormattedText text={stop.reveal.bridgeText} />
         </p>
       )}
 

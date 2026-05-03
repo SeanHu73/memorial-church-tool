@@ -11,6 +11,7 @@ import { Detour } from '@/lib/types';
 import { routeQuestion } from '@/lib/tour-question-router';
 import { useTour } from '@/context/TourContext';
 import PhotoContent from './PhotoContent';
+import FormattedText from './FormattedText';
 import NoticeCard from './NoticeCard';
 import WonderCard from './WonderCard';
 
@@ -120,7 +121,7 @@ export default function DetourFlow({ detour, onReturn }: Props) {
 
           {detour.bridge && (
             <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
-              {detour.bridge}
+              <FormattedText text={detour.bridge} />
             </p>
           )}
 

@@ -2,6 +2,7 @@
 
 import { Stop } from '@/lib/types';
 import PhotoContent from './PhotoContent';
+import FormattedText from './FormattedText';
 import WhatsNext from './WhatsNext';
 
 interface Props {
@@ -45,7 +46,7 @@ export default function RevealCard({
         <>
           {stop.reveal.bridgeText && (
             <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
-              {stop.reveal.bridgeText}
+              <FormattedText text={stop.reveal.bridgeText} />
             </p>
           )}
           <button
