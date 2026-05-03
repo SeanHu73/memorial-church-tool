@@ -15,7 +15,7 @@
  * Auto-saves to Firestore on every blur / change so work is never lost.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { APIProvider, Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
@@ -451,6 +451,48 @@ interface StopEditorProps {
 
 function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) {
   const wordCount = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
+  const seedTextRef = useRef<HTMLTextAreaElement>(null);
+  const noticeTextRef = useRef<HTMLTextAreaElement>(null);
+  const revealTextRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-migrate legacy single photos into the photos array on first render
+  useEffect(() => {
+    let changed = false;
+    const patch: Partial<Stop> = {};
+    if (stop.seed.photoUrl && !(stop.seed.photos || []).some((p) => p.url === stop.seed.photoUrl)) {
+      patch.seed = { ...stop.seed, photos: [{ url: stop.seed.photoUrl, caption: stop.seed.photoCaption }, ...(stop.seed.photos || [])], photoUrl: null, photoCaption: null };
+      changed = true;
+    }
+    if (stop.notice.photoUrl && !(stop.notice.photos || []).some((p) => p.url === stop.notice.photoUrl)) {
+      patch.notice = { ...stop.notice, photos: [{ url: stop.notice.photoUrl, caption: stop.notice.photoCaption }, ...(stop.notice.photos || [])], photoUrl: null, photoCaption: null };
+      changed = true;
+    }
+    if (stop.reveal.photoUrl && !(stop.reveal.photos || []).some((p) => p.url === stop.reveal.photoUrl)) {
+      patch.reveal = { ...stop.reveal, photos: [{ url: stop.reveal.photoUrl, caption: stop.reveal.photoCaption }, ...(stop.reveal.photos || [])], photoUrl: null, photoCaption: null };
+      changed = true;
+    }
+    if (changed) onChange(patch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stop.id]);
+
+  /** Insert [photo:N] at the cursor position of a textarea */
+  const insertMarker = (ref: React.RefObject<HTMLTextAreaElement | null>, photoCount: number, field: 'seed' | 'notice' | 'reveal') => {
+    const ta = ref.current;
+    if (!ta) return;
+    const marker = `[photo:${photoCount}]`;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const text = ta.value;
+    const newText = text.slice(0, start) + marker + text.slice(end);
+    if (field === 'seed') onChange({ seed: { ...stop.seed, text: newText } });
+    else if (field === 'notice') onChange({ notice: { ...stop.notice, prompt: newText } });
+    else onChange({ reveal: { ...stop.reveal, text: newText } });
+    // Restore cursor after the inserted marker
+    setTimeout(() => {
+      ta.selectionStart = ta.selectionEnd = start + marker.length;
+      ta.focus();
+    }, 0);
+  };
 
   return (
     <div className="border-t border-stone-200 p-4 space-y-5">
@@ -474,12 +516,24 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
         <label className="block">
           <span className="text-xs text-stone-500">Text (2-3 sentences of context) &mdash; use <code className="bg-stone-200 px-1 rounded">[photo:1]</code> etc. to place photos inline</span>
           <textarea
+            ref={seedTextRef}
             value={stop.seed.text}
             onChange={(e) => onChange({ seed: { ...stop.seed, text: e.target.value } })}
             rows={3}
             className="mt-1 w-full px-3 py-1.5 border border-stone-300 rounded text-sm"
           />
-          <span className="text-[10px] text-stone-400">{wordCount(stop.seed.text)} words</span>
+          <div className="flex items-center gap-3 mt-1">
+            <span className="text-[10px] text-stone-400">{wordCount(stop.seed.text)} words</span>
+            {(stop.seed.photos || []).length > 0 && (
+              <button
+                type="button"
+                onClick={() => insertMarker(seedTextRef, (stop.seed.photos || []).length, 'seed')}
+                className="text-[10px] text-blue-700 hover:underline"
+              >
+                Insert photo marker
+              </button>
+            )}
+          </div>
         </label>
         <PhotoListEditor
           photos={stop.seed.photos || []}
@@ -498,11 +552,21 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
         <label className="block">
           <span className="text-xs text-stone-500">Prompt (what to look at) &mdash; use <code className="bg-stone-200 px-1 rounded">[photo:1]</code> etc. to place photos inline</span>
           <textarea
+            ref={noticeTextRef}
             value={stop.notice.prompt}
             onChange={(e) => onChange({ notice: { ...stop.notice, prompt: e.target.value } })}
             rows={2}
             className="mt-1 w-full px-3 py-1.5 border border-stone-300 rounded text-sm"
           />
+          {(stop.notice.photos || []).length > 0 && (
+            <button
+              type="button"
+              onClick={() => insertMarker(noticeTextRef, (stop.notice.photos || []).length, 'notice')}
+              className="text-[10px] text-blue-700 hover:underline mt-1"
+            >
+              Insert photo marker
+            </button>
+          )}
         </label>
         <label className="block">
           <span className="text-xs text-stone-500">Timer (seconds)</span>
@@ -577,12 +641,24 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
         <label className="block">
           <span className="text-xs text-stone-500">Text (the authored insight) &mdash; use <code className="bg-stone-200 px-1 rounded">[photo:1]</code>, <code className="bg-stone-200 px-1 rounded">[photo:2]</code> etc. to place photos within the text</span>
           <textarea
+            ref={revealTextRef}
             value={stop.reveal.text}
             onChange={(e) => onChange({ reveal: { ...stop.reveal, text: e.target.value } })}
             rows={5}
             className="mt-1 w-full px-3 py-1.5 border border-stone-300 rounded text-sm"
           />
-          <span className="text-[10px] text-stone-400">{wordCount(stop.reveal.text)} words</span>
+          <div className="flex items-center gap-3 mt-1">
+            <span className="text-[10px] text-stone-400">{wordCount(stop.reveal.text)} words</span>
+            {(stop.reveal.photos || []).length > 0 && (
+              <button
+                type="button"
+                onClick={() => insertMarker(revealTextRef, (stop.reveal.photos || []).length, 'reveal')}
+                className="text-[10px] text-blue-700 hover:underline"
+              >
+                Insert photo marker
+              </button>
+            )}
+          </div>
         </label>
         <PhotoListEditor
           photos={stop.reveal.photos || []}

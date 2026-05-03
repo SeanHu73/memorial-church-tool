@@ -39,7 +39,7 @@ export default function PhotoContent({
   // If no markers in text, render text then all photos
   if (!/\[photo:\d+\]/i.test(text)) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-5">
         {text.trim() && (
           <div className={borderColor ? `border-l-4 pl-4` : ''} style={borderColor ? { borderColor } : undefined}>
             <p className={textClass}>{text}</p>
@@ -57,7 +57,7 @@ export default function PhotoContent({
   const usedIndices = new Set<number>();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {parts.map((part, i) => {
         if (i % 2 === 1) {
           const idx = parseInt(part, 10) - 1;
@@ -91,7 +91,7 @@ export default function PhotoContent({
 
 function PhotoBlock({ photo }: { photo: Photo }) {
   return (
-    <div className="rounded-lg overflow-hidden shadow-md border border-[#D4BFA0]">
+    <div className="rounded-lg overflow-hidden shadow-md border border-[#D4BFA0] my-3">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={photo.url}
