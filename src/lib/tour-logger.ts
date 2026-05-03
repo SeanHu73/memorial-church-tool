@@ -72,6 +72,64 @@ export function logTourComplete(opts: {
   });
 }
 
+export function logEqOpening(opts: {
+  tourId: string;
+  sessionId: string;
+  tourTitle: string;
+  theory: string;
+  reasoning: string;
+}): void {
+  fire({
+    event: 'eq_opening',
+    tourId: opts.tourId,
+    sessionId: opts.sessionId,
+    tourTitle: opts.tourTitle,
+    eqTheory: opts.theory,
+    eqReasoning: opts.reasoning,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function logEqClosing(opts: {
+  tourId: string;
+  sessionId: string;
+  tourTitle: string;
+  finalReflection: string;
+  finalReasoning: string;
+}): void {
+  fire({
+    event: 'eq_closing',
+    tourId: opts.tourId,
+    sessionId: opts.sessionId,
+    tourTitle: opts.tourTitle,
+    eqFinalReflection: opts.finalReflection,
+    eqFinalReasoning: opts.finalReasoning,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function logEqFinalReflect(opts: {
+  tourId: string;
+  sessionId: string;
+  tourTitle: string;
+  cognitiveSlider: number;
+  perceptualSlider: number | null;
+  whatChanged: string[] | null;
+  whyChanged: string[] | null;
+}): void {
+  fire({
+    event: 'eq_final_reflect',
+    tourId: opts.tourId,
+    sessionId: opts.sessionId,
+    tourTitle: opts.tourTitle,
+    eqCognitiveSlider: opts.cognitiveSlider,
+    eqPerceptualSlider: opts.perceptualSlider,
+    eqWhatChanged: opts.whatChanged?.join(', ') || '',
+    eqWhyChanged: opts.whyChanged?.join(', ') || '',
+    timestamp: new Date().toISOString(),
+  });
+}
+
 function fire(entry: Record<string, unknown>): void {
   fetch('/api/log-tour', {
     method: 'POST',

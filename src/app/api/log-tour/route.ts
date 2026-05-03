@@ -11,22 +11,31 @@
 import { NextResponse } from 'next/server';
 
 interface TourLogEntry {
-  event: 'reflection' | 'question_banked' | 'question_routed' | 'tour_complete';
+  event: string;
   tourId: string;
   sessionId: string;
   tourTitle?: string;
   stopIndex?: number;
   stopTitle?: string;
-  // Reflection
+  // Per-stop reflection
   reflectionScore?: number;
   followUpResponse?: string | null;
-  // Question
+  // Question routing
   questionText?: string;
-  questionRouting?: 'coming_up' | 'answered_off_path' | 'banked';
+  questionRouting?: string;
   // Completion
   stopsCompleted?: number;
   totalStops?: number;
   durationMinutes?: number;
+  // Essential question
+  eqTheory?: string;
+  eqReasoning?: string;
+  eqFinalReflection?: string;
+  eqFinalReasoning?: string;
+  eqCognitiveSlider?: number;
+  eqPerceptualSlider?: number | null;
+  eqWhatChanged?: string;
+  eqWhyChanged?: string;
   timestamp: string;
 }
 

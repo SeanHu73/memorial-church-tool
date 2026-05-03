@@ -12,7 +12,7 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import { Tour, Stop, TourSession, BankedQuestion } from '@/lib/types';
 import { getTour } from '@/lib/tours-store';
 import { persistTourSession } from '@/lib/tour-sessions-store';
-import { logReflection, logQuestionRouted, logTourComplete } from '@/lib/tour-logger';
+import { logReflection, logQuestionRouted, logTourComplete, logEqOpening, logEqClosing, logEqFinalReflect } from '@/lib/tour-logger';
 import {
   createSession,
   advancePhase as advancePhaseImpl,
@@ -169,19 +169,22 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, [session]);
 
   const completeEqOpeningFn = useCallback((theory: string, reasoning: string) => {
-    if (!session) return;
+    if (!session || !tour) return;
     persist(completeEqOpeningImpl(session, theory, reasoning));
-  }, [session, persist]);
+    logEqOpening({ tourId: tour.id, sessionId: session.id, tourTitle: tour.title, theory, reasoning });
+  }, [session, tour, persist]);
 
   const completeEqClosingFn = useCallback((finalReflection: string, finalReasoning: string) => {
-    if (!session) return;
+    if (!session || !tour) return;
     persist(completeEqClosingImpl(session, finalReflection, finalReasoning));
-  }, [session, persist]);
+    logEqClosing({ tourId: tour.id, sessionId: session.id, tourTitle: tour.title, finalReflection, finalReasoning });
+  }, [session, tour, persist]);
 
-  const completeEqFinalReflectFn = useCallback((cognitive: number, perceptual: number | null, whatShifted: string[] | null, reasoningSource: string[] | null) => {
-    if (!session) return;
-    persist(completeEqFinalReflectImpl(session, cognitive, perceptual, whatShifted, reasoningSource));
-  }, [session, persist]);
+  const completeEqFinalReflectFn = useCallback((cognitive: number, perceptual: number | null, whatChanged: string[] | null, whyChanged: string[] | null) => {
+    if (!session || !tour) return;
+    persist(completeEqFinalReflectImpl(session, cognitive, perceptual, whatChanged, whyChanged));
+    logEqFinalReflect({ tourId: tour.id, sessionId: session.id, tourTitle: tour.title, cognitiveSlider: cognitive, perceptualSlider: perceptual, whatChanged, whyChanged });
+  }, [session, tour, persist]);
 
   const endTour = useCallback(() => {
     setTour(null);
