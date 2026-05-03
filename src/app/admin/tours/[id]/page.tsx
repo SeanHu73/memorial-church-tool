@@ -798,6 +798,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
           value={stop.reveal.bridgeText}
           onChange={(bridgeText) => onChange({ reveal: { ...stop.reveal, bridgeText } })}
           rows={2}
+          hideItalic
         />
       </fieldset>
 

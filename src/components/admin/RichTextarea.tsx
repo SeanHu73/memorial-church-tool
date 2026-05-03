@@ -16,6 +16,7 @@ interface Props {
   className?: string;
   label?: string;
   wordCount?: boolean;
+  hideItalic?: boolean;
 }
 
 const COLORS = [
@@ -37,6 +38,7 @@ export default function RichTextarea({
   className = '',
   label,
   wordCount,
+  hideItalic,
 }: Props) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const [showColors, setShowColors] = useState(false);
@@ -83,14 +85,16 @@ export default function RichTextarea({
         >
           B
         </button>
-        <button
-          type="button"
-          onClick={() => wrapSelection('*', '*')}
-          className="px-2 py-0.5 rounded bg-stone-200 hover:bg-stone-300 text-xs italic text-stone-700"
-          title="Italic"
-        >
-          I
-        </button>
+        {!hideItalic && (
+          <button
+            type="button"
+            onClick={() => wrapSelection('*', '*')}
+            className="px-2 py-0.5 rounded bg-stone-200 hover:bg-stone-300 text-xs italic text-stone-700"
+            title="Italic"
+          >
+            I
+          </button>
+        )}
         <div className="relative">
           <button
             type="button"
