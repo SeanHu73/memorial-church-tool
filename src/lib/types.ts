@@ -215,8 +215,9 @@ export interface Stop {
   // Seed phase
   seed: {
     text: string;                    // 2–3 sentences of context
-    photoUrl: string | null;         // Photo for the postcard card
+    photoUrl: string | null;         // Legacy single photo
     photoCaption: string | null;
+    photos: Array<{ url: string; caption: string | null }>; // Multiple photos
     ttsText: string | null;          // Optional override for TTS
   };
 
@@ -224,8 +225,9 @@ export interface Stop {
   notice: {
     prompt: string;                  // Observation directive
     timerSeconds: number;            // Default 30
-    photoUrl: string | null;         // Optional photo to help locate the feature
+    photoUrl: string | null;         // Legacy single photo
     photoCaption: string | null;
+    photos: Array<{ url: string; caption: string | null }>; // Multiple photos
   };
 
   // Wonder phase — null means skip (notice goes straight to reveal)

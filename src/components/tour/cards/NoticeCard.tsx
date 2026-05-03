@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Stop } from '@/lib/types';
+import PhotoContent from './PhotoContent';
 
 interface Props {
   stop: Stop;
@@ -32,27 +33,14 @@ export default function NoticeCard({ stop, onContinue }: Props) {
         Look around...
       </p>
 
-      {/* Optional photo — helps locate the feature */}
-      {stop.notice.photoUrl && (
-        <div className="rounded-lg overflow-hidden shadow-md border border-[#D4BFA0]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={stop.notice.photoUrl}
-            alt={stop.notice.photoCaption || ''}
-            className="w-full h-40 object-cover"
-          />
-          {stop.notice.photoCaption && (
-            <p className="text-xs text-[#6B5D4F] px-3 py-1.5 bg-[#F0E0C8]/50 italic">
-              {stop.notice.photoCaption}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Observation prompt */}
-      <p className="text-[19px] leading-relaxed font-serif text-[#2C2418]">
-        {stop.notice.prompt}
-      </p>
+      {/* Prompt + photos interleaved via [photo:N] markers */}
+      <PhotoContent
+        text={stop.notice.prompt}
+        photos={stop.notice.photos || []}
+        legacyPhotoUrl={stop.notice.photoUrl}
+        legacyPhotoCaption={stop.notice.photoCaption}
+        textClass="text-[19px] leading-relaxed font-serif text-[#2C2418]"
+      />
 
       {/* Timer ring */}
       <div className="flex flex-col items-center gap-3">
@@ -80,11 +68,11 @@ export default function NoticeCard({ stop, onContinue }: Props) {
           </span>
         </div>
         <p className="text-xs text-[#6B5D4F]">
-          {timerDone ? 'Time\u2019s up — ready when you are' : 'Look together...'}
+          {timerDone ? 'Time’s up — ready when you are' : 'Look together...'}
         </p>
       </div>
 
-      {/* Continue — always available but styled differently before timer */}
+      {/* Continue */}
       <button
         onClick={onContinue}
         className={`w-full py-3 rounded-lg text-sm font-semibold transition-all ${

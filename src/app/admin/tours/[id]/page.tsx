@@ -472,7 +472,7 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
           Background (seed &mdash; context card)
         </legend>
         <label className="block">
-          <span className="text-xs text-stone-500">Text (2-3 sentences of context)</span>
+          <span className="text-xs text-stone-500">Text (2-3 sentences of context) &mdash; use <code className="bg-stone-200 px-1 rounded">[photo:1]</code> etc. to place photos inline</span>
           <textarea
             value={stop.seed.text}
             onChange={(e) => onChange({ seed: { ...stop.seed, text: e.target.value } })}
@@ -481,41 +481,12 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
           />
           <span className="text-[10px] text-stone-400">{wordCount(stop.seed.text)} words</span>
         </label>
-        <div className="flex gap-4">
-          <label className="flex-1 block">
-            <span className="text-xs text-stone-500">Photo URL</span>
-            <div className="flex gap-2 mt-1">
-              <input
-                value={stop.seed.photoUrl || ''}
-                onChange={(e) => onChange({ seed: { ...stop.seed, photoUrl: e.target.value || null } })}
-                className="flex-1 px-2 py-1 border border-stone-300 rounded text-xs"
-                placeholder="/photos/archival/..."
-              />
-              <label className="px-2 py-1 rounded bg-stone-200 text-stone-700 text-xs cursor-pointer hover:bg-stone-300">
-                Upload
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const url = await onUploadPhoto(file, `memorial-church/photos/tours/${tourId}/seed_${stop.id}_${file.name}`);
-                    onChange({ seed: { ...stop.seed, photoUrl: url } });
-                  }}
-                />
-              </label>
-            </div>
-          </label>
-          <label className="flex-1 block">
-            <span className="text-xs text-stone-500">Photo caption</span>
-            <input
-              value={stop.seed.photoCaption || ''}
-              onChange={(e) => onChange({ seed: { ...stop.seed, photoCaption: e.target.value || null } })}
-              className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
-            />
-          </label>
-        </div>
+        <PhotoListEditor
+          photos={stop.seed.photos || []}
+          onChange={(photos) => onChange({ seed: { ...stop.seed, photos } })}
+          uploadPath={`memorial-church/photos/tours/${tourId}/seed_${stop.id}`}
+          onUploadPhoto={onUploadPhoto}
+        />
       </fieldset>
 
       {/* ── Notice ── */}
@@ -525,7 +496,7 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
           Notice (observation prompt)
         </legend>
         <label className="block">
-          <span className="text-xs text-stone-500">Prompt (what to look at)</span>
+          <span className="text-xs text-stone-500">Prompt (what to look at) &mdash; use <code className="bg-stone-200 px-1 rounded">[photo:1]</code> etc. to place photos inline</span>
           <textarea
             value={stop.notice.prompt}
             onChange={(e) => onChange({ notice: { ...stop.notice, prompt: e.target.value } })}
@@ -544,41 +515,12 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
             max={120}
           />
         </label>
-        <div className="flex gap-4">
-          <label className="flex-1 block">
-            <span className="text-xs text-stone-500">Photo URL (optional &mdash; helps locate the feature)</span>
-            <div className="flex gap-2 mt-1">
-              <input
-                value={stop.notice.photoUrl || ''}
-                onChange={(e) => onChange({ notice: { ...stop.notice, photoUrl: e.target.value || null } })}
-                className="flex-1 px-2 py-1 border border-stone-300 rounded text-xs"
-                placeholder="/photos/onsite/..."
-              />
-              <label className="px-2 py-1 rounded bg-stone-200 text-stone-700 text-xs cursor-pointer hover:bg-stone-300">
-                Upload
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const url = await onUploadPhoto(file, `memorial-church/photos/tours/${tourId}/notice_${stop.id}_${file.name}`);
-                    onChange({ notice: { ...stop.notice, photoUrl: url } });
-                  }}
-                />
-              </label>
-            </div>
-          </label>
-          <label className="flex-1 block">
-            <span className="text-xs text-stone-500">Photo caption</span>
-            <input
-              value={stop.notice.photoCaption || ''}
-              onChange={(e) => onChange({ notice: { ...stop.notice, photoCaption: e.target.value || null } })}
-              className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
-            />
-          </label>
-        </div>
+        <PhotoListEditor
+          photos={stop.notice.photos || []}
+          onChange={(photos) => onChange({ notice: { ...stop.notice, photos } })}
+          uploadPath={`memorial-church/photos/tours/${tourId}/notice_${stop.id}`}
+          onUploadPhoto={onUploadPhoto}
+        />
       </fieldset>
 
       {/* ── Wonder ── */}
@@ -642,68 +584,12 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
           />
           <span className="text-[10px] text-stone-400">{wordCount(stop.reveal.text)} words</span>
         </label>
-        {/* Photos — multiple allowed */}
-        <div className="space-y-2">
-          <span className="text-xs text-stone-500">Photos (optional)</span>
-          {(stop.reveal.photos || []).map((photo, i) => (
-            <div key={i} className="flex gap-2 items-start">
-              <div className="flex-1 flex gap-2">
-                <input
-                  value={photo.url}
-                  onChange={(e) => {
-                    const photos = [...(stop.reveal.photos || [])];
-                    photos[i] = { ...photos[i], url: e.target.value };
-                    onChange({ reveal: { ...stop.reveal, photos } });
-                  }}
-                  className="flex-1 px-2 py-1 border border-stone-300 rounded text-xs"
-                  placeholder="/photos/archival/..."
-                />
-                <input
-                  value={photo.caption || ''}
-                  onChange={(e) => {
-                    const photos = [...(stop.reveal.photos || [])];
-                    photos[i] = { ...photos[i], caption: e.target.value || null };
-                    onChange({ reveal: { ...stop.reveal, photos } });
-                  }}
-                  className="w-40 px-2 py-1 border border-stone-300 rounded text-xs"
-                  placeholder="Caption"
-                />
-                <label className="px-2 py-1 rounded bg-stone-200 text-stone-700 text-xs cursor-pointer hover:bg-stone-300 shrink-0">
-                  Upload
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const url = await onUploadPhoto(file, `memorial-church/photos/tours/${tourId}/reveal_${stop.id}_${i}_${file.name}`);
-                      const photos = [...(stop.reveal.photos || [])];
-                      photos[i] = { ...photos[i], url };
-                      onChange({ reveal: { ...stop.reveal, photos } });
-                    }}
-                  />
-                </label>
-              </div>
-              <button
-                onClick={() => {
-                  const photos = (stop.reveal.photos || []).filter((_, j) => j !== i);
-                  onChange({ reveal: { ...stop.reveal, photos } });
-                }}
-                className="px-1.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded"
-              >&times;</button>
-            </div>
-          ))}
-          <button
-            onClick={() => {
-              const photos = [...(stop.reveal.photos || []), { url: '', caption: null }];
-              onChange({ reveal: { ...stop.reveal, photos } });
-            }}
-            className="text-xs text-blue-700 hover:underline"
-          >
-            + Add photo
-          </button>
-        </div>
+        <PhotoListEditor
+          photos={stop.reveal.photos || []}
+          onChange={(photos) => onChange({ reveal: { ...stop.reveal, photos } })}
+          uploadPath={`memorial-church/photos/tours/${tourId}/reveal_${stop.id}`}
+          onUploadPhoto={onUploadPhoto}
+        />
         <label className="block">
           <span className="text-xs text-stone-500">Bridge text (forward-pointing sentence to next stop)</span>
           <textarea
@@ -912,6 +798,78 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
           </div>
         </div>
       </fieldset>
+    </div>
+  );
+}
+
+// ─── Reusable Photo List Editor ──────────────────────────────────────
+
+interface PhotoListEditorProps {
+  photos: Array<{ url: string; caption: string | null }>;
+  onChange: (photos: Array<{ url: string; caption: string | null }>) => void;
+  uploadPath: string;
+  onUploadPhoto: (file: File, path: string) => Promise<string>;
+}
+
+function PhotoListEditor({ photos, onChange, uploadPath, onUploadPhoto }: PhotoListEditorProps) {
+  return (
+    <div className="space-y-2">
+      <span className="text-xs text-stone-500">
+        Photos (optional) &mdash; use <code className="bg-stone-200 px-1 rounded">[photo:1]</code>, <code className="bg-stone-200 px-1 rounded">[photo:2]</code> in the text above to place them inline
+      </span>
+      {photos.map((photo, i) => (
+        <div key={i} className="flex gap-2 items-start">
+          <span className="text-[10px] text-stone-400 font-mono mt-1.5 w-4 shrink-0">{i + 1}.</span>
+          <div className="flex-1 flex gap-2">
+            <input
+              value={photo.url}
+              onChange={(e) => {
+                const next = [...photos];
+                next[i] = { ...next[i], url: e.target.value };
+                onChange(next);
+              }}
+              className="flex-1 px-2 py-1 border border-stone-300 rounded text-xs"
+              placeholder="/photos/archival/..."
+            />
+            <input
+              value={photo.caption || ''}
+              onChange={(e) => {
+                const next = [...photos];
+                next[i] = { ...next[i], caption: e.target.value || null };
+                onChange(next);
+              }}
+              className="w-36 px-2 py-1 border border-stone-300 rounded text-xs"
+              placeholder="Caption"
+            />
+            <label className="px-2 py-1 rounded bg-stone-200 text-stone-700 text-xs cursor-pointer hover:bg-stone-300 shrink-0">
+              Upload
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const url = await onUploadPhoto(file, `${uploadPath}_${i}_${file.name}`);
+                  const next = [...photos];
+                  next[i] = { ...next[i], url };
+                  onChange(next);
+                }}
+              />
+            </label>
+          </div>
+          <button
+            onClick={() => onChange(photos.filter((_, j) => j !== i))}
+            className="px-1.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded"
+          >&times;</button>
+        </div>
+      ))}
+      <button
+        onClick={() => onChange([...photos, { url: '', caption: null }])}
+        className="text-xs text-blue-700 hover:underline"
+      >
+        + Add photo
+      </button>
     </div>
   );
 }

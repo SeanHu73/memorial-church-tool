@@ -1,6 +1,7 @@
 'use client';
 
 import { Stop } from '@/lib/types';
+import PhotoContent from './PhotoContent';
 
 interface Props {
   stop: Stop;
@@ -15,27 +16,13 @@ export default function SeedCard({ stop, onContinue }: Props) {
         Background...
       </p>
 
-      {/* Photo inset — postcard feel */}
-      {stop.seed.photoUrl && (
-        <div className="rounded-lg overflow-hidden shadow-md border-4 border-[#FFF8EE]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={stop.seed.photoUrl}
-            alt={stop.seed.photoCaption || ''}
-            className="w-full h-48 object-cover"
-          />
-          {stop.seed.photoCaption && (
-            <p className="text-xs text-[#6B5D4F] px-3 py-1.5 bg-[#F0E0C8]/50 italic">
-              {stop.seed.photoCaption}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Context text */}
-      <p className="text-[17px] leading-relaxed font-serif text-[#2C2418]">
-        {stop.seed.text}
-      </p>
+      {/* Text + photos interleaved via [photo:N] markers */}
+      <PhotoContent
+        text={stop.seed.text}
+        photos={stop.seed.photos || []}
+        legacyPhotoUrl={stop.seed.photoUrl}
+        legacyPhotoCaption={stop.seed.photoCaption}
+      />
 
       {/* Continue */}
       <button
