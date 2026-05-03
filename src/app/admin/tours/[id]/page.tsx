@@ -19,8 +19,8 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { APIProvider, Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
-import { Tour, Stop } from '@/lib/types';
-import { getTour, saveTour, deleteTour, blankStop } from '@/lib/tours-store';
+import { Tour, Stop, Detour } from '@/lib/types';
+import { getTour, saveTour, deleteTour, blankStop, blankDetour } from '@/lib/tours-store';
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -782,6 +782,52 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
         )}
       </fieldset>
 
+      {/* ── Related Artefacts (Detours) ── */}
+      <fieldset className="space-y-2">
+        <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#C4923A] inline-block" />
+          Related artefacts
+        </legend>
+        {(stop.detours || []).length === 0 ? (
+          <p className="text-[10px] text-stone-400 italic">No artefacts yet. Add one for optional side-path content.</p>
+        ) : (
+          <ul className="space-y-2">
+            {(stop.detours || []).map((detour, i) => (
+              <li key={detour.id} className="border border-stone-300 rounded bg-stone-50 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-stone-700">
+                    {detour.title || <em className="text-stone-400">Untitled artefact</em>}
+                  </span>
+                  <button
+                    onClick={() => {
+                      const next = (stop.detours || []).filter((_, j) => j !== i);
+                      onChange({ detours: next });
+                    }}
+                    className="text-xs text-red-600 hover:underline"
+                  >&times; Remove</button>
+                </div>
+                <DetourEditor
+                  detour={detour}
+                  tourId={tourId}
+                  onChange={(patch) => {
+                    const next = [...(stop.detours || [])];
+                    next[i] = { ...next[i], ...patch };
+                    onChange({ detours: next });
+                  }}
+                  onUploadPhoto={onUploadPhoto}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+        <button
+          onClick={() => onChange({ detours: [...(stop.detours || []), blankDetour()] })}
+          className="text-xs text-blue-700 hover:underline"
+        >
+          + Add artefact
+        </button>
+      </fieldset>
+
       {/* ── Location ── */}
       <fieldset className="space-y-2">
         <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide flex items-center gap-2">
@@ -874,6 +920,160 @@ function StopEditor({ stop, tourId, onChange, onUploadPhoto }: StopEditorProps) 
           </div>
         </div>
       </fieldset>
+    </div>
+  );
+}
+
+// ─── Detour Editor ──────────────────────────────────────────────────
+
+interface DetourEditorProps {
+  detour: Detour;
+  tourId: string;
+  onChange: (patch: Partial<Detour>) => void;
+  onUploadPhoto: (file: File, path: string) => Promise<string>;
+}
+
+function DetourEditor({ detour, tourId, onChange, onUploadPhoto }: DetourEditorProps) {
+  return (
+    <div className="space-y-3 text-xs">
+      {/* Title */}
+      <label className="block">
+        <span className="text-stone-500">Title</span>
+        <input
+          value={detour.title}
+          onChange={(e) => onChange({ title: e.target.value })}
+          className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+          placeholder="e.g., The Pendentive Angels"
+        />
+      </label>
+
+      {/* Cover photo */}
+      <div className="flex gap-2 items-end">
+        <label className="flex-1 block">
+          <span className="text-stone-500">Cover photo URL</span>
+          <div className="flex gap-2 mt-1">
+            <input
+              value={detour.coverPhoto.url}
+              onChange={(e) => onChange({ coverPhoto: { ...detour.coverPhoto, url: e.target.value } })}
+              className="flex-1 px-2 py-1 border border-stone-300 rounded text-xs"
+              placeholder="/photos/archival/..."
+            />
+            <label className="px-2 py-1 rounded bg-stone-200 text-stone-700 text-xs cursor-pointer hover:bg-stone-300">
+              Upload
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const url = await onUploadPhoto(file, `memorial-church/photos/tours/${tourId}/detour_${detour.id}_cover_${file.name}`);
+                  onChange({ coverPhoto: { ...detour.coverPhoto, url } });
+                }}
+              />
+            </label>
+          </div>
+        </label>
+        <label className="w-32 block">
+          <span className="text-stone-500">Caption</span>
+          <input
+            value={detour.coverPhoto.caption}
+            onChange={(e) => onChange({ coverPhoto: { ...detour.coverPhoto, caption: e.target.value } })}
+            className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+          />
+        </label>
+      </div>
+
+      {/* Notice — toggle */}
+      <div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={detour.notice !== null}
+            onChange={(e) => onChange({ notice: e.target.checked ? { prompt: '', timerSeconds: 30 } : null })}
+            className="rounded"
+          />
+          <span className="text-stone-600">Include notice (observation prompt)</span>
+        </label>
+        {detour.notice && (
+          <div className="mt-1 flex gap-2">
+            <input
+              value={detour.notice.prompt}
+              onChange={(e) => onChange({ notice: { ...detour.notice!, prompt: e.target.value } })}
+              className="flex-1 px-2 py-1 border border-stone-300 rounded text-xs"
+              placeholder="Look up at the four corners..."
+            />
+            <input
+              type="number"
+              value={detour.notice.timerSeconds}
+              onChange={(e) => onChange({ notice: { ...detour.notice!, timerSeconds: parseInt(e.target.value) || 30 } })}
+              className="w-14 px-2 py-1 border border-stone-300 rounded text-xs"
+              min={5} max={120}
+            />
+            <span className="text-stone-400 self-center">sec</span>
+          </div>
+        )}
+      </div>
+
+      {/* Wonder — toggle */}
+      <div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={detour.wonder !== null}
+            onChange={(e) => onChange({ wonder: e.target.checked ? { question: '' } : null })}
+            className="rounded"
+          />
+          <span className="text-stone-600">Include wonder (discussion prompt)</span>
+        </label>
+        {detour.wonder && (
+          <input
+            value={detour.wonder.question}
+            onChange={(e) => onChange({ wonder: { question: e.target.value } })}
+            className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+            placeholder="Why might the designers have placed..."
+          />
+        )}
+      </div>
+
+      {/* Reveal — always present */}
+      <label className="block">
+        <span className="text-stone-500">Reveal text (required)</span>
+        <textarea
+          value={detour.reveal.text}
+          onChange={(e) => onChange({ reveal: { ...detour.reveal, text: e.target.value } })}
+          rows={3}
+          className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+          placeholder="The context about this artefact..."
+        />
+      </label>
+      <PhotoListEditor
+        photos={detour.reveal.photos || []}
+        onChange={(photos) => onChange({ reveal: { ...detour.reveal, photos } })}
+        uploadPath={`memorial-church/photos/tours/${tourId}/detour_${detour.id}_reveal`}
+        onUploadPhoto={onUploadPhoto}
+      />
+
+      {/* Bridge — toggle */}
+      <div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={detour.bridge !== null}
+            onChange={(e) => onChange({ bridge: e.target.checked ? '' : null })}
+            className="rounded"
+          />
+          <span className="text-stone-600">Include bridge text</span>
+        </label>
+        {detour.bridge !== null && (
+          <input
+            value={detour.bridge}
+            onChange={(e) => onChange({ bridge: e.target.value })}
+            className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs"
+            placeholder="This connects to what you'll see next..."
+          />
+        )}
+      </div>
     </div>
   );
 }

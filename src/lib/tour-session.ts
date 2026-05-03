@@ -44,6 +44,7 @@ export function createSession(tourId: string): TourSession {
     completedStops: [],
     reflections: [],
     bankedQuestions: [],
+    detourVisits: [],
     startedAt: new Date().toISOString(),
     completedAt: null,
   };
@@ -97,6 +98,17 @@ export function addReflection(
   return {
     ...session,
     reflections: [...session.reflections, { stopId, sliderValue, followUpResponse }],
+  };
+}
+
+export function recordDetourVisit(
+  session: TourSession,
+  stopId: string,
+  detourId: string
+): TourSession {
+  return {
+    ...session,
+    detourVisits: [...session.detourVisits, { stopId, detourId, timestamp: new Date().toISOString() }],
   };
 }
 

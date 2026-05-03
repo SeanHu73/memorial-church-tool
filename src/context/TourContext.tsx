@@ -20,6 +20,7 @@ import {
   enterBranch as enterBranchImpl,
   returnFromBranch as returnFromBranchImpl,
   addReflection as addReflectionImpl,
+  recordDetourVisit as recordDetourVisitImpl,
   bankQuestion as bankQuestionImpl,
   loadTourSession,
   saveTourSession,
@@ -39,6 +40,8 @@ interface TourContextValue {
   returnFromBranch: () => void;
   addReflection: (sliderValue: number, followUpResponse: string | null) => void;
   bankQuestion: (q: BankedQuestion) => void;
+  recordDetourVisit: (detourId: string) => void;
+  isDetourVisited: (detourId: string) => boolean;
   endTour: () => void;
 }
 
@@ -149,6 +152,16 @@ export function TourProvider({ children }: { children: ReactNode }) {
     });
   }, [session, tour, currentStop, persist]);
 
+  const recordDetourVisitFn = useCallback((detourId: string) => {
+    if (!session || !currentStop) return;
+    persist(recordDetourVisitImpl(session, currentStop.id, detourId));
+  }, [session, currentStop, persist]);
+
+  const isDetourVisited = useCallback((detourId: string) => {
+    if (!session) return false;
+    return session.detourVisits.some((v) => v.detourId === detourId);
+  }, [session]);
+
   const endTour = useCallback(() => {
     setTour(null);
     setSession(null);
@@ -169,6 +182,8 @@ export function TourProvider({ children }: { children: ReactNode }) {
       returnFromBranch,
       addReflection,
       bankQuestion: bankQuestionFn,
+      recordDetourVisit: recordDetourVisitFn,
+      isDetourVisited,
       endTour,
     }}>
       {children}

@@ -19,7 +19,7 @@ import {
   deleteDoc,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Tour } from './types';
+import { Tour, Detour } from './types';
 
 const TOURS_COLLECTION = 'memorial-church-tours';
 
@@ -98,8 +98,30 @@ export function blankStop(order: number): import('./types').Stop {
       followUp: null,
       followUpOptions: null,
     },
+    detours: [],
     physicalLocationTag: 'general',
     relatedEntryIds: [],
     upcomingTopics: [],
+  };
+}
+
+export function newDetourId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `detour_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function blankDetour(): Detour {
+  return {
+    id: newDetourId(),
+    title: '',
+    coverPhoto: { url: '', caption: '' },
+    physicalLocationTag: 'general',
+    relatedEntryIds: [],
+    notice: null,
+    wonder: null,
+    reveal: { text: '', photos: [] },
+    bridge: null,
   };
 }

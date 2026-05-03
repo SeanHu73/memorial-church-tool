@@ -254,10 +254,37 @@ export interface Stop {
     followUpOptions: string[] | null;
   } | null;
 
+  // Related artefacts — optional side-path detours
+  detours: Detour[];
+
   // Metadata
   physicalLocationTag: string;       // Where in the site this stop is
   relatedEntryIds: string[];         // Knowledge base entries this stop draws from
   upcomingTopics: string[];          // Keywords for AI question routing
+}
+
+export interface Detour {
+  id: string;
+  title: string;                     // "The Pendentive Angels"
+  coverPhoto: {
+    url: string;
+    caption: string;
+  };
+  physicalLocationTag: string;
+  relatedEntryIds: string[];
+  // All phases optional except reveal
+  notice: {
+    prompt: string;
+    timerSeconds: number;
+  } | null;
+  wonder: {
+    question: string;
+  } | null;
+  reveal: {
+    text: string;
+    photos: Array<{ url: string; caption: string | null }>;
+  };
+  bridge: string | null;
 }
 
 export interface WebNode {
@@ -282,6 +309,7 @@ export interface TourSession {
     followUpResponse: string | null;  // Text of selected option, or null
   }>;
   bankedQuestions: BankedQuestion[];
+  detourVisits: Array<{ stopId: string; detourId: string; timestamp: string }>;
   startedAt: string;
   completedAt: string | null;
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Stop } from '@/lib/types';
+import WhatsNext from './WhatsNext';
 
 const DEFAULT_WHAT_SHIFTED = [
   'We learned something new',
@@ -67,7 +68,6 @@ export default function ReflectCard({
   };
 
   const handleSkip = () => {
-    // Log with default values so the row exists but shows it was skipped
     onAddReflection(-1, 'skipped');
     setSubmitted(true);
   };
@@ -76,12 +76,10 @@ export default function ReflectCard({
     <div className="animate-fade-in flex flex-col justify-center min-h-full space-y-6">
       {!submitted ? (
         <>
-          {/* Title */}
           <p className="text-xl uppercase tracking-[0.14em] text-[#6B5D4F] font-semibold">
             Reflect...
           </p>
 
-          {/* Slider */}
           <div className="space-y-3">
             <p className="text-sm font-semibold text-[#2C2418]">
               {reflect.sliderPrompt}
@@ -103,7 +101,6 @@ export default function ReflectCard({
             </div>
           </div>
 
-          {/* Follow-up — fades in after slider is released */}
           {sliderReleased && followUpOptions && followUpQuestion && (
             <div className="animate-fade-in space-y-3">
               <p className="text-sm font-semibold text-[#2C2418]">
@@ -127,7 +124,6 @@ export default function ReflectCard({
             </div>
           )}
 
-          {/* Continue — visible once slider has been released */}
           {sliderReleased && (
             <button
               onClick={handleSubmit}
@@ -137,7 +133,6 @@ export default function ReflectCard({
             </button>
           )}
 
-          {/* Skip */}
           <button
             onClick={handleSkip}
             className="text-xs text-[#6B5D4F]/50 hover:text-[#6B5D4F] transition-colors"
@@ -146,32 +141,12 @@ export default function ReflectCard({
           </button>
         </>
       ) : (
-        <>
-          {/* Post-reflection: bridge + branch */}
-          <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
-            What&apos;s next...
-          </p>
-          {stop.reveal.bridgeText && (
-            <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
-              {stop.reveal.bridgeText}
-            </p>
-          )}
-
-          <div className="space-y-3">
-            <button
-              onClick={onAskQuestion}
-              className="w-full py-3 rounded-lg text-sm font-semibold border-2 border-[#C4923A] text-[#C4923A] bg-[#C4923A]/10"
-            >
-              Ask any remaining questions
-            </button>
-            <button
-              onClick={onContinue}
-              className="w-full py-3 rounded-lg text-sm font-semibold bg-[#7A7A5E] text-white"
-            >
-              {isLastStop ? 'Finish the tour' : 'Continue the tour'}
-            </button>
-          </div>
-        </>
+        <WhatsNext
+          stop={stop}
+          isLastStop={isLastStop}
+          onAskQuestion={onAskQuestion}
+          onContinue={onContinue}
+        />
       )}
     </div>
   );

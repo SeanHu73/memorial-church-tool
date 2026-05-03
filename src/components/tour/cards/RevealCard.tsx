@@ -2,6 +2,7 @@
 
 import { Stop } from '@/lib/types';
 import PhotoContent from './PhotoContent';
+import WhatsNext from './WhatsNext';
 
 interface Props {
   stop: Stop;
@@ -55,31 +56,12 @@ export default function RevealCard({
           </button>
         </>
       ) : (
-        <>
-          {/* No reflection — show bridge + branch buttons inline */}
-          <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold mt-2">
-            What&apos;s next...
-          </p>
-          {stop.reveal.bridgeText && (
-            <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
-              {stop.reveal.bridgeText}
-            </p>
-          )}
-          <div className="space-y-3">
-            <button
-              onClick={onAskQuestion}
-              className="w-full py-3 rounded-lg text-sm font-semibold border-2 border-[#C4923A] text-[#C4923A] bg-[#C4923A]/10"
-            >
-              Ask any remaining questions
-            </button>
-            <button
-              onClick={onAdvanceStop}
-              className="w-full py-3 rounded-lg text-sm font-semibold bg-[#7A7A5E] text-white"
-            >
-              {isLastStop ? 'Finish the tour' : 'Continue the tour'}
-            </button>
-          </div>
-        </>
+        <WhatsNext
+          stop={stop}
+          isLastStop={isLastStop}
+          onAskQuestion={onAskQuestion}
+          onContinue={onAdvanceStop}
+        />
       )}
     </div>
   );
