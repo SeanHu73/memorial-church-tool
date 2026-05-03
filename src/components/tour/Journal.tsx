@@ -153,7 +153,6 @@ export default function Journal({ onMapPeek }: JournalProps) {
         {phase === 'reflect' && currentStop && (
           <ReflectCard
             stop={currentStop}
-            hasWonder={currentStop.wonder !== null}
             isLastStop={isLastStop}
             onAskQuestion={enterBranch}
             onContinue={advanceStop}

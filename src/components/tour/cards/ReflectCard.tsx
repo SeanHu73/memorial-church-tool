@@ -20,7 +20,6 @@ const DEFAULT_REASONING_SOURCE = [
 
 interface Props {
   stop: Stop;
-  hasWonder: boolean;
   isLastStop: boolean;
   onAskQuestion: () => void;
   onContinue: () => void;
@@ -29,7 +28,6 @@ interface Props {
 
 export default function ReflectCard({
   stop,
-  hasWonder,
   isLastStop,
   onAskQuestion,
   onContinue,
@@ -38,7 +36,7 @@ export default function ReflectCard({
   const [sliderValue, setSliderValue] = useState(0.5);
   const [sliderReleased, setSliderReleased] = useState(false);
   const [followUpChoices, setFollowUpChoices] = useState<string[]>([]);
-  const [submitted, setSubmitted] = useState(!hasWonder);
+  const [submitted, setSubmitted] = useState(false);
 
   const reflect = stop.reflect ?? {
     sliderPrompt: 'How much did that change your thinking?',
