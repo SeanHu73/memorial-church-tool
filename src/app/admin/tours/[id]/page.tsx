@@ -591,6 +591,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
     reveal: rawStop.reveal ?? { text: '', photoUrl: null, photoCaption: null, photos: [], bridgeText: '' },
     reflect: rawStop.reflect === undefined ? null : rawStop.reflect,
     detours: rawStop.detours ?? [],
+    extraRounds: rawStop.extraRounds ?? [],
   };
   // Normalize stop data on first render — ensures all newer fields exist
   // and migrates legacy single photos into the photos array.
@@ -633,8 +634,9 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
         changed = true;
       }
 
-      // Ensure detours array exists
+      // Ensure arrays exist
       if (!stop.detours) { patch.detours = []; changed = true; }
+      if (!stop.extraRounds) { patch.extraRounds = []; changed = true; }
 
       if (changed) onChange(patch);
     } catch (err) {
@@ -800,6 +802,108 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
           rows={2}
           hideItalic
         />
+      </fieldset>
+
+      {/* ── Extra Wonder + Reveal Rounds ── */}
+      <fieldset className="space-y-2">
+        <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#C4923A] inline-block" />
+          Additional wonder + context rounds
+        </legend>
+        {(stop.extraRounds || []).length === 0 ? (
+          <p className="text-[10px] text-stone-400 italic">No extra rounds. Add one to continue the wonder → context cycle within this stop.</p>
+        ) : (
+          <ul className="space-y-3">
+            {(stop.extraRounds || []).map((round, i) => (
+              <li key={i} className="border border-stone-300 rounded bg-stone-50 p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-stone-600">Round {i + 2}</span>
+                  <button
+                    onClick={() => {
+                      const next = (stop.extraRounds || []).filter((_, j) => j !== i);
+                      onChange({ extraRounds: next });
+                    }}
+                    className="text-xs text-red-600 hover:underline"
+                  >&times; Remove</button>
+                </div>
+
+                {/* Wonder toggle */}
+                <div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={round.wonder !== null}
+                      onChange={(e) => {
+                        const next = [...(stop.extraRounds || [])];
+                        next[i] = { ...next[i], wonder: e.target.checked ? { question: '' } : null };
+                        onChange({ extraRounds: next });
+                      }}
+                      className="rounded"
+                    />
+                    <span className="text-xs text-stone-600">Include wonder</span>
+                  </label>
+                  {round.wonder !== null && (
+                    <RichTextarea
+                      label="Wonder question"
+                      value={round.wonder.question}
+                      onChange={(question) => {
+                        const next = [...(stop.extraRounds || [])];
+                        next[i] = { ...next[i], wonder: { question } };
+                        onChange({ extraRounds: next });
+                      }}
+                      rows={2}
+                    />
+                  )}
+                </div>
+
+                {/* Reveal (always present) */}
+                <RichTextarea
+                  label="Context (reveal) text"
+                  value={round.reveal.text}
+                  onChange={(text) => {
+                    const next = [...(stop.extraRounds || [])];
+                    next[i] = { ...next[i], reveal: { ...next[i].reveal, text } };
+                    onChange({ extraRounds: next });
+                  }}
+                  rows={4}
+                  wordCount
+                />
+                <PhotoListEditor
+                  photos={round.reveal.photos || []}
+                  onChange={(photos) => {
+                    const next = [...(stop.extraRounds || [])];
+                    next[i] = { ...next[i], reveal: { ...next[i].reveal, photos } };
+                    onChange({ extraRounds: next });
+                  }}
+                  uploadPath={`memorial-church/photos/tours/${tourId}/extra_${stop.id}_${i}`}
+                  onUploadPhoto={onUploadPhoto}
+                />
+                <RichTextarea
+                  label="Bridge text"
+                  value={round.reveal.bridgeText || ''}
+                  onChange={(bridgeText) => {
+                    const next = [...(stop.extraRounds || [])];
+                    next[i] = { ...next[i], reveal: { ...next[i].reveal, bridgeText } };
+                    onChange({ extraRounds: next });
+                  }}
+                  rows={2}
+                  hideItalic
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+        <button
+          onClick={() => onChange({
+            extraRounds: [...(stop.extraRounds || []), {
+              wonder: { question: '' },
+              reveal: { text: '', photos: [], bridgeText: '' },
+            }],
+          })}
+          className="text-xs text-blue-700 hover:underline"
+        >
+          + Add another wonder + context round
+        </button>
       </fieldset>
 
       {/* ── Reflection ── */}

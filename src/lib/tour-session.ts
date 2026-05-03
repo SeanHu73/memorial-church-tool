@@ -16,20 +16,54 @@ const STORAGE_KEY = 'mc_tour_session_v1';
 export type TourPhase = TourSession['currentPhase'];
 
 /**
- * Advance to the next phase within a stop. The transition table:
- *   seed → notice
- *   notice → wonder (if stop.wonder !== null) OR reveal
- *   wonder → reveal
- *   reveal → reflect
- *   reflect → done (caller should use advanceToNextStop or enterBranch)
+ * Advance to the next phase within a stop, handling extra rounds.
+ *
+ * Round 0 uses stop.wonder + stop.reveal.
+ * Rounds 1+ use stop.extraRounds[round-1].wonder + .reveal.
+ *
+ * After each reveal, check if there's another round. If so, advance
+ * to the next round's wonder (or reveal if wonder is null). If not,
+ * advance to reflect (or stay on reveal if reflect is null).
  */
-export function nextPhase(current: TourPhase, stop: Stop): TourPhase {
+function nextPhaseAndRound(
+  current: TourPhase,
+  currentRound: number,
+  stop: Stop
+): { phase: TourPhase; round: number } {
+  const extras = stop.extraRounds || [];
+
   switch (current) {
-    case 'seed': return 'notice';
-    case 'notice': return stop.wonder !== null ? 'wonder' : 'reveal';
-    case 'wonder': return 'reveal';
-    case 'reveal': return stop.reflect !== null ? 'reflect' : 'reveal'; // no reflect: stay on reveal (branch buttons are inline)
-    default: return current; // reflect, branch, off_path, end — handled by callers
+    case 'seed':
+      return { phase: 'notice', round: currentRound };
+
+    case 'notice': {
+      // Round 0 uses the main wonder
+      const wonder = stop.wonder;
+      return wonder !== null
+        ? { phase: 'wonder', round: 0 }
+        : { phase: 'reveal', round: 0 };
+    }
+
+    case 'wonder':
+      return { phase: 'reveal', round: currentRound };
+
+    case 'reveal': {
+      // Check if there's a next round
+      const nextRoundIndex = currentRound; // extraRounds[0] = round 1
+      if (nextRoundIndex < extras.length) {
+        const nextExtra = extras[nextRoundIndex];
+        return nextExtra.wonder !== null
+          ? { phase: 'wonder', round: currentRound + 1 }
+          : { phase: 'reveal', round: currentRound + 1 };
+      }
+      // No more rounds — go to reflect or stay
+      return stop.reflect !== null
+        ? { phase: 'reflect', round: currentRound }
+        : { phase: 'reveal', round: currentRound }; // stay on reveal (inline buttons)
+    }
+
+    default:
+      return { phase: current, round: currentRound };
   }
 }
 
@@ -40,6 +74,7 @@ export function createSession(tour: Tour): TourSession {
     id: `ts_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     tourId: tour.id,
     currentStopIndex: 0,
+    currentRound: 0,
     currentPhase: tour.essentialQuestion ? 'eq_opening' : 'seed',
     completedStops: [],
     reflections: [],
@@ -52,7 +87,8 @@ export function createSession(tour: Tour): TourSession {
 }
 
 export function advancePhase(session: TourSession, stop: Stop): TourSession {
-  return { ...session, currentPhase: nextPhase(session.currentPhase, stop) };
+  const { phase, round } = nextPhaseAndRound(session.currentPhase, session.currentRound, stop);
+  return { ...session, currentPhase: phase, currentRound: round };
 }
 
 export function advanceToNextStop(session: TourSession, tour: Tour): TourSession {
@@ -72,6 +108,7 @@ export function advanceToNextStop(session: TourSession, tour: Tour): TourSession
   return {
     ...session,
     currentStopIndex: nextIndex,
+    currentRound: 0,
     currentPhase: 'seed',
     completedStops: currentStop
       ? [...session.completedStops, currentStop.id]

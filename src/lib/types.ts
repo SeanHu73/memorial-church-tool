@@ -259,6 +259,16 @@ export interface Stop {
     bridgeText: string;              // Forward-pointing sentence to next stop
   };
 
+  // Extra wonder → reveal rounds (optional, after the initial reveal)
+  extraRounds: Array<{
+    wonder: { question: string } | null;
+    reveal: {
+      text: string;
+      photos: Array<{ url: string; caption: string | null }>;
+      bridgeText: string;
+    };
+  }>;
+
   // Reflection phase — null means skip entirely
   reflect: {
     sliderPrompt: string;            // Default: "How much did that change your thinking?"
@@ -317,6 +327,7 @@ export interface TourSession {
   tourId: string;
   currentStopIndex: number;
   currentPhase: 'eq_opening' | 'seed' | 'notice' | 'wonder' | 'reveal' | 'reflect' | 'branch' | 'off_path' | 'eq_closing' | 'eq_final_reflect' | 'end';
+  currentRound: number;               // 0 = main wonder+reveal, 1+ = extra rounds
   completedStops: string[];
   reflections: Array<{
     stopId: string;

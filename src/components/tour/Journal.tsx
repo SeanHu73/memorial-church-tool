@@ -135,20 +135,64 @@ export default function Journal({ onMapPeek }: JournalProps) {
           <NoticeCard key={currentStop.id} stop={currentStop} onContinue={advancePhase} />
         )}
 
-        {phase === 'wonder' && currentStop && (
-          <WonderCard stop={currentStop} onContinue={advancePhase} />
-        )}
+        {phase === 'wonder' && currentStop && (() => {
+          const round = session.currentRound;
+          // Round 0 = main wonder, round 1+ = extra rounds
+          const wonder = round === 0
+            ? currentStop.wonder
+            : (currentStop.extraRounds || [])[round - 1]?.wonder ?? null;
+          if (!wonder) return null;
+          // Build a minimal stop-like object for WonderCard
+          const virtualStop = { ...currentStop, wonder };
+          return <WonderCard key={`wonder-${round}`} stop={virtualStop} onContinue={advancePhase} />;
+        })()}
 
-        {phase === 'reveal' && currentStop && (
-          <RevealCard
-            stop={currentStop}
-            hasReflect={currentStop.reflect !== null}
-            isLastStop={isLastStop}
-            onAdvancePhase={advancePhase}
-            onAskQuestion={enterBranch}
-            onAdvanceStop={advanceStop}
-          />
-        )}
+        {phase === 'reveal' && currentStop && (() => {
+          const round = session.currentRound;
+          const extras = currentStop.extraRounds || [];
+          const isLastRound = round >= extras.length;
+          // Only the last round's reveal shows reflect/branch buttons
+          const hasReflect = isLastRound && currentStop.reflect !== null;
+
+          if (round === 0) {
+            // Main reveal
+            return (
+              <RevealCard
+                key="reveal-0"
+                stop={currentStop}
+                hasReflect={hasReflect}
+                isLastStop={isLastStop}
+                onAdvancePhase={advancePhase}
+                onAskQuestion={enterBranch}
+                onAdvanceStop={advanceStop}
+              />
+            );
+          }
+          // Extra round reveal — build a virtual stop
+          const extra = extras[round - 1];
+          if (!extra) return null;
+          const virtualStop = {
+            ...currentStop,
+            reveal: {
+              text: extra.reveal.text,
+              photoUrl: null,
+              photoCaption: null,
+              photos: extra.reveal.photos || [],
+              bridgeText: extra.reveal.bridgeText || '',
+            },
+          };
+          return (
+            <RevealCard
+              key={`reveal-${round}`}
+              stop={virtualStop}
+              hasReflect={hasReflect}
+              isLastStop={isLastStop}
+              onAdvancePhase={advancePhase}
+              onAskQuestion={enterBranch}
+              onAdvanceStop={advanceStop}
+            />
+          );
+        })()}
 
         {phase === 'reflect' && currentStop && (
           <ReflectCard
