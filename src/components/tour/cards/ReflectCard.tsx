@@ -13,6 +13,7 @@ const DEFAULT_WHAT_SHIFTED = [
 
 const DEFAULT_REASONING_SOURCE = [
   'What we observed here',
+  'Something we discussed',
   'Something we already knew',
   'A guess',
 ];
@@ -36,7 +37,7 @@ export default function ReflectCard({
 }: Props) {
   const [sliderValue, setSliderValue] = useState(0.5);
   const [sliderReleased, setSliderReleased] = useState(false);
-  const [followUpChoice, setFollowUpChoice] = useState<string | null>(null);
+  const [followUpChoices, setFollowUpChoices] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(!hasWonder);
 
   const reflect = stop.reflect ?? {
@@ -63,7 +64,7 @@ export default function ReflectCard({
   };
 
   const handleSubmit = () => {
-    onAddReflection(sliderValue, followUpChoice);
+    onAddReflection(sliderValue, followUpChoices.length > 0 ? followUpChoices.join(', ') : null);
     setSubmitted(true);
   };
 
@@ -110,9 +111,13 @@ export default function ReflectCard({
                 {followUpOptions.map((option) => (
                   <button
                     key={option}
-                    onClick={() => setFollowUpChoice(followUpChoice === option ? null : option)}
+                    onClick={() => setFollowUpChoices(
+                      followUpChoices.includes(option)
+                        ? followUpChoices.filter((x) => x !== option)
+                        : [...followUpChoices, option]
+                    )}
                     className={`px-3 py-1.5 rounded-full text-xs transition-all ${
-                      followUpChoice === option
+                      followUpChoices.includes(option)
                         ? 'bg-[#C4923A]/20 border-2 border-[#C4923A] text-[#2C2418] font-semibold'
                         : 'bg-[#F0E0C8] border-2 border-transparent text-[#6B5D4F] hover:border-[#D4BFA0]'
                     }`}
