@@ -89,8 +89,8 @@ export function blankStop(order: number): import('./types').Stop {
     location: null,
     seed: { text: '', photoUrl: null, photoCaption: null, photos: [], ttsText: null, timerSeconds: null },
     notice: { prompt: '', timerSeconds: 30, photoUrl: null, photoCaption: null, photos: [] },
-    wonder: { question: '' },
-    reveal: { text: '', photoUrl: null, photoCaption: null, photos: [], bridgeText: '' },
+    wonder: { question: '', photos: [] },
+    reveal: { text: '', photoUrl: null, photoCaption: null, photos: [], bridgeText: '', bridgePhotos: [] },
     extraRounds: [],
     reflect: {
       sliderPrompt: 'How much did that change your thinking?',
@@ -98,6 +98,7 @@ export function blankStop(order: number): import('./types').Stop {
       sliderRightLabel: 'Shifted our thinking completely',
       followUp: null,
       followUpOptions: null,
+      photos: [],
     },
     detours: [],
     physicalLocationTag: 'general',

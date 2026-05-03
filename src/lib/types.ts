@@ -248,6 +248,7 @@ export interface Stop {
   // Wonder phase — null means skip (notice goes straight to reveal)
   wonder: {
     question: string;                // Discussion prompt (no options)
+    photos: Array<{ url: string; caption: string | null }>;
   } | null;
 
   // Reveal phase
@@ -257,11 +258,12 @@ export interface Stop {
     photoCaption: string | null;
     photos: Array<{ url: string; caption: string | null }>; // Multiple photos
     bridgeText: string;              // Forward-pointing sentence to next stop
+    bridgePhotos: Array<{ url: string; caption: string | null }>;
   };
 
   // Extra wonder + context rounds (optional, after the initial reveal, before the bridge)
   extraRounds: Array<{
-    wonder: { question: string } | null;
+    wonder: { question: string; photos: Array<{ url: string; caption: string | null }> } | null;
     reveal: {
       text: string;
       photos: Array<{ url: string; caption: string | null }>;
@@ -274,8 +276,8 @@ export interface Stop {
     sliderLeftLabel: string;         // Default: "Confirmed what we thought"
     sliderRightLabel: string;        // Default: "Shifted our thinking completely"
     followUp: 'what_shifted' | 'reasoning_source' | null;
-    // Custom options — if null, defaults are used
     followUpOptions: string[] | null;
+    photos: Array<{ url: string; caption: string | null }>;
   } | null;
 
   // Related artefacts — optional side-path detours

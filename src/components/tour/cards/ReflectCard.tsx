@@ -44,6 +44,7 @@ export default function ReflectCard({
     sliderRightLabel: 'Shifted our thinking completely',
     followUp: null,
     followUpOptions: null,
+    photos: [],
   };
 
   const followUpOptions: string[] | null = reflect.followUp
@@ -78,6 +79,17 @@ export default function ReflectCard({
           <p className="text-xl uppercase tracking-[0.14em] text-[#6B5D4F] font-semibold">
             Reflect...
           </p>
+
+          {/* Reflection photos */}
+          {(reflect.photos || []).map((photo, i) => (
+            photo.url && (
+              <div key={i} className="rounded-lg overflow-hidden shadow-md border border-[#D4BFA0]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={photo.url} alt={photo.caption || ''} className="w-full h-40 object-cover" />
+                {photo.caption && <p className="text-xs text-[#6B5D4F] px-3 py-1.5 bg-[#F0E0C8]/50 italic">{photo.caption}</p>}
+              </div>
+            )
+          ))}
 
           <div className="space-y-3">
             <p className="text-sm font-semibold text-[#2C2418]">

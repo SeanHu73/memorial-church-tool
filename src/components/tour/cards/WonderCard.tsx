@@ -1,7 +1,7 @@
 'use client';
 
 import { Stop } from '@/lib/types';
-import FormattedText from './FormattedText';
+import PhotoContent from './PhotoContent';
 
 interface Props {
   stop: Stop;
@@ -18,10 +18,11 @@ export default function WonderCard({ stop, onContinue }: Props) {
         Wonder together...
       </p>
 
-      {/* Discussion prompt */}
-      <FormattedText
+      {/* Discussion prompt + photos */}
+      <PhotoContent
         text={stop.wonder.question}
-        className="text-[19px] leading-relaxed font-serif text-[#2C2418] block"
+        photos={stop.wonder.photos || []}
+        textClass="text-[19px] leading-relaxed font-serif text-[#2C2418]"
       />
 
       {/* Explicit group instruction */}

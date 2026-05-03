@@ -587,7 +587,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
     title: rawStop.title ?? '',
     seed: rawStop.seed ?? { text: '', photoUrl: null, photoCaption: null, photos: [], ttsText: null },
     notice: rawStop.notice ?? { prompt: '', timerSeconds: 30, photoUrl: null, photoCaption: null, photos: [] },
-    wonder: rawStop.wonder === undefined ? { question: '' } : rawStop.wonder,
+    wonder: rawStop.wonder === undefined ? { question: '', photos: [] } : rawStop.wonder ? { ...rawStop.wonder, photos: rawStop.wonder.photos || [] } : null,
     reveal: rawStop.reveal ?? { text: '', photoUrl: null, photoCaption: null, photos: [], bridgeText: '' },
     reflect: rawStop.reflect === undefined ? null : rawStop.reflect,
     detours: rawStop.detours ?? [],
@@ -743,7 +743,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
             checked={stop.wonder !== null}
             onChange={(e) => {
               if (e.target.checked) {
-                onChange({ wonder: { question: '' } });
+                onChange({ wonder: { question: '', photos: [] } });
               } else {
                 onChange({ wonder: null });
               }
@@ -754,19 +754,22 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
         </label>
         {stop.wonder !== null && (
           <>
-            <label className="block">
-              <span className="text-xs text-stone-500">Question (prompts group conversation)</span>
-              <textarea
-                value={stop.wonder.question}
-                onChange={(e) => onChange({ wonder: { question: e.target.value } })}
-                rows={3}
-                className="mt-1 w-full px-3 py-1.5 border border-stone-300 rounded text-sm"
-              />
-              <p className="text-[10px] text-stone-400 mt-1 italic">
-                Write a question that prompts group conversation. There are no right or wrong answers &mdash;
-                the reveal will complicate their thinking.
-              </p>
-            </label>
+            <RichTextarea
+              label="Question (prompts group conversation)"
+              value={stop.wonder.question}
+              onChange={(question) => onChange({ wonder: { ...stop.wonder!, question } })}
+              rows={3}
+            />
+            <p className="text-[10px] text-stone-400 italic">
+              Write a question that prompts group conversation. There are no right or wrong answers &mdash;
+              the reveal will complicate their thinking.
+            </p>
+            <PhotoListEditor
+              photos={stop.wonder.photos || []}
+              onChange={(photos) => onChange({ wonder: { ...stop.wonder!, photos } })}
+              uploadPath={`memorial-church/photos/tours/${tourId}/wonder_${stop.id}`}
+              onUploadPhoto={onUploadPhoto}
+            />
           </>
         )}
         {stop.wonder === null && (
@@ -828,7 +831,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
                       checked={round.wonder !== null}
                       onChange={(e) => {
                         const next = [...(stop.extraRounds || [])];
-                        next[i] = { ...next[i], wonder: e.target.checked ? { question: '' } : null };
+                        next[i] = { ...next[i], wonder: e.target.checked ? { question: '', photos: [] } : null };
                         onChange({ extraRounds: next });
                       }}
                       className="rounded"
@@ -836,16 +839,28 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
                     <span className="text-xs text-stone-600">Include wonder</span>
                   </label>
                   {round.wonder !== null && (
-                    <RichTextarea
-                      label="Wonder question"
-                      value={round.wonder.question}
-                      onChange={(question) => {
-                        const next = [...(stop.extraRounds || [])];
-                        next[i] = { ...next[i], wonder: { question } };
-                        onChange({ extraRounds: next });
-                      }}
-                      rows={2}
-                    />
+                    <>
+                      <RichTextarea
+                        label="Wonder question"
+                        value={round.wonder.question}
+                        onChange={(question) => {
+                          const next = [...(stop.extraRounds || [])];
+                          next[i] = { ...next[i], wonder: { ...next[i].wonder!, question } };
+                          onChange({ extraRounds: next });
+                        }}
+                        rows={2}
+                      />
+                      <PhotoListEditor
+                        photos={round.wonder.photos || []}
+                        onChange={(photos) => {
+                          const next = [...(stop.extraRounds || [])];
+                          next[i] = { ...next[i], wonder: { ...next[i].wonder!, photos } };
+                          onChange({ extraRounds: next });
+                        }}
+                        uploadPath={`memorial-church/photos/tours/${tourId}/extra_wonder_${stop.id}_${i}`}
+                        onUploadPhoto={onUploadPhoto}
+                      />
+                    </>
                   )}
                 </div>
 
@@ -897,7 +912,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
         <button
           onClick={() => onChange({
             extraRounds: [...(stop.extraRounds || []), {
-              wonder: { question: '' },
+              wonder: { question: '', photos: [] },
               reveal: { text: '', photos: [] },
             }],
           })}
@@ -920,6 +935,12 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
           rows={2}
           hideItalic
         />
+        <PhotoListEditor
+          photos={stop.reveal.bridgePhotos || []}
+          onChange={(bridgePhotos) => onChange({ reveal: { ...stop.reveal, bridgePhotos } })}
+          uploadPath={`memorial-church/photos/tours/${tourId}/bridge_${stop.id}`}
+          onUploadPhoto={onUploadPhoto}
+        />
       </fieldset>
 
       {/* ── Reflection ── */}
@@ -940,6 +961,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
                   sliderRightLabel: 'Shifted our thinking completely',
                   followUp: null,
                   followUpOptions: null,
+                  photos: [],
                 }});
               } else {
                 onChange({ reflect: null });
@@ -1019,6 +1041,12 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
                 />
               </label>
             )}
+            <PhotoListEditor
+              photos={stop.reflect!.photos || []}
+              onChange={(photos) => onChange({ reflect: { ...stop.reflect!, photos } })}
+              uploadPath={`memorial-church/photos/tours/${tourId}/reflect_${stop.id}`}
+              onUploadPhoto={onUploadPhoto}
+            />
           </>
         )}
         {stop.reflect === null && (

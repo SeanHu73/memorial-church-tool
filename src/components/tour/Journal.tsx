@@ -178,7 +178,8 @@ export default function Journal({ onMapPeek }: JournalProps) {
               photoUrl: null,
               photoCaption: null,
               photos: extra.reveal.photos || [],
-              bridgeText: '', // bridge lives on the main reveal, not extra rounds
+              bridgeText: '',
+              bridgePhotos: [],
             },
           };
           return (

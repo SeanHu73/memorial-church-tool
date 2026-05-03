@@ -55,6 +55,15 @@ export default function WhatsNext({ stop, isLastStop, onAskQuestion, onContinue 
           <FormattedText text={stop.reveal.bridgeText} />
         </p>
       )}
+      {(stop.reveal.bridgePhotos || []).map((photo, i) => (
+        photo.url && (
+          <div key={i} className="rounded-lg overflow-hidden shadow-md border border-[#D4BFA0] my-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={photo.url} alt={photo.caption || ''} className="w-full h-40 object-cover" />
+            {photo.caption && <p className="text-xs text-[#6B5D4F] px-3 py-1.5 bg-[#F0E0C8]/50 italic">{photo.caption}</p>}
+          </div>
+        )
+      ))}
 
       <div className="space-y-3">
         <button
