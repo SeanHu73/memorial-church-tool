@@ -275,8 +275,9 @@ export interface Stop {
     sliderPrompt: string;            // Default: "How much did that change your thinking?"
     sliderLeftLabel: string;         // Default: "Confirmed what we thought"
     sliderRightLabel: string;        // Default: "Shifted our thinking completely"
-    followUp: 'what_shifted' | 'reasoning_source' | null;
-    followUpOptions: string[] | null;
+    followUps: Array<'what_shifted' | 'reasoning_source'>;  // can select multiple (or empty for none)
+    followUpOptions: string[] | null;          // custom options for what_shifted
+    reasoningSourceOptions: string[] | null;   // custom options for reasoning_source
     photos: Array<{ url: string; caption: string | null }>;
   } | null;
 

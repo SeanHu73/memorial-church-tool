@@ -28,6 +28,20 @@ import RichTextarea from '@/components/admin/RichTextarea';
 const MEMORIAL_CHURCH = { lat: 37.42700, lng: -122.17015 };
 const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
+const DEFAULT_WHAT_SHIFTED_ADMIN = [
+  'We learned something new',
+  'We changed our mind',
+  'We had part of it',
+  'It was as we expected',
+];
+
+const DEFAULT_REASONING_ADMIN = [
+  'Something we saw here',
+  'Something we discussed now',
+  'Something we just learned on the tour',
+  'Something we already knew',
+];
+
 const LOCATION_TAGS = [
   'exterior_facade', 'exterior_sides', 'exterior_rear',
   'narthex', 'nave', 'nave_aisles',
@@ -959,8 +973,9 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
                   sliderPrompt: 'How much did that change your thinking?',
                   sliderLeftLabel: 'Confirmed what we thought',
                   sliderRightLabel: 'Shifted our thinking completely',
-                  followUp: null,
+                  followUps: [],
                   followUpOptions: null,
+                  reasoningSourceOptions: null,
                   photos: [],
                 }});
               } else {
@@ -1000,41 +1015,64 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
               </label>
             </div>
             <div>
-              <span className="text-xs text-stone-500">Optional follow-up reflection</span>
-              <div className="mt-1 space-y-1">
-                {([
-                  { value: null, label: 'None', desc: '' },
-                  { value: 'what_shifted' as const, label: '"What changed?"', desc: 'Ask the group to categorise how the reveal changed their thinking.' },
-                  { value: 'reasoning_source' as const, label: '"Why did it change or not?"', desc: 'Ask the group what they based their discussion on.' },
-                ]).map((opt) => (
-                  <label key={String(opt.value)} className="flex items-start gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name={`followup-${stop.id}`}
-                      checked={stop.reflect!.followUp === opt.value}
-                      onChange={() => onChange({ reflect: { ...stop.reflect!, followUp: opt.value, followUpOptions: null } })}
-                      className="mt-0.5"
-                    />
-                    <div>
-                      <span className="text-xs font-medium text-stone-700">{opt.label}</span>
-                      {opt.desc && <p className="text-[10px] text-stone-400">{opt.desc}</p>}
-                    </div>
-                  </label>
-                ))}
+              <span className="text-xs text-stone-500">Follow-up reflections (select any that apply)</span>
+              <div className="mt-1 space-y-2">
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={(stop.reflect as { followUps?: string[] }).followUps?.includes('what_shifted') ?? (stop.reflect as unknown as { followUp?: string | null })?.followUp === 'what_shifted'}
+                    onChange={(e) => {
+                      const current: string[] = (stop.reflect as { followUps?: string[] }).followUps ?? ((stop.reflect as unknown as { followUp?: string | null })?.followUp ? [(stop.reflect as unknown as { followUp: string }).followUp] : []);
+                      const next = e.target.checked ? [...current, 'what_shifted'] : current.filter((x) => x !== 'what_shifted');
+                      onChange({ reflect: { ...stop.reflect!, followUps: next as ('what_shifted' | 'reasoning_source')[] } });
+                    }}
+                    className="mt-0.5 rounded"
+                  />
+                  <div>
+                    <span className="text-xs font-medium text-stone-700">&ldquo;What changed?&rdquo;</span>
+                    <p className="text-[10px] text-stone-400">Ask the group to categorise how the reveal changed their thinking.</p>
+                  </div>
+                </label>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={(stop.reflect as { followUps?: string[] }).followUps?.includes('reasoning_source') ?? (stop.reflect as unknown as { followUp?: string | null })?.followUp === 'reasoning_source'}
+                    onChange={(e) => {
+                      const current: string[] = (stop.reflect as { followUps?: string[] }).followUps ?? ((stop.reflect as unknown as { followUp?: string | null })?.followUp ? [(stop.reflect as unknown as { followUp: string }).followUp] : []);
+                      const next = e.target.checked ? [...current, 'reasoning_source'] : current.filter((x) => x !== 'reasoning_source');
+                      onChange({ reflect: { ...stop.reflect!, followUps: next as ('what_shifted' | 'reasoning_source')[] } });
+                    }}
+                    className="mt-0.5 rounded"
+                  />
+                  <div>
+                    <span className="text-xs font-medium text-stone-700">&ldquo;Why did it change or not?&rdquo;</span>
+                    <p className="text-[10px] text-stone-400">Ask the group what they based their discussion on.</p>
+                  </div>
+                </label>
               </div>
             </div>
-            {stop.reflect.followUp && (
+            {(stop.reflect as { followUps?: string[] }).followUps?.includes('what_shifted') && (
               <label className="block">
-                <span className="text-xs text-stone-500">Options (one per line &mdash; edit to customise)</span>
+                <span className="text-xs text-stone-500">&ldquo;What changed?&rdquo; options (one per line)</span>
                 <textarea
-                  value={(stop.reflect.followUpOptions ?? (
-                    stop.reflect.followUp === 'what_shifted'
-                      ? ['We learned something new', 'We changed our mind', 'We had part of it', 'It was as we expected']
-                      : ['What we observed here', 'Something we discussed', 'Something we already knew', 'A guess']
-                  )).join('\n')}
+                  value={(stop.reflect!.followUpOptions ?? DEFAULT_WHAT_SHIFTED_ADMIN).join('\n')}
                   onChange={(e) => {
                     const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
                     onChange({ reflect: { ...stop.reflect!, followUpOptions: lines.length > 0 ? lines : null } });
+                  }}
+                  rows={4}
+                  className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs font-mono"
+                />
+              </label>
+            )}
+            {(stop.reflect as { followUps?: string[] }).followUps?.includes('reasoning_source') && (
+              <label className="block">
+                <span className="text-xs text-stone-500">&ldquo;Why did it change or not?&rdquo; options (one per line)</span>
+                <textarea
+                  value={((stop.reflect as { reasoningSourceOptions?: string[] | null }).reasoningSourceOptions ?? DEFAULT_REASONING_ADMIN).join('\n')}
+                  onChange={(e) => {
+                    const lines = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+                    onChange({ reflect: { ...stop.reflect!, reasoningSourceOptions: lines.length > 0 ? lines : null } });
                   }}
                   rows={4}
                   className="mt-1 w-full px-2 py-1 border border-stone-300 rounded text-xs font-mono"
