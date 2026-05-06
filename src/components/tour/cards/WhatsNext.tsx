@@ -70,8 +70,11 @@ export default function WhatsNext({ stop, isLastStop, onAskQuestion, onContinue 
           onClick={onAskQuestion}
           className="w-full py-3 rounded-lg text-sm font-semibold border-2 border-[#C4923A] text-[#C4923A] bg-[#C4923A]/10"
         >
-          Ask any remaining questions
+          What are you still curious about?
         </button>
+        <p className="text-xs text-[#6B5D4F] text-center italic -mt-1">
+          This could be something specific or an open-ended question to be posed to the community.
+        </p>
         <button
           ref={continueRef}
           onClick={onContinue}
