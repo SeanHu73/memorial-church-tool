@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Stop } from '@/lib/types';
 import { useTour } from '@/context/TourContext';
 import WhatsNext from './WhatsNext';
+import FullscreenPhoto from './FullscreenPhoto';
 
 const DEFAULT_WHAT_SHIFTED = [
   'We learned something new',
@@ -41,6 +42,7 @@ export default function ReflectCard({
   const [reasoningChoices, setReasoningChoices] = useState<string[]>([]);
   const [stopChoices, setStopChoices] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [fullscreenPhoto, setFullscreenPhoto] = useState<{ url: string; caption: string | null } | null>(null);
 
   const reflect = stop.reflect ?? {
     sliderPrompt: 'How much did that change your thinking?',
@@ -104,11 +106,11 @@ export default function ReflectCard({
           {/* Reflection photos */}
           {(reflect.photos || []).map((photo, i) => (
             photo.url && (
-              <div key={i} className="rounded-lg overflow-hidden shadow-md border border-[#D4BFA0]">
+              <button key={i} onClick={() => setFullscreenPhoto(photo)} className="w-full rounded-lg overflow-hidden shadow-md border border-[#D4BFA0] text-left cursor-pointer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={photo.url} alt={photo.caption || ''} className="w-full h-40 object-cover" />
                 {photo.caption && <p className="text-xs text-[#6B5D4F] px-3 py-1.5 bg-[#F0E0C8]/50 italic">{photo.caption}</p>}
-              </div>
+              </button>
             )
           ))}
 
@@ -228,6 +230,9 @@ export default function ReflectCard({
           onAskQuestion={onAskQuestion}
           onContinue={onContinue}
         />
+      )}
+      {fullscreenPhoto && (
+        <FullscreenPhoto url={fullscreenPhoto.url} caption={fullscreenPhoto.caption} onClose={() => setFullscreenPhoto(null)} />
       )}
     </div>
   );

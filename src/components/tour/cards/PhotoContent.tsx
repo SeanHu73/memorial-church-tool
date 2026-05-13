@@ -5,9 +5,13 @@
  * [photo:N] markers. Used by SeedCard, NoticeCard, and RevealCard.
  * Text is rendered with FormattedText to support **bold**, *italic*,
  * and {{#color}}colored{{/}} text.
+ *
+ * Tapping any photo opens it fullscreen.
  */
 
+import { useState } from 'react';
 import FormattedText from './FormattedText';
+import FullscreenPhoto from './FullscreenPhoto';
 
 interface Photo {
   url: string;
@@ -34,6 +38,8 @@ export default function PhotoContent({
   textClass = 'text-[17px] leading-relaxed font-serif text-[#2C2418]',
   borderColor,
 }: Props) {
+  const [fullscreen, setFullscreen] = useState<Photo | null>(null);
+
   // Build full photo list: legacy + array
   const allPhotos: Photo[] = [
     ...(legacyPhotoUrl ? [{ url: legacyPhotoUrl, caption: legacyPhotoCaption ?? null }] : []),
@@ -43,16 +49,21 @@ export default function PhotoContent({
   // If no markers in text, render text then all photos
   if (!/\[photo:\d+\]/i.test(text)) {
     return (
-      <div className="space-y-5">
-        {text.trim() && (
-          <div className={borderColor ? `border-l-4 pl-4` : ''} style={borderColor ? { borderColor } : undefined}>
-            <FormattedText text={text} className={textClass} />
-          </div>
+      <>
+        <div className="space-y-5">
+          {text.trim() && (
+            <div className={borderColor ? `border-l-4 pl-4` : ''} style={borderColor ? { borderColor } : undefined}>
+              <FormattedText text={text} className={textClass} />
+            </div>
+          )}
+          {allPhotos.map((photo, i) => (
+            <PhotoBlock key={i} photo={photo} onTap={() => setFullscreen(photo)} />
+          ))}
+        </div>
+        {fullscreen && (
+          <FullscreenPhoto url={fullscreen.url} caption={fullscreen.caption} onClose={() => setFullscreen(null)} />
         )}
-        {allPhotos.map((photo, i) => (
-          <PhotoBlock key={i} photo={photo} />
-        ))}
-      </div>
+      </>
     );
   }
 
@@ -61,41 +72,49 @@ export default function PhotoContent({
   const usedIndices = new Set<number>();
 
   return (
-    <div className="space-y-5">
-      {parts.map((part, i) => {
-        if (i % 2 === 1) {
-          const idx = parseInt(part, 10) - 1;
-          if (idx >= 0 && idx < allPhotos.length) {
-            usedIndices.add(idx);
-            return <PhotoBlock key={`p-${i}`} photo={allPhotos[idx]} />;
+    <>
+      <div className="space-y-5">
+        {parts.map((part, i) => {
+          if (i % 2 === 1) {
+            const idx = parseInt(part, 10) - 1;
+            if (idx >= 0 && idx < allPhotos.length) {
+              usedIndices.add(idx);
+              return <PhotoBlock key={`p-${i}`} photo={allPhotos[idx]} onTap={() => setFullscreen(allPhotos[idx])} />;
+            }
+            return null;
           }
-          return null;
-        }
-        const trimmed = part.trim();
-        if (!trimmed) return null;
-        return (
-          <div
-            key={`t-${i}`}
-            className={borderColor ? `border-l-4 pl-4` : ''}
-            style={borderColor ? { borderColor } : undefined}
-          >
-            <FormattedText text={trimmed} className={textClass} />
-          </div>
-        );
-      })}
+          const trimmed = part.trim();
+          if (!trimmed) return null;
+          return (
+            <div
+              key={`t-${i}`}
+              className={borderColor ? `border-l-4 pl-4` : ''}
+              style={borderColor ? { borderColor } : undefined}
+            >
+              <FormattedText text={trimmed} className={textClass} />
+            </div>
+          );
+        })}
 
-      {/* Remaining photos not placed by markers */}
-      {allPhotos.map((photo, i) => {
-        if (usedIndices.has(i)) return null;
-        return <PhotoBlock key={`r-${i}`} photo={photo} />;
-      })}
-    </div>
+        {/* Remaining photos not placed by markers */}
+        {allPhotos.map((photo, i) => {
+          if (usedIndices.has(i)) return null;
+          return <PhotoBlock key={`r-${i}`} photo={photo} onTap={() => setFullscreen(photo)} />;
+        })}
+      </div>
+      {fullscreen && (
+        <FullscreenPhoto url={fullscreen.url} caption={fullscreen.caption} onClose={() => setFullscreen(null)} />
+      )}
+    </>
   );
 }
 
-function PhotoBlock({ photo }: { photo: Photo }) {
+function PhotoBlock({ photo, onTap }: { photo: Photo; onTap: () => void }) {
   return (
-    <div className="rounded-lg overflow-hidden shadow-md border border-[#D4BFA0] my-3">
+    <button
+      onClick={onTap}
+      className="w-full rounded-lg overflow-hidden shadow-md border border-[#D4BFA0] my-3 text-left cursor-pointer"
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={photo.url}
@@ -107,6 +126,6 @@ function PhotoBlock({ photo }: { photo: Photo }) {
           {photo.caption}
         </p>
       )}
-    </div>
+    </button>
   );
 }
