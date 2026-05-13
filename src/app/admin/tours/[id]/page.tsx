@@ -25,6 +25,7 @@ import { storage } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import RichTextarea from '@/components/admin/RichTextarea';
 import AudioUpload from '@/components/admin/AudioUpload';
+import { registerPhotoInLibrary } from '@/lib/photo-sync-tour';
 
 const MEMORIAL_CHURCH = { lat: 37.42700, lng: -122.17015 };
 const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
@@ -184,7 +185,12 @@ export default function TourEditorPage() {
   const uploadPhoto = async (file: File, path: string): Promise<string> => {
     const storageRef = ref(storage, path);
     await uploadBytes(storageRef, file);
-    return getDownloadURL(storageRef);
+    const url = await getDownloadURL(storageRef);
+    // Auto-register image uploads in the photo library (skip audio)
+    if (file.type.startsWith('image/')) {
+      registerPhotoInLibrary(url, { tourTitle: tour?.title });
+    }
+    return url;
   };
 
   // ── Delete tour ──
