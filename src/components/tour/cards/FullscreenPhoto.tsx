@@ -7,7 +7,7 @@
  * Pinch-to-zoom via native browser behavior (no JS transforms).
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 interface Props {
@@ -17,41 +17,18 @@ interface Props {
 }
 
 function FullscreenOverlay({ url, caption, onClose }: Props) {
-  const startYRef = useRef<number | null>(null);
-  const movedRef = useRef(false);
-
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handleKey);
 
-    // Lock scroll on the body
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handleKey);
       document.body.style.overflow = prev;
     };
-  }, [onClose]);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 1) {
-      startYRef.current = e.touches[0].clientY;
-      movedRef.current = false;
-    }
-  }, []);
-
-  const handleTouchMove = useCallback(() => {
-    movedRef.current = true;
-  }, []);
-
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (startYRef.current !== null && e.changedTouches.length === 1 && movedRef.current) {
-      const dy = e.changedTouches[0].clientY - startYRef.current;
-      if (dy > 100) onClose();
-    }
-    startYRef.current = null;
   }, [onClose]);
 
   return (
@@ -67,9 +44,6 @@ function FullscreenOverlay({ url, caption, onClose }: Props) {
         display: 'flex',
         flexDirection: 'column',
       }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
     >
       {/* Image area */}
       <div
@@ -113,7 +87,7 @@ function FullscreenOverlay({ url, caption, onClose }: Props) {
               {caption}
             </p>
           )}
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>Swipe down or tap close</p>
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>Pinch to zoom</p>
         </div>
         <button
           onClick={onClose}
