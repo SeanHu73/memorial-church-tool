@@ -315,6 +315,20 @@ export default function PhotosLibraryPage() {
                       {(photo.linkedPinIds || []).length === 0 && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-mono">unattached</span>
                       )}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(photo.url).then(() => {
+                            const btn = e.currentTarget;
+                            btn.textContent = '✓ Copied';
+                            setTimeout(() => { btn.textContent = 'Copy URL'; }, 1500);
+                          });
+                        }}
+                        className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-mono hover:bg-blue-200 ml-auto"
+                      >
+                        Copy URL
+                      </button>
                     </div>
                     <p className="text-xs font-medium text-stone-800 line-clamp-2">{photo.caption || <em className="text-stone-400">No caption</em>}</p>
                     {(photo.keywords || []).length > 0 && (
