@@ -137,10 +137,10 @@ export default function FullscreenPhoto({ url, caption, onClose }: Props) {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      {/* Close button — top right, always above image */}
+      {/* Close button — fixed to viewport, always visible */}
       <button
         onClick={(e) => { e.stopPropagation(); onClose(); }}
-        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white text-lg"
+        className="fixed top-4 right-4 z-[60] w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white text-lg"
       >
         &times;
       </button>

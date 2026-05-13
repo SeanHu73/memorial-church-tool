@@ -1004,25 +1004,44 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
         </button>
       </fieldset>
 
-      {/* ── Bridge text (after all rounds) ── */}
+      {/* ── Bridge (optional) ── */}
       <fieldset className="space-y-2">
         <legend className="text-xs font-semibold text-stone-700 uppercase tracking-wide flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#6B5D4F] inline-block" />
           Bridge
         </legend>
-        <RichTextarea
-          label="Bridge text (forward-pointing sentence to next stop)"
-          value={stop.reveal.bridgeText}
-          onChange={(bridgeText) => onChange({ reveal: { ...stop.reveal, bridgeText } })}
-          rows={2}
-          hideItalic
-        />
-        <PhotoListEditor
-          photos={stop.reveal.bridgePhotos || []}
-          onChange={(bridgePhotos) => onChange({ reveal: { ...stop.reveal, bridgePhotos } })}
-          uploadPath={`memorial-church/photos/tours/${tourId}/bridge_${stop.id}`}
-          onUploadPhoto={onUploadPhoto}
-        />
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={!!(stop.reveal.bridgeText || (stop.reveal.bridgePhotos || []).length > 0)}
+            onChange={(e) => {
+              if (!e.target.checked) {
+                onChange({ reveal: { ...stop.reveal, bridgeText: '', bridgePhotos: [] } });
+              }
+            }}
+            className="rounded"
+          />
+          <span className="text-xs text-stone-600">Include a bridge for this stop</span>
+        </label>
+        {(stop.reveal.bridgeText || (stop.reveal.bridgePhotos || []).length > 0) ? (
+          <>
+            <RichTextarea
+              label="Bridge text (forward-pointing sentence to next stop)"
+              value={stop.reveal.bridgeText}
+              onChange={(bridgeText) => onChange({ reveal: { ...stop.reveal, bridgeText } })}
+              rows={2}
+              hideItalic
+            />
+            <PhotoListEditor
+              photos={stop.reveal.bridgePhotos || []}
+              onChange={(bridgePhotos) => onChange({ reveal: { ...stop.reveal, bridgePhotos } })}
+              uploadPath={`memorial-church/photos/tours/${tourId}/bridge_${stop.id}`}
+              onUploadPhoto={onUploadPhoto}
+            />
+          </>
+        ) : (
+          <p className="text-[10px] text-stone-400 italic">No bridge &mdash; learners will go directly to the next phase.</p>
+        )}
       </fieldset>
 
       {/* ── Reflection ── */}
