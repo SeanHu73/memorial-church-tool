@@ -1,11 +1,12 @@
 'use client';
 
 /**
- * Fullscreen photo viewer. Simple, reliable.
- * Tap × or backdrop to close. Pinch-to-zoom via CSS touch-action.
+ * Fullscreen photo viewer.
+ * Close by: tapping the × button, tapping the image, swiping down,
+ * or pressing Escape.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 interface Props {
   url: string;
@@ -14,63 +15,74 @@ interface Props {
 }
 
 export default function FullscreenPhoto({ url, caption, onClose }: Props) {
-  // Escape to close
+  const startYRef = useRef<number | null>(null);
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = '';
+    };
   }, [onClose]);
 
-  // Prevent body scroll while open
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+  // Swipe down to close
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      startYRef.current = e.touches[0].clientY;
+    }
   }, []);
 
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (startYRef.current !== null && e.changedTouches.length === 1) {
+      const dy = e.changedTouches[0].clientY - startYRef.current;
+      if (dy > 80) onClose(); // swipe down > 80px closes
+    }
+    startYRef.current = null;
+  }, [onClose]);
+
   return (
-    <>
-      {/* Close button — portal-level fixed, highest z-index */}
-      <button
-        onClick={onClose}
-        style={{ position: 'fixed', top: 16, right: 16, zIndex: 9999 }}
-        className="w-12 h-12 rounded-full bg-black/70 flex items-center justify-center text-white text-2xl shadow-lg"
-      >
-        &times;
-      </button>
-
-      {/* Fullscreen overlay */}
-      <div
-        style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
-        className="bg-black flex flex-col"
-        onClick={onClose}
-      >
-        {/* Image container — pinch-manipulate allows native browser zoom */}
-        <div
-          className="flex-1 flex items-center justify-center p-2 overflow-auto"
-          style={{ touchAction: 'pinch-zoom' }}
-          onClick={(e) => e.stopPropagation()}
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 10000 }}
+      className="bg-black flex flex-col"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Close button — below the journal header area */}
+      <div className="shrink-0 flex justify-end px-4 py-3">
+        <button
+          onClick={onClose}
+          className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white text-xl"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={url}
-            alt={caption || ''}
-            className="max-w-full max-h-full object-contain"
-            draggable={false}
-          />
-        </div>
-
-        {/* Caption */}
-        {caption && (
-          <div
-            className="shrink-0 px-4 pb-4 pt-2 text-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="text-sm text-white/70 italic">{caption}</p>
-          </div>
-        )}
+          &times;
+        </button>
       </div>
-    </>
+
+      {/* Image — tap to close */}
+      <div
+        className="flex-1 flex items-center justify-center px-2 pb-2 overflow-auto"
+        style={{ touchAction: 'pinch-zoom' }}
+        onClick={onClose}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={url}
+          alt={caption || ''}
+          className="max-w-full max-h-full object-contain"
+          draggable={false}
+        />
+      </div>
+
+      {/* Caption + hint */}
+      <div className="shrink-0 px-4 pb-4 text-center space-y-1">
+        {caption && (
+          <p className="text-sm text-white/70 italic">{caption}</p>
+        )}
+        <p className="text-[10px] text-white/30">Tap image or swipe down to close</p>
+      </div>
+    </div>
   );
 }
