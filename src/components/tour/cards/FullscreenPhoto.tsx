@@ -53,7 +53,6 @@ function FullscreenOverlay({ url, caption, onClose }: Props) {
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
-          touchAction: 'pan-x pan-y pinch-zoom',
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
