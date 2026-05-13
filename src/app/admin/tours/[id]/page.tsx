@@ -899,6 +899,16 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
                         uploadPath={`memorial-church/photos/tours/${tourId}/extra_wonder_${stop.id}_${i}`}
                         onUploadPhoto={onUploadPhoto}
                       />
+                      <AudioUpload
+                        audioUrl={round.wonder?.audioUrl ?? null}
+                        onChange={(audioUrl) => {
+                          const next = [...(stop.extraRounds || [])];
+                          next[i] = { ...next[i], wonder: { ...next[i].wonder!, audioUrl } };
+                          onChange({ extraRounds: next });
+                        }}
+                        uploadPath={`memorial-church/audio/tours/${tourId}/extra_wonder_${stop.id}_${i}`}
+                        onUploadFile={onUploadPhoto}
+                      />
                     </>
                   )}
                 </div>
@@ -940,6 +950,16 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
                         }}
                         uploadPath={`memorial-church/photos/tours/${tourId}/extra_${stop.id}_${i}`}
                         onUploadPhoto={onUploadPhoto}
+                      />
+                      <AudioUpload
+                        audioUrl={round.reveal?.audioUrl ?? null}
+                        onChange={(audioUrl) => {
+                          const next = [...(stop.extraRounds || [])];
+                          next[i] = { ...next[i], reveal: { ...next[i].reveal!, audioUrl } };
+                          onChange({ extraRounds: next });
+                        }}
+                        uploadPath={`memorial-church/audio/tours/${tourId}/extra_reveal_${stop.id}_${i}`}
+                        onUploadFile={onUploadPhoto}
                       />
                     </>
                   )}
