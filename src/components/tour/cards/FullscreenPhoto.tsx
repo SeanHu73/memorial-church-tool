@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * Fullscreen photo viewer.
- * Close by: tapping the × button, tapping the image, swiping down,
- * or pressing Escape.
+ * Fullscreen photo viewer — mobile-first.
+ * Close via the bottom bar button or swipe down.
+ * Pinch-to-zoom works because the image is NOT tappable-to-close.
  */
 
 import { useEffect, useRef, useCallback } from 'react';
@@ -16,6 +16,7 @@ interface Props {
 
 export default function FullscreenPhoto({ url, caption, onClose }: Props) {
   const startYRef = useRef<number | null>(null);
+  const movedRef = useRef(false);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -29,17 +30,22 @@ export default function FullscreenPhoto({ url, caption, onClose }: Props) {
     };
   }, [onClose]);
 
-  // Swipe down to close
+  // Swipe down to close (only single-finger, not during pinch)
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 1) {
       startYRef.current = e.touches[0].clientY;
+      movedRef.current = false;
     }
   }, []);
 
+  const handleTouchMove = useCallback(() => {
+    movedRef.current = true;
+  }, []);
+
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (startYRef.current !== null && e.changedTouches.length === 1) {
+    if (startYRef.current !== null && e.changedTouches.length === 1 && movedRef.current) {
       const dy = e.changedTouches[0].clientY - startYRef.current;
-      if (dy > 80) onClose(); // swipe down > 80px closes
+      if (dy > 100) onClose();
     }
     startYRef.current = null;
   }, [onClose]);
@@ -49,23 +55,13 @@ export default function FullscreenPhoto({ url, caption, onClose }: Props) {
       style={{ position: 'fixed', inset: 0, zIndex: 10000 }}
       className="bg-black flex flex-col"
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Close button — below the journal header area */}
-      <div className="shrink-0 flex justify-end px-4 py-3">
-        <button
-          onClick={onClose}
-          className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white text-xl"
-        >
-          &times;
-        </button>
-      </div>
-
-      {/* Image — tap to close */}
+      {/* Image area — pinch-zoom enabled, no tap-to-close */}
       <div
-        className="flex-1 flex items-center justify-center px-2 pb-2 overflow-auto"
-        style={{ touchAction: 'pinch-zoom' }}
-        onClick={onClose}
+        className="flex-1 flex items-center justify-center overflow-auto"
+        style={{ touchAction: 'manipulation' }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -76,12 +72,20 @@ export default function FullscreenPhoto({ url, caption, onClose }: Props) {
         />
       </div>
 
-      {/* Caption + hint */}
-      <div className="shrink-0 px-4 pb-4 text-center space-y-1">
-        {caption && (
-          <p className="text-sm text-white/70 italic">{caption}</p>
-        )}
-        <p className="text-[10px] text-white/30">Tap image or swipe down to close</p>
+      {/* Bottom bar — always visible, thumb-reachable on mobile */}
+      <div className="shrink-0 bg-black/90 border-t border-white/10 px-4 py-3 flex items-center justify-between">
+        <div className="flex-1 min-w-0">
+          {caption && (
+            <p className="text-xs text-white/60 italic truncate">{caption}</p>
+          )}
+          <p className="text-[10px] text-white/30">Swipe down or tap close</p>
+        </div>
+        <button
+          onClick={onClose}
+          className="shrink-0 ml-3 px-4 py-2 rounded-full bg-white/20 text-white text-sm font-semibold"
+        >
+          Close
+        </button>
       </div>
     </div>
   );
