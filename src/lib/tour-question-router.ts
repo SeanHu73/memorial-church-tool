@@ -70,7 +70,12 @@ export async function routeQuestion(
   const upcoming = checkUpcoming(question, tour, session);
   if (upcoming) return upcoming;
 
-  // Step 2: AI response
+  // Step 2: Bank the question (AI calls disabled for now)
+  // To re-enable AI responses, uncomment the block below.
+  return { type: 'banked' };
+
+  /*
+  // Step 2: AI response (currently disabled)
   try {
     const currentStop = tour.stops[session.currentStopIndex];
     const res = await fetch('/api/ask', {
@@ -98,4 +103,5 @@ export async function routeQuestion(
   } catch {
     return { type: 'banked' };
   }
+  */
 }
