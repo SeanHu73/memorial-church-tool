@@ -606,6 +606,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
   const stop: Stop = {
     ...rawStop,
     title: rawStop.title ?? '',
+    isFinalStop: rawStop.isFinalStop ?? false,
     seed: rawStop.seed ?? { text: '', photoUrl: null, photoCaption: null, photos: [], ttsText: null },
     notice: rawStop.notice ?? { prompt: '', timerSeconds: 30, photoUrl: null, photoCaption: null, photos: [] },
     wonder: rawStop.wonder === undefined ? { question: '', photos: [], audioUrl: null } : rawStop.wonder ? { ...rawStop.wonder, photos: rawStop.wonder.photos || [], audioUrl: rawStop.wonder.audioUrl ?? null } : null,
@@ -668,16 +669,32 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
 
   return (
     <div className="border-t border-stone-200 p-4 space-y-5">
-      {/* ── Stop title ── */}
-      <label className="block">
-        <span className="text-xs text-stone-600 font-semibold">Stop title</span>
-        <input
-          value={stop.title}
-          onChange={(e) => onChange({ title: e.target.value })}
-          className="mt-1 w-full px-3 py-1.5 border border-stone-300 rounded text-sm"
-          placeholder="e.g., The Facade Mosaic"
-        />
-      </label>
+      {/* ── Stop title + final stop ── */}
+      <div className="flex gap-4 items-end">
+        <label className="flex-1 block">
+          <span className="text-xs text-stone-600 font-semibold">Stop title</span>
+          <input
+            value={stop.title}
+            onChange={(e) => onChange({ title: e.target.value })}
+            className="mt-1 w-full px-3 py-1.5 border border-stone-300 rounded text-sm"
+            placeholder="e.g., The Facade Mosaic"
+          />
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer pb-2">
+          <input
+            type="checkbox"
+            checked={stop.isFinalStop ?? false}
+            onChange={(e) => onChange({ isFinalStop: e.target.checked })}
+            className="rounded"
+          />
+          <span className="text-xs text-stone-600">Final stop</span>
+        </label>
+      </div>
+      {stop.isFinalStop && (
+        <p className="text-[10px] text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+          This stop ends the tour. After reflection, learners go to the closing guiding question and final questions — no &ldquo;What&apos;s next&rdquo; screen.
+        </p>
+      )}
 
       {/* ── Seed ── */}
       <fieldset className="space-y-2">

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Stop } from '@/lib/types';
 import { useTour } from '@/context/TourContext';
 import WhatsNext from './WhatsNext';
+import FormattedText from './FormattedText';
 import FullscreenPhoto from './FullscreenPhoto';
 
 const DEFAULT_WHAT_SHIFTED = [
@@ -223,6 +224,21 @@ export default function ReflectCard({
             Skip reflection
           </button>
         </>
+      ) : stop.isFinalStop ? (
+        /* Final stop — skip What's Next, go straight to closing flow */
+        <div className="space-y-4">
+          {stop.reveal.bridgeText && (
+            <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
+              <FormattedText text={stop.reveal.bridgeText} />
+            </p>
+          )}
+          <button
+            onClick={onContinue}
+            className="w-full py-3 rounded-lg text-sm font-semibold bg-[#7A7A5E] text-white"
+          >
+            Continue
+          </button>
+        </div>
       ) : (
         <WhatsNext
           stop={stop}

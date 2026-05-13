@@ -24,6 +24,7 @@ import {
   completeEqOpening as completeEqOpeningImpl,
   completeEqClosing as completeEqClosingImpl,
   completeEqFinalReflect as completeEqFinalReflectImpl,
+  finishTour as finishTourImpl,
   bankQuestion as bankQuestionImpl,
   loadTourSession,
   saveTourSession,
@@ -48,6 +49,7 @@ interface TourContextValue {
   completeEqOpening: (theory: string, reasoning: string) => void;
   completeEqClosing: (finalReflection: string, finalReasoning: string) => void;
   completeEqFinalReflect: (cognitive: number, perceptual: number | null, whatShifted: string[] | null, reasoningSource: string[] | null) => void;
+  finishTour: () => void;
   endTour: () => void;
 }
 
@@ -186,6 +188,11 @@ export function TourProvider({ children }: { children: ReactNode }) {
     logEqFinalReflect({ tourId: tour.id, sessionId: session.id, tourTitle: tour.title, cognitiveSlider: cognitive, perceptualSlider: perceptual, whatChanged, whyChanged });
   }, [session, tour, persist]);
 
+  const finishTourFn = useCallback(() => {
+    if (!session) return;
+    persist(finishTourImpl(session));
+  }, [session, persist]);
+
   const endTour = useCallback(() => {
     setTour(null);
     setSession(null);
@@ -211,6 +218,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
       completeEqOpening: completeEqOpeningFn,
       completeEqClosing: completeEqClosingFn,
       completeEqFinalReflect: completeEqFinalReflectFn,
+      finishTour: finishTourFn,
       endTour,
     }}>
       {children}

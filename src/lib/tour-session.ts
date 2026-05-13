@@ -43,7 +43,7 @@ function advanceFromReveal(
     // Both null — skip this round entirely, try the next
     return advanceFromReveal(currentRound + 1, extras, stop);
   }
-  // No more rounds — go to reflect or straight to whats_next
+  // No more rounds — go to reflect or whats_next
   return stop.reflect !== null
     ? { phase: 'reflect', round: currentRound }
     : { phase: 'whats_next', round: currentRound };
@@ -115,9 +115,12 @@ export function advancePhase(session: TourSession, stop: Stop): TourSession {
 
 export function advanceToNextStop(session: TourSession, tour: Tour): TourSession {
   const currentStop = tour.stops[session.currentStopIndex];
+  const isFinal = currentStop?.isFinalStop || false;
   const nextIndex = session.currentStopIndex + 1;
-  if (nextIndex >= tour.stops.length) {
-    const endPhase = tour.essentialQuestion ? 'eq_closing' : 'end';
+
+  // If this is marked as final stop OR there are no more stops, go to closing flow
+  if (isFinal || nextIndex >= tour.stops.length) {
+    const endPhase = tour.essentialQuestion ? 'eq_closing' : 'eq_questions';
     return {
       ...session,
       currentPhase: endPhase,
@@ -217,7 +220,7 @@ export function completeEqFinalReflect(
 ): TourSession {
   return {
     ...session,
-    currentPhase: 'end',
+    currentPhase: 'eq_questions',
     essentialQuestionResponses: session.essentialQuestionResponses
       ? {
           ...session.essentialQuestionResponses,
@@ -227,6 +230,13 @@ export function completeEqFinalReflect(
           reasoningSourceResponse: reasoningSource,
         }
       : null,
+  };
+}
+
+export function finishTour(session: TourSession): TourSession {
+  return {
+    ...session,
+    currentPhase: 'end',
     completedAt: new Date().toISOString(),
   };
 }

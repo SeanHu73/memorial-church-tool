@@ -15,11 +15,13 @@ import { useTour } from '@/context/TourContext';
 import EqOpeningCard from './cards/EqOpeningCard';
 import EqClosingCard from './cards/EqClosingCard';
 import EqFinalReflectCard from './cards/EqFinalReflectCard';
+import EqQuestionsCard from './cards/EqQuestionsCard';
 import SeedCard from './cards/SeedCard';
 import NoticeCard from './cards/NoticeCard';
 import WonderCard from './cards/WonderCard';
 import RevealCard from './cards/RevealCard';
 import ReflectCard from './cards/ReflectCard';
+import FormattedText from './cards/FormattedText';
 import WhatsNext from './cards/WhatsNext';
 import BranchCard from './cards/BranchCard';
 import EndCard from './cards/EndCard';
@@ -178,12 +180,28 @@ export default function Journal({ onMapPeek }: JournalProps) {
 
         {phase === 'whats_next' && currentStop && (
           <div className="animate-fade-in flex flex-col justify-center min-h-full space-y-6">
-            <WhatsNext
-              stop={currentStop}
-              isLastStop={isLastStop}
-              onAskQuestion={enterBranch}
-              onContinue={advanceStop}
-            />
+            {currentStop.isFinalStop ? (
+              <>
+                {currentStop.reveal.bridgeText && (
+                  <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
+                    <FormattedText text={currentStop.reveal.bridgeText} />
+                  </p>
+                )}
+                <button
+                  onClick={advanceStop}
+                  className="w-full py-3 rounded-lg text-sm font-semibold bg-[#7A7A5E] text-white"
+                >
+                  Continue
+                </button>
+              </>
+            ) : (
+              <WhatsNext
+                stop={currentStop}
+                isLastStop={isLastStop}
+                onAskQuestion={enterBranch}
+                onContinue={advanceStop}
+              />
+            )}
           </div>
         )}
 
@@ -207,6 +225,10 @@ export default function Journal({ onMapPeek }: JournalProps) {
 
         {phase === 'eq_final_reflect' && (
           <EqFinalReflectCard onComplete={completeEqFinalReflect} />
+        )}
+
+        {phase === 'eq_questions' && (
+          <EqQuestionsCard />
         )}
 
         {phase === 'end' && (

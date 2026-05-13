@@ -217,6 +217,7 @@ export interface Stop {
   id: string;
   order: number;                     // Position in the tour sequence
   title: string;                     // "The Facade Mosaic", "Jane Stanford's Vision"
+  isFinalStop: boolean;              // If true, this stop ends the tour — skips What's Next, goes to EQ closing
 
   // Map location — only needed for stops at a DIFFERENT physical
   // location (e.g., walking to the rear of the church). Most stops
@@ -333,7 +334,7 @@ export interface TourSession {
   id: string;
   tourId: string;
   currentStopIndex: number;
-  currentPhase: 'eq_opening' | 'seed' | 'notice' | 'wonder' | 'reveal' | 'reflect' | 'whats_next' | 'branch' | 'off_path' | 'eq_closing' | 'eq_final_reflect' | 'end';
+  currentPhase: 'eq_opening' | 'seed' | 'notice' | 'wonder' | 'reveal' | 'reflect' | 'whats_next' | 'branch' | 'off_path' | 'eq_closing' | 'eq_final_reflect' | 'eq_questions' | 'end';
   currentRound: number;               // 0 = main wonder+reveal, 1+ = extra rounds
   completedStops: string[];
   reflections: Array<{
