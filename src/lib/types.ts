@@ -234,6 +234,7 @@ export interface Stop {
     photos: Array<{ url: string; caption: string | null }>; // Multiple photos
     ttsText: string | null;          // Optional override for TTS
     timerSeconds: number | null;     // Optional reading timer (null = no timer)
+    audioUrl: string | null;         // Optional audio narration
   };
 
   // Notice phase
@@ -243,12 +244,14 @@ export interface Stop {
     photoUrl: string | null;         // Legacy single photo
     photoCaption: string | null;
     photos: Array<{ url: string; caption: string | null }>; // Multiple photos
+    audioUrl: string | null;
   };
 
   // Wonder phase — null means skip (notice goes straight to reveal)
   wonder: {
     question: string;                // Discussion prompt (no options)
     photos: Array<{ url: string; caption: string | null }>;
+    audioUrl: string | null;
   } | null;
 
   // Reveal phase
@@ -259,14 +262,16 @@ export interface Stop {
     photos: Array<{ url: string; caption: string | null }>; // Multiple photos
     bridgeText: string;              // Forward-pointing sentence to next stop
     bridgePhotos: Array<{ url: string; caption: string | null }>;
+    audioUrl: string | null;
   };
 
   // Extra wonder + context rounds (optional, after the initial reveal, before the bridge)
   extraRounds: Array<{
-    wonder: { question: string; photos: Array<{ url: string; caption: string | null }> } | null;
+    wonder: { question: string; photos: Array<{ url: string; caption: string | null }>; audioUrl: string | null } | null;
     reveal: {
       text: string;
       photos: Array<{ url: string; caption: string | null }>;
+      audioUrl: string | null;
     } | null;
   }>;
 

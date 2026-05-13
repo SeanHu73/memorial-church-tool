@@ -1,0 +1,54 @@
+'use client';
+
+/**
+ * Audio upload field for the admin tour editor.
+ * Shows URL input + upload button + preview player.
+ */
+
+interface Props {
+  audioUrl: string | null;
+  onChange: (url: string | null) => void;
+  uploadPath: string;
+  onUploadFile: (file: File, path: string) => Promise<string>;
+}
+
+export default function AudioUpload({ audioUrl, onChange, uploadPath, onUploadFile }: Props) {
+  return (
+    <div className="space-y-1">
+      <span className="text-xs text-stone-500">Audio narration (optional)</span>
+      <div className="flex gap-2 items-center">
+        <input
+          value={audioUrl || ''}
+          onChange={(e) => onChange(e.target.value || null)}
+          className="flex-1 px-2 py-1 border border-stone-300 rounded text-xs"
+          placeholder="Audio URL or upload..."
+        />
+        <label className="px-2 py-1 rounded bg-stone-200 text-stone-700 text-xs cursor-pointer hover:bg-stone-300 shrink-0">
+          Upload
+          <input
+            type="file"
+            accept="audio/*"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const url = await onUploadFile(file, `${uploadPath}_${file.name}`);
+              onChange(url);
+            }}
+          />
+        </label>
+        {audioUrl && (
+          <button
+            onClick={() => onChange(null)}
+            className="text-xs text-red-600 hover:underline shrink-0"
+          >
+            Remove
+          </button>
+        )}
+      </div>
+      {audioUrl && (
+        <audio controls src={audioUrl} className="w-full h-8 mt-1" style={{ maxHeight: 32 }} />
+      )}
+    </div>
+  );
+}

@@ -2,6 +2,7 @@
 
 import { Stop } from '@/lib/types';
 import PhotoContent from './PhotoContent';
+import AudioButton from './AudioButton';
 
 interface Props {
   stop: Stop;
@@ -11,10 +12,13 @@ interface Props {
 export default function RevealCard({ stop, onContinue }: Props) {
   return (
     <div className="animate-fade-in space-y-4 min-h-full flex flex-col justify-center">
-      {/* Title */}
-      <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
-        Context
-      </p>
+      {/* Title + audio */}
+      <div className="flex items-center justify-between">
+        <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
+          Context
+        </p>
+        {stop.reveal.audioUrl && <AudioButton audioUrl={stop.reveal.audioUrl} />}
+      </div>
 
       {/* Reveal content — text interleaved with photos via [photo:N] markers */}
       <div className="animate-blur-reveal">

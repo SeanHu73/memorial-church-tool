@@ -170,6 +170,7 @@ export default function Journal({ onMapPeek }: JournalProps) {
               photos: extra.reveal.photos || [],
               bridgeText: '',
               bridgePhotos: [],
+              audioUrl: extra.reveal.audioUrl ?? null,
             },
           };
           return <RevealCard key={`reveal-${round}`} stop={virtualStop} onContinue={advancePhase} />;

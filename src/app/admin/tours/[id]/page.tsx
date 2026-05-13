@@ -24,6 +24,7 @@ import { getTour, saveTour, deleteTour, blankStop, blankDetour } from '@/lib/tou
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import RichTextarea from '@/components/admin/RichTextarea';
+import AudioUpload from '@/components/admin/AudioUpload';
 
 const MEMORIAL_CHURCH = { lat: 37.42700, lng: -122.17015 };
 const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
@@ -601,7 +602,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
     title: rawStop.title ?? '',
     seed: rawStop.seed ?? { text: '', photoUrl: null, photoCaption: null, photos: [], ttsText: null },
     notice: rawStop.notice ?? { prompt: '', timerSeconds: 30, photoUrl: null, photoCaption: null, photos: [] },
-    wonder: rawStop.wonder === undefined ? { question: '', photos: [] } : rawStop.wonder ? { ...rawStop.wonder, photos: rawStop.wonder.photos || [] } : null,
+    wonder: rawStop.wonder === undefined ? { question: '', photos: [], audioUrl: null } : rawStop.wonder ? { ...rawStop.wonder, photos: rawStop.wonder.photos || [], audioUrl: rawStop.wonder.audioUrl ?? null } : null,
     reveal: rawStop.reveal ?? { text: '', photoUrl: null, photoCaption: null, photos: [], bridgeText: '' },
     reflect: rawStop.reflect === undefined ? null : rawStop.reflect,
     detours: rawStop.detours ?? [],
@@ -712,6 +713,12 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
           uploadPath={`memorial-church/photos/tours/${tourId}/seed_${stop.id}`}
           onUploadPhoto={onUploadPhoto}
         />
+        <AudioUpload
+          audioUrl={stop.seed.audioUrl ?? null}
+          onChange={(audioUrl) => onChange({ seed: { ...stop.seed, audioUrl } })}
+          uploadPath={`memorial-church/audio/tours/${tourId}/seed_${stop.id}`}
+          onUploadFile={onUploadPhoto}
+        />
       </fieldset>
 
       {/* ── Notice ── */}
@@ -743,6 +750,12 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
           uploadPath={`memorial-church/photos/tours/${tourId}/notice_${stop.id}`}
           onUploadPhoto={onUploadPhoto}
         />
+        <AudioUpload
+          audioUrl={stop.notice.audioUrl ?? null}
+          onChange={(audioUrl) => onChange({ notice: { ...stop.notice, audioUrl } })}
+          uploadPath={`memorial-church/audio/tours/${tourId}/notice_${stop.id}`}
+          onUploadFile={onUploadPhoto}
+        />
       </fieldset>
 
       {/* ── Wonder ── */}
@@ -757,7 +770,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
             checked={stop.wonder !== null}
             onChange={(e) => {
               if (e.target.checked) {
-                onChange({ wonder: { question: '', photos: [] } });
+                onChange({ wonder: { question: '', photos: [], audioUrl: null } });
               } else {
                 onChange({ wonder: null });
               }
@@ -783,6 +796,12 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
               onChange={(photos) => onChange({ wonder: { ...stop.wonder!, photos } })}
               uploadPath={`memorial-church/photos/tours/${tourId}/wonder_${stop.id}`}
               onUploadPhoto={onUploadPhoto}
+            />
+            <AudioUpload
+              audioUrl={stop.wonder!.audioUrl ?? null}
+              onChange={(audioUrl) => onChange({ wonder: { ...stop.wonder!, audioUrl } })}
+              uploadPath={`memorial-church/audio/tours/${tourId}/wonder_${stop.id}`}
+              onUploadFile={onUploadPhoto}
             />
           </>
         )}
@@ -811,6 +830,12 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
           onChange={(photos) => onChange({ reveal: { ...stop.reveal, photos } })}
           uploadPath={`memorial-church/photos/tours/${tourId}/reveal_${stop.id}`}
           onUploadPhoto={onUploadPhoto}
+        />
+        <AudioUpload
+          audioUrl={stop.reveal.audioUrl ?? null}
+          onChange={(audioUrl) => onChange({ reveal: { ...stop.reveal, audioUrl } })}
+          uploadPath={`memorial-church/audio/tours/${tourId}/reveal_${stop.id}`}
+          onUploadFile={onUploadPhoto}
         />
       </fieldset>
 
@@ -845,7 +870,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
                       checked={round.wonder !== null}
                       onChange={(e) => {
                         const next = [...(stop.extraRounds || [])];
-                        next[i] = { ...next[i], wonder: e.target.checked ? { question: '', photos: [] } : null };
+                        next[i] = { ...next[i], wonder: e.target.checked ? { question: '', photos: [], audioUrl: null } : null };
                         onChange({ extraRounds: next });
                       }}
                       className="rounded"
@@ -886,7 +911,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
                       checked={round.reveal !== null}
                       onChange={(e) => {
                         const next = [...(stop.extraRounds || [])];
-                        next[i] = { ...next[i], reveal: e.target.checked ? { text: '', photos: [] } : null };
+                        next[i] = { ...next[i], reveal: e.target.checked ? { text: '', photos: [], audioUrl: null } : null };
                         onChange({ extraRounds: next });
                       }}
                       className="rounded"
@@ -926,8 +951,8 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
         <button
           onClick={() => onChange({
             extraRounds: [...(stop.extraRounds || []), {
-              wonder: { question: '', photos: [] },
-              reveal: { text: '', photos: [] },
+              wonder: { question: '', photos: [], audioUrl: null },
+              reveal: { text: '', photos: [], audioUrl: null },
             }],
           })}
           className="text-xs text-blue-700 hover:underline"

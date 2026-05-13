@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Stop } from '@/lib/types';
 import PhotoContent from './PhotoContent';
+import AudioButton from './AudioButton';
 
 interface Props {
   stop: Stop;
@@ -25,10 +26,13 @@ export default function SeedCard({ stop, onContinue }: Props) {
 
   return (
     <div className="animate-fade-in space-y-4 min-h-full flex flex-col justify-center">
-      {/* Title */}
-      <p className="text-xl uppercase tracking-[0.14em] text-[#7A7A5E] font-semibold">
-        Background...
-      </p>
+      {/* Title + audio */}
+      <div className="flex items-center justify-between">
+        <p className="text-xl uppercase tracking-[0.14em] text-[#7A7A5E] font-semibold">
+          Background...
+        </p>
+        {stop.seed.audioUrl && <AudioButton audioUrl={stop.seed.audioUrl} />}
+      </div>
 
       {/* Text + photos interleaved via [photo:N] markers */}
       <PhotoContent

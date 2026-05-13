@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Stop } from '@/lib/types';
 import PhotoContent from './PhotoContent';
+import AudioButton from './AudioButton';
 
 interface Props {
   stop: Stop;
@@ -28,10 +29,13 @@ export default function NoticeCard({ stop, onContinue }: Props) {
 
   return (
     <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
-      {/* Title */}
-      <p className="text-xl uppercase tracking-[0.14em] text-[#2B4C5E] font-semibold">
-        Look around...
-      </p>
+      {/* Title + audio */}
+      <div className="flex items-center justify-between">
+        <p className="text-xl uppercase tracking-[0.14em] text-[#2B4C5E] font-semibold">
+          Look around...
+        </p>
+        {stop.notice.audioUrl && <AudioButton audioUrl={stop.notice.audioUrl} />}
+      </div>
 
       {/* Prompt + photos interleaved via [photo:N] markers */}
       <PhotoContent
