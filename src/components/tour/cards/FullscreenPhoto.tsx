@@ -2,11 +2,13 @@
 
 /**
  * Fullscreen photo viewer — mobile-first.
- * Close via the bottom bar button or swipe down.
- * Pinch-to-zoom works because the image is NOT tappable-to-close.
+ * Uses a portal-like approach: renders into a brand new fixed div
+ * that covers everything. Close via bottom button or swipe down.
+ * Pinch-to-zoom via native browser behavior (no JS transforms).
  */
 
 import { useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 interface Props {
   url: string;
@@ -14,7 +16,7 @@ interface Props {
   onClose: () => void;
 }
 
-export default function FullscreenPhoto({ url, caption, onClose }: Props) {
+function FullscreenOverlay({ url, caption, onClose }: Props) {
   const startYRef = useRef<number | null>(null);
   const movedRef = useRef(false);
 
@@ -23,14 +25,16 @@ export default function FullscreenPhoto({ url, caption, onClose }: Props) {
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handleKey);
+
+    // Lock scroll on the body
+    const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handleKey);
-      document.body.style.overflow = '';
+      document.body.style.overflow = prev;
     };
   }, [onClose]);
 
-  // Swipe down to close (only single-finger, not during pinch)
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 1) {
       startYRef.current = e.touches[0].clientY;
@@ -52,41 +56,89 @@ export default function FullscreenPhoto({ url, caption, onClose }: Props) {
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 10000 }}
-      className="bg-black flex flex-col"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100dvh',
+        zIndex: 99999,
+        backgroundColor: '#000',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Image area — pinch-zoom enabled, no tap-to-close */}
+      {/* Image area */}
       <div
-        className="flex-1 flex items-center justify-center overflow-auto"
-        style={{ touchAction: 'manipulation' }}
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          touchAction: 'pan-x pan-y pinch-zoom',
+        }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={url}
           alt={caption || ''}
-          className="max-w-full max-h-full object-contain"
+          style={{
+            maxWidth: '100%',
+            maxHeight: '100%',
+            objectFit: 'contain',
+          }}
           draggable={false}
         />
       </div>
 
-      {/* Bottom bar — always visible, thumb-reachable on mobile */}
-      <div className="shrink-0 bg-black/90 border-t border-white/10 px-4 py-3 flex items-center justify-between">
-        <div className="flex-1 min-w-0">
+      {/* Bottom close bar */}
+      <div
+        style={{
+          flexShrink: 0,
+          padding: '12px 16px',
+          borderTop: '1px solid rgba(255,255,255,0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: 'rgba(0,0,0,0.9)',
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
           {caption && (
-            <p className="text-xs text-white/60 italic truncate">{caption}</p>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {caption}
+            </p>
           )}
-          <p className="text-[10px] text-white/30">Swipe down or tap close</p>
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>Swipe down or tap close</p>
         </div>
         <button
           onClick={onClose}
-          className="shrink-0 ml-3 px-4 py-2 rounded-full bg-white/20 text-white text-sm font-semibold"
+          style={{
+            flexShrink: 0,
+            marginLeft: 12,
+            padding: '8px 20px',
+            borderRadius: 9999,
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            color: '#fff',
+            fontSize: 14,
+            fontWeight: 600,
+            border: 'none',
+            cursor: 'pointer',
+          }}
         >
           Close
         </button>
       </div>
     </div>
   );
+}
+
+export default function FullscreenPhoto(props: Props) {
+  // Portal to document.body so it escapes any parent overflow/transform/z-index
+  if (typeof document === 'undefined') return null;
+  return createPortal(<FullscreenOverlay {...props} />, document.body);
 }
