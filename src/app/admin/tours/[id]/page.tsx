@@ -1010,38 +1010,12 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
           <span className="w-2 h-2 rounded-full bg-[#6B5D4F] inline-block" />
           Bridge
         </legend>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={!!(stop.reveal.bridgeText || (stop.reveal.bridgePhotos || []).length > 0)}
-            onChange={(e) => {
-              if (!e.target.checked) {
-                onChange({ reveal: { ...stop.reveal, bridgeText: '', bridgePhotos: [] } });
-              }
-            }}
-            className="rounded"
-          />
-          <span className="text-xs text-stone-600">Include a bridge for this stop</span>
-        </label>
-        {(stop.reveal.bridgeText || (stop.reveal.bridgePhotos || []).length > 0) ? (
-          <>
-            <RichTextarea
-              label="Bridge text (forward-pointing sentence to next stop)"
-              value={stop.reveal.bridgeText}
-              onChange={(bridgeText) => onChange({ reveal: { ...stop.reveal, bridgeText } })}
-              rows={2}
-              hideItalic
-            />
-            <PhotoListEditor
-              photos={stop.reveal.bridgePhotos || []}
-              onChange={(bridgePhotos) => onChange({ reveal: { ...stop.reveal, bridgePhotos } })}
-              uploadPath={`memorial-church/photos/tours/${tourId}/bridge_${stop.id}`}
-              onUploadPhoto={onUploadPhoto}
-            />
-          </>
-        ) : (
-          <p className="text-[10px] text-stone-400 italic">No bridge &mdash; learners will go directly to the next phase.</p>
-        )}
+        <BridgeToggle
+          stop={stop}
+          tourId={tourId}
+          onChange={onChange}
+          onUploadPhoto={onUploadPhoto}
+        />
       </fieldset>
 
       {/* ── Reflection ── */}
@@ -1330,6 +1304,49 @@ interface DetourEditorProps {
   tourId: string;
   onChange: (patch: Partial<Detour>) => void;
   onUploadPhoto: (file: File, path: string) => Promise<string>;
+}
+
+function BridgeToggle({ stop, tourId, onChange, onUploadPhoto }: { stop: Stop; tourId: string; onChange: (patch: Partial<Stop>) => void; onUploadPhoto: (file: File, path: string) => Promise<string> }) {
+  const hasContent = !!(stop.reveal.bridgeText || (stop.reveal.bridgePhotos || []).length > 0);
+  const [enabled, setEnabled] = useState(hasContent);
+
+  return (
+    <>
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={(e) => {
+            setEnabled(e.target.checked);
+            if (!e.target.checked) {
+              onChange({ reveal: { ...stop.reveal, bridgeText: '', bridgePhotos: [] } });
+            }
+          }}
+          className="rounded"
+        />
+        <span className="text-xs text-stone-600">Include a bridge for this stop</span>
+      </label>
+      {enabled ? (
+        <>
+          <RichTextarea
+            label="Bridge text (forward-pointing sentence to next stop)"
+            value={stop.reveal.bridgeText}
+            onChange={(bridgeText) => onChange({ reveal: { ...stop.reveal, bridgeText } })}
+            rows={2}
+            hideItalic
+          />
+          <PhotoListEditor
+            photos={stop.reveal.bridgePhotos || []}
+            onChange={(bridgePhotos) => onChange({ reveal: { ...stop.reveal, bridgePhotos } })}
+            uploadPath={`memorial-church/photos/tours/${tourId}/bridge_${stop.id}`}
+            onUploadPhoto={onUploadPhoto}
+          />
+        </>
+      ) : (
+        <p className="text-[10px] text-stone-400 italic">No bridge &mdash; learners will go directly to the next phase.</p>
+      )}
+    </>
+  );
 }
 
 function DetourEditor({ detour, tourId, onChange, onUploadPhoto }: DetourEditorProps) {
