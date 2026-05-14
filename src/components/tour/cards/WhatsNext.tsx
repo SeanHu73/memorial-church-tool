@@ -49,7 +49,7 @@ export default function WhatsNext({ stop, isLastStop, onAskQuestion, onContinue 
 
   return (
     <>
-      <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
+      <p className="text-2xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
         What&apos;s next...
       </p>
       {stop.reveal.bridgeText && (
@@ -70,7 +70,7 @@ export default function WhatsNext({ stop, isLastStop, onAskQuestion, onContinue 
       <div className="space-y-3">
         <button
           onClick={onAskQuestion}
-          className="w-full py-3 rounded-lg text-sm font-semibold border-2 border-[#C4923A] text-[#C4923A] bg-[#C4923A]/10"
+          className="w-full py-3 rounded-lg text-base font-semibold border-2 border-[#C4923A] text-[#C4923A] bg-[#C4923A]/10"
         >
           What are you still curious about?
         </button>
@@ -80,7 +80,7 @@ export default function WhatsNext({ stop, isLastStop, onAskQuestion, onContinue 
         <button
           ref={continueRef}
           onClick={onContinue}
-          className="w-full py-3 rounded-lg text-sm font-semibold bg-[#7A7A5E] text-white"
+          className="w-full py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white"
         >
           {isLastStop ? 'Finish the tour' : 'Continue the tour'}
         </button>
@@ -131,7 +131,7 @@ export default function WhatsNext({ stop, isLastStop, onAskQuestion, onContinue 
           {showBottomContinue && (
             <button
               onClick={onContinue}
-              className="w-full py-3 rounded-lg text-sm font-semibold bg-[#7A7A5E] text-white"
+              className="w-full py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white"
             >
               {isLastStop ? 'Finish the tour' : 'Continue the tour'}
             </button>

@@ -35,7 +35,7 @@ export default function PhotoContent({
   photos,
   legacyPhotoUrl,
   legacyPhotoCaption,
-  textClass = 'text-[20px] leading-relaxed font-serif text-[#2C2418]',
+  textClass = 'text-[21px] leading-relaxed font-serif text-[#2C2418]',
   borderColor,
 }: Props) {
   const [fullscreen, setFullscreen] = useState<Photo | null>(null);

@@ -24,12 +24,12 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
   return (
     <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
       {/* Title */}
-      <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
+      <p className="text-2xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
         Guiding Question
       </p>
 
       {/* The essential question */}
-      <p className="text-[22px] leading-relaxed font-serif font-semibold text-[#2C2418]">
+      <p className="text-[23px] leading-relaxed font-serif font-semibold text-[#2C2418]">
         &ldquo;{eq.question}&rdquo;
       </p>
 
@@ -57,7 +57,7 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
           onChange={(e) => { setTheory(e.target.value); if (theoryCommitted) setTheoryCommitted(false); }}
           placeholder={eq.theoryPlaceholder}
           rows={3}
-          className={`w-full px-4 py-3 rounded-lg text-[18px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none transition-all border-2 ${
+          className={`w-full px-4 py-3 rounded-lg text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none transition-all border-2 ${
             theoryCommitted
               ? 'border-[#C4923A]/40 bg-[#C4923A]/5'
               : 'border-[#D4BFA0] bg-white'
@@ -67,7 +67,7 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
           <button
             onClick={() => setTheoryCommitted(true)}
             disabled={!theory.trim()}
-            className="px-4 py-2 rounded-lg text-xs font-semibold text-[#C4923A] border border-[#C4923A]/40 hover:bg-[#C4923A]/10 disabled:opacity-30 transition-colors"
+            className="w-full py-3 rounded-lg text-base font-semibold text-[#C4923A] border-2 border-[#C4923A] bg-[#C4923A]/10 hover:bg-[#C4923A]/20 disabled:opacity-50 transition-colors"
           >
             Propose theory
           </button>
@@ -88,7 +88,7 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
             onChange={(e) => { setReasoning(e.target.value); if (reasoningCommitted) setReasoningCommitted(false); }}
             placeholder={eq.reasoningPlaceholder}
             rows={3}
-            className={`w-full px-4 py-3 rounded-lg text-[18px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none transition-all border-2 ${
+            className={`w-full px-4 py-3 rounded-lg text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none transition-all border-2 ${
               reasoningCommitted
                 ? 'border-[#C4923A]/40 bg-[#C4923A]/5'
                 : 'border-[#D4BFA0] bg-white'
@@ -98,7 +98,7 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
             <button
               onClick={() => setReasoningCommitted(true)}
               disabled={!reasoning.trim()}
-              className="px-4 py-2 rounded-lg text-xs font-semibold text-[#C4923A] border border-[#C4923A]/40 hover:bg-[#C4923A]/10 disabled:opacity-30 transition-colors"
+              className="w-full py-3 rounded-lg text-base font-semibold text-[#C4923A] border-2 border-[#C4923A] bg-[#C4923A]/10 hover:bg-[#C4923A]/20 disabled:opacity-50 transition-colors"
             >
               Confirm your explanation
             </button>
@@ -113,7 +113,7 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
       {theoryCommitted && reasoningCommitted && (
         <button
           onClick={() => onComplete(theory.trim(), reasoning.trim())}
-          className="w-full py-3 rounded-lg text-sm font-semibold bg-[#7A7A5E] text-white animate-fade-in"
+          className="w-full py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white animate-fade-in"
         >
           Let&apos;s find the first stop...
         </button>
@@ -122,7 +122,7 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
       {/* Skip */}
       <button
         onClick={() => onComplete('', '')}
-        className="text-xs text-[#6B5D4F]/50 hover:text-[#6B5D4F] transition-colors"
+        className="w-full py-3 rounded-lg text-base font-semibold text-[#6B5D4F] border-2 border-[#D4BFA0] bg-[#F0E0C8]/50 hover:bg-[#D4BFA0]/30 transition-colors"
       >
         Skip for now
       </button>

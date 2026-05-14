@@ -15,7 +15,7 @@ export default function WonderCard({ stop, onContinue }: Props) {
   return (
     <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
       {/* Title */}
-      <p className="text-3xl uppercase tracking-[0.14em] text-[#C4923A] font-bold">
+      <p className="text-4xl uppercase tracking-[0.14em] text-[#C4923A] font-bold">
         WONDER
       </p>
 
@@ -23,7 +23,7 @@ export default function WonderCard({ stop, onContinue }: Props) {
       {stop.wonder?.audioUrl && <AudioButton audioUrl={stop.wonder.audioUrl} title={stop.wonder.audioTitle} />}
 
       {/* Subtitle */}
-      <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A]/70 font-semibold -mt-3">
+      <p className="text-2xl uppercase tracking-[0.14em] text-[#C4923A]/70 font-semibold -mt-3">
         Talk to each other...
       </p>
 
@@ -31,13 +31,13 @@ export default function WonderCard({ stop, onContinue }: Props) {
       <PhotoContent
         text={stop.wonder.question}
         photos={stop.wonder.photos || []}
-        textClass="text-[22px] leading-relaxed font-serif text-[#2C2418]"
+        textClass="text-[23px] leading-relaxed font-serif text-[#2C2418]"
       />
 
       {/* Continue */}
       <button
         onClick={onContinue}
-        className="w-full py-3 rounded-lg text-sm font-semibold text-white transition-colors"
+        className="w-full py-3 rounded-lg text-base font-semibold text-white transition-colors"
         style={{ backgroundColor: '#C4923A' }}
       >
         We&apos;ve talked &mdash; show us

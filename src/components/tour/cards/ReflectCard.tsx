@@ -100,7 +100,7 @@ export default function ReflectCard({
     <div className="animate-fade-in flex flex-col justify-center min-h-full space-y-6">
       {!submitted ? (
         <>
-          <p className="text-xl uppercase tracking-[0.14em] text-[#6B5D4F] font-semibold">
+          <p className="text-2xl uppercase tracking-[0.14em] text-[#6B5D4F] font-semibold">
             Reflect...
           </p>
 
@@ -210,7 +210,7 @@ export default function ReflectCard({
           {sliderReleased && (
             <button
               onClick={handleSubmit}
-              className="w-full py-3 rounded-lg text-sm font-semibold bg-[#6B5D4F] text-white animate-fade-in"
+              className="w-full py-3 rounded-lg text-base font-semibold bg-[#6B5D4F] text-white animate-fade-in"
             >
               Continue
             </button>
@@ -234,7 +234,7 @@ export default function ReflectCard({
           )}
           <button
             onClick={onContinue}
-            className="w-full py-3 rounded-lg text-sm font-semibold bg-[#7A7A5E] text-white"
+            className="w-full py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white"
           >
             Continue
           </button>

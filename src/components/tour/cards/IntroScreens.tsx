@@ -57,10 +57,10 @@ export default function IntroScreens({ tour, onComplete }: Props) {
 
       {/* Content */}
       <div className="space-y-4 px-2" key={current}>
-        <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold animate-fade-in">
+        <p className="text-2xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold animate-fade-in">
           {screen.title}
         </p>
-        <p className="text-[20px] leading-relaxed font-serif text-[#2C2418] animate-fade-in">
+        <p className="text-[21px] leading-relaxed font-serif text-[#2C2418] animate-fade-in">
           {screen.body}
         </p>
       </div>
@@ -69,7 +69,7 @@ export default function IntroScreens({ tour, onComplete }: Props) {
       <div className="space-y-3">
         <button
           onClick={isLast ? onComplete : () => setCurrent(current + 1)}
-          className="w-full py-3 rounded-lg text-sm font-semibold bg-[#C4923A] text-white"
+          className="w-full py-3 rounded-lg text-base font-semibold bg-[#C4923A] text-white"
         >
           {isLast ? 'Begin' : 'Next'}
         </button>

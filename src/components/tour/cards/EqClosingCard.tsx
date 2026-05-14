@@ -21,12 +21,12 @@ export default function EqClosingCard({ tour, onComplete }: Props) {
   return (
     <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
       {/* Title */}
-      <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
+      <p className="text-2xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
         Going back to the guiding question...
       </p>
 
       {/* The essential question */}
-      <p className="text-[22px] leading-relaxed font-serif font-semibold text-[#2C2418]">
+      <p className="text-[23px] leading-relaxed font-serif font-semibold text-[#2C2418]">
         &ldquo;{eq.question}&rdquo;
       </p>
 
@@ -45,7 +45,7 @@ export default function EqClosingCard({ tour, onComplete }: Props) {
           onChange={(e) => setReflection(e.target.value)}
           placeholder={eq.finalReflectionPlaceholder}
           rows={4}
-          className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[18px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
+          className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
         />
       </div>
 
@@ -59,7 +59,7 @@ export default function EqClosingCard({ tour, onComplete }: Props) {
           onChange={(e) => setReasoning(e.target.value)}
           placeholder={eq.finalReasoningPlaceholder}
           rows={4}
-          className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[18px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
+          className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
         />
       </div>
 
@@ -67,7 +67,7 @@ export default function EqClosingCard({ tour, onComplete }: Props) {
       <button
         onClick={() => onComplete(reflection.trim(), reasoning.trim())}
         disabled={!reflection.trim()}
-        className="w-full py-3 rounded-lg text-sm font-semibold bg-[#7A7A5E] text-white disabled:opacity-30"
+        className="w-full py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white disabled:opacity-30"
       >
         Continue
       </button>

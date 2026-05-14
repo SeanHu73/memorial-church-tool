@@ -58,7 +58,7 @@ export default function BranchCard() {
   if (!result) {
     return (
       <div className="animate-fade-in space-y-4 min-h-full flex flex-col justify-center">
-        <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
+        <p className="text-2xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
           What are you curious about?
         </p>
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -67,14 +67,14 @@ export default function BranchCard() {
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Type your question..."
             rows={3}
-            className="w-full px-3 py-2 rounded-lg border border-[#D4BFA0] bg-white text-[18px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/50 focus:outline-none focus:border-[#C4923A]"
+            className="w-full px-3 py-2 rounded-lg border border-[#D4BFA0] bg-white text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/50 focus:outline-none focus:border-[#C4923A]"
             autoFocus
           />
           <div className="flex gap-2">
             <button
               type="submit"
               disabled={!question.trim() || loading}
-              className="flex-1 py-3 rounded-lg text-sm font-semibold bg-[#C4923A] text-white disabled:opacity-40"
+              className="flex-1 py-3 rounded-lg text-base font-semibold bg-[#C4923A] text-white disabled:opacity-40"
             >
               {loading ? 'Thinking...' : 'Ask'}
             </button>
@@ -101,7 +101,7 @@ export default function BranchCard() {
       {/* Response A: Coming up */}
       {result.type === 'coming_up' && (
         <div className="p-4 rounded-lg bg-[#7A7A5E]/10 border border-[#7A7A5E]/30">
-          <p className="text-[18px] font-serif text-[#2C2418]">
+          <p className="text-[20px] font-serif text-[#2C2418]">
             Great question &mdash; you&apos;ll encounter something about that at stop {result.matchedStopOrder}. Hold onto it.
           </p>
         </div>
@@ -112,11 +112,11 @@ export default function BranchCard() {
         <div className="space-y-3">
           {result.data.observation && (
             <div className="p-3 rounded-lg bg-[#2B4C5E]/10 border border-[#2B4C5E]/20">
-              <p className="text-[18px] font-serif text-[#2C2418]">{result.data.observation}</p>
+              <p className="text-[20px] font-serif text-[#2C2418]">{result.data.observation}</p>
             </div>
           )}
           <div className="p-4 rounded-lg bg-[#C4923A]/10 border border-[#C4923A]/20">
-            <p className="text-[18px] font-serif text-[#2C2418] leading-relaxed">
+            <p className="text-[20px] font-serif text-[#2C2418] leading-relaxed">
               {result.data.answer}
             </p>
           </div>
@@ -126,7 +126,7 @@ export default function BranchCard() {
       {/* Response C: Banked */}
       {result.type === 'banked' && (
         <div className="p-4 rounded-lg bg-[#F0E0C8] border border-[#D4BFA0]">
-          <p className="text-[18px] font-serif text-[#2C2418]">
+          <p className="text-[20px] font-serif text-[#2C2418]">
             That&apos;s a great question, but it&apos;s beyond what we know about this place right now.
             We&apos;ve saved it &mdash; you&apos;ll see it in your question bank at the end of the tour.
           </p>
@@ -136,7 +136,7 @@ export default function BranchCard() {
       {/* Return to tour */}
       <button
         onClick={returnFromBranch}
-        className="w-full py-3 rounded-lg text-sm font-semibold bg-[#7A7A5E] text-white"
+        className="w-full py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white"
       >
         Return to the tour
       </button>

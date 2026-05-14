@@ -30,7 +30,7 @@ export default function NoticeCard({ stop, onContinue }: Props) {
   return (
     <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
       {/* Title */}
-      <p className="text-xl uppercase tracking-[0.14em] text-[#2B4C5E] font-semibold">
+      <p className="text-2xl uppercase tracking-[0.14em] text-[#2B4C5E] font-semibold">
         Look around...
       </p>
 
@@ -43,7 +43,7 @@ export default function NoticeCard({ stop, onContinue }: Props) {
         photos={stop.notice.photos || []}
         legacyPhotoUrl={stop.notice.photoUrl}
         legacyPhotoCaption={stop.notice.photoCaption}
-        textClass="text-[22px] leading-relaxed font-serif text-[#2C2418]"
+        textClass="text-[23px] leading-relaxed font-serif text-[#2C2418]"
       />
 
       {/* Timer ring */}
@@ -79,7 +79,7 @@ export default function NoticeCard({ stop, onContinue }: Props) {
       {/* Continue */}
       <button
         onClick={onContinue}
-        className={`w-full py-3 rounded-lg text-sm font-semibold transition-all ${
+        className={`w-full py-3 rounded-lg text-base font-semibold transition-all ${
           timerDone
             ? 'bg-[#2B4C5E] text-white'
             : 'bg-[#2B4C5E]/20 text-[#2B4C5E]'

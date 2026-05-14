@@ -36,7 +36,7 @@ export default function EqQuestionsCard() {
     <div className="animate-fade-in flex flex-col justify-center min-h-full space-y-6">
       {!submitted ? (
         <>
-          <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
+          <p className="text-2xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
             Any remaining questions?
           </p>
           <p className="text-sm text-[#6B5D4F] leading-relaxed">
@@ -50,12 +50,12 @@ export default function EqQuestionsCard() {
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="What are you still wondering about?"
               rows={3}
-              className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[18px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
+              className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
             />
             <button
               onClick={handleAddQuestion}
               disabled={!question.trim()}
-              className="w-full py-3 rounded-lg text-sm font-semibold border-2 border-[#C4923A] text-[#C4923A] bg-[#C4923A]/10 disabled:opacity-30"
+              className="w-full py-3 rounded-lg text-base font-semibold border-2 border-[#C4923A] text-[#C4923A] bg-[#C4923A]/10 disabled:opacity-30"
             >
               Add question
             </button>
@@ -79,7 +79,7 @@ export default function EqQuestionsCard() {
 
           <button
             onClick={() => setSubmitted(true)}
-            className="w-full py-3 rounded-lg text-sm font-semibold bg-[#7A7A5E] text-white"
+            className="w-full py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white"
           >
             Finish tour
           </button>
@@ -87,7 +87,7 @@ export default function EqQuestionsCard() {
       ) : (
         <>
           {/* Show all questions collected throughout the tour */}
-          <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
+          <p className="text-2xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
             Your questions from the tour
           </p>
 
@@ -114,7 +114,7 @@ export default function EqQuestionsCard() {
 
           <button
             onClick={finishTour}
-            className="w-full py-3 rounded-lg text-sm font-semibold bg-[#5C4A35] text-[#FFF8EE]"
+            className="w-full py-3 rounded-lg text-base font-semibold bg-[#5C4A35] text-[#FFF8EE]"
           >
             Complete tour
           </button>

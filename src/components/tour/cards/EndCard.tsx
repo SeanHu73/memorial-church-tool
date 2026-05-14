@@ -122,7 +122,7 @@ export default function EndCard() {
       {/* Exit */}
       <button
         onClick={endTour}
-        className="w-full py-3 rounded-lg text-sm font-semibold bg-[#5C4A35] text-[#FFF8EE]"
+        className="w-full py-3 rounded-lg text-base font-semibold bg-[#5C4A35] text-[#FFF8EE]"
       >
         Explore on your own
       </button>

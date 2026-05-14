@@ -42,7 +42,7 @@ export default function EqFinalReflectCard({ onComplete }: Props) {
 
   return (
     <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
-      <p className="text-xl uppercase tracking-[0.14em] text-[#6B5D4F] font-semibold">
+      <p className="text-2xl uppercase tracking-[0.14em] text-[#6B5D4F] font-semibold">
         Final Reflections
       </p>
 
@@ -135,7 +135,7 @@ export default function EqFinalReflectCard({ onComplete }: Props) {
               whatShifted.length > 0 ? whatShifted : null,
               reasoningSource.length > 0 ? reasoningSource : null
             )}
-            className="w-full py-3 rounded-lg text-sm font-semibold bg-[#6B5D4F] text-white"
+            className="w-full py-3 rounded-lg text-base font-semibold bg-[#6B5D4F] text-white"
           >
             Continue
           </button>

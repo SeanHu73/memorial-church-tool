@@ -27,7 +27,7 @@ export default function SeedCard({ stop, onContinue }: Props) {
   return (
     <div className="animate-fade-in space-y-4 min-h-full flex flex-col justify-center">
       {/* Title */}
-      <p className="text-xl uppercase tracking-[0.14em] text-[#7A7A5E] font-semibold">
+      <p className="text-2xl uppercase tracking-[0.14em] text-[#7A7A5E] font-semibold">
         Background...
       </p>
 
@@ -52,7 +52,7 @@ export default function SeedCard({ stop, onContinue }: Props) {
       {/* Continue */}
       <button
         onClick={onContinue}
-        className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors ${
+        className={`w-full py-3 rounded-lg text-base font-semibold transition-colors ${
           timerDone
             ? 'bg-[#7A7A5E] text-white'
             : 'bg-[#7A7A5E]/20 text-[#7A7A5E]'
