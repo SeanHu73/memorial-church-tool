@@ -32,10 +32,18 @@ export default function RevealCard({ stop, onContinue }: Props) {
       {/* Audio player */}
       {hasAudio && <AudioButton audioUrl={stop.reveal.audioUrl!} title={stop.reveal.audioTitle} />}
 
-      {/* When text is hidden: show photos + "tap to read along" */}
+      {/* When text is hidden: "tap to read along" then photos */}
       {hasAudio && !textExpanded && (
         <>
-          {/* Photos always visible */}
+          <button
+            onClick={() => setTextExpanded(true)}
+            className="w-full py-2 rounded-lg text-base text-[#C4923A] border-2 border-[#C4923A]/40 bg-[#C4923A]/5 flex items-center justify-center gap-2"
+          >
+            <span className="text-sm">▶</span>
+            Tap to read along
+          </button>
+
+          {/* Photos always visible below */}
           {allPhotos.length > 0 && (
             <div className="space-y-3">
               {allPhotos.map((photo, i) => (
@@ -51,14 +59,6 @@ export default function RevealCard({ stop, onContinue }: Props) {
               ))}
             </div>
           )}
-
-          <button
-            onClick={() => setTextExpanded(true)}
-            className="w-full py-2 rounded-lg text-base text-[#C4923A] border-2 border-[#C4923A]/40 bg-[#C4923A]/5 flex items-center justify-center gap-2"
-          >
-            <span className="text-sm">▶</span>
-            Tap to read along
-          </button>
         </>
       )}
 

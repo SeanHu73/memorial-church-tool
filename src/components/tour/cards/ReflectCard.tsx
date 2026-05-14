@@ -228,7 +228,7 @@ export default function ReflectCard({
         /* Final stop — skip What's Next, go straight to closing flow */
         <div className="space-y-4">
           {stop.reveal.bridgeText && (
-            <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
+            <p className="text-[18px] text-[#6B5D4F] italic leading-relaxed">
               <FormattedText text={stop.reveal.bridgeText} />
             </p>
           )}

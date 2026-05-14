@@ -190,7 +190,7 @@ export default function Journal({ onMapPeek }: JournalProps) {
             {currentStop.isFinalStop ? (
               <>
                 {currentStop.reveal.bridgeText && (
-                  <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
+                  <p className="text-[18px] text-[#6B5D4F] italic leading-relaxed">
                     <FormattedText text={currentStop.reveal.bridgeText} />
                   </p>
                 )}

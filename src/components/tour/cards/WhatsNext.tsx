@@ -53,7 +53,7 @@ export default function WhatsNext({ stop, isLastStop, onAskQuestion, onContinue 
         What&apos;s next...
       </p>
       {stop.reveal.bridgeText && (
-        <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
+        <p className="text-[18px] text-[#6B5D4F] italic leading-relaxed">
           <FormattedText text={stop.reveal.bridgeText} />
         </p>
       )}
