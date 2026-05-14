@@ -236,6 +236,7 @@ export interface Stop {
     ttsText: string | null;          // Optional override for TTS
     timerSeconds: number | null;     // Optional reading timer (null = no timer)
     audioUrl: string | null;         // Optional audio narration
+    audioTitle: string | null;       // Display title for audio
   };
 
   // Notice phase
@@ -246,6 +247,7 @@ export interface Stop {
     photoCaption: string | null;
     photos: Array<{ url: string; caption: string | null }>; // Multiple photos
     audioUrl: string | null;
+    audioTitle: string | null;
   };
 
   // Wonder phase — null means skip (notice goes straight to reveal)
@@ -253,6 +255,7 @@ export interface Stop {
     question: string;                // Discussion prompt (no options)
     photos: Array<{ url: string; caption: string | null }>;
     audioUrl: string | null;
+    audioTitle: string | null;
   } | null;
 
   // Reveal phase
@@ -264,15 +267,17 @@ export interface Stop {
     bridgeText: string;              // Forward-pointing sentence to next stop
     bridgePhotos: Array<{ url: string; caption: string | null }>;
     audioUrl: string | null;
+    audioTitle: string | null;
   };
 
   // Extra wonder + context rounds (optional, after the initial reveal, before the bridge)
   extraRounds: Array<{
-    wonder: { question: string; photos: Array<{ url: string; caption: string | null }>; audioUrl: string | null } | null;
+    wonder: { question: string; photos: Array<{ url: string; caption: string | null }>; audioUrl: string | null; audioTitle: string | null } | null;
     reveal: {
       text: string;
       photos: Array<{ url: string; caption: string | null }>;
       audioUrl: string | null;
+      audioTitle: string | null;
     } | null;
   }>;
 
@@ -334,7 +339,7 @@ export interface TourSession {
   id: string;
   tourId: string;
   currentStopIndex: number;
-  currentPhase: 'eq_opening' | 'seed' | 'notice' | 'wonder' | 'reveal' | 'reflect' | 'whats_next' | 'branch' | 'off_path' | 'eq_closing' | 'eq_final_reflect' | 'eq_questions' | 'end';
+  currentPhase: 'intro' | 'eq_opening' | 'seed' | 'notice' | 'wonder' | 'reveal' | 'reflect' | 'whats_next' | 'branch' | 'off_path' | 'eq_closing' | 'eq_final_reflect' | 'eq_questions' | 'end';
   currentRound: number;               // 0 = main wonder+reveal, 1+ = extra rounds
   completedStops: string[];
   reflections: Array<{

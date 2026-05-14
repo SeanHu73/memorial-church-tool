@@ -609,7 +609,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
     isFinalStop: rawStop.isFinalStop ?? false,
     seed: rawStop.seed ?? { text: '', photoUrl: null, photoCaption: null, photos: [], ttsText: null },
     notice: rawStop.notice ?? { prompt: '', timerSeconds: 30, photoUrl: null, photoCaption: null, photos: [] },
-    wonder: rawStop.wonder === undefined ? { question: '', photos: [], audioUrl: null } : rawStop.wonder ? { ...rawStop.wonder, photos: rawStop.wonder.photos || [], audioUrl: rawStop.wonder.audioUrl ?? null } : null,
+    wonder: rawStop.wonder === undefined ? { question: '', photos: [], audioUrl: null, audioTitle: null } : rawStop.wonder ? { ...rawStop.wonder, photos: rawStop.wonder.photos || [], audioUrl: rawStop.wonder.audioUrl ?? null, audioTitle: rawStop.wonder.audioTitle ?? null } : null,
     reveal: rawStop.reveal ?? { text: '', photoUrl: null, photoCaption: null, photos: [], bridgeText: '' },
     reflect: rawStop.reflect === undefined ? null : rawStop.reflect,
     detours: rawStop.detours ?? [],
@@ -738,7 +738,9 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
         />
         <AudioUpload
           audioUrl={stop.seed.audioUrl ?? null}
+          audioTitle={stop.seed.audioTitle ?? null}
           onChange={(audioUrl) => onChange({ seed: { ...stop.seed, audioUrl } })}
+          onTitleChange={(audioTitle) => onChange({ seed: { ...stop.seed, audioTitle } })}
           uploadPath={`memorial-church/audio/tours/${tourId}/seed_${stop.id}`}
           onUploadFile={onUploadPhoto}
         />
@@ -775,7 +777,9 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
         />
         <AudioUpload
           audioUrl={stop.notice.audioUrl ?? null}
+          audioTitle={stop.notice.audioTitle ?? null}
           onChange={(audioUrl) => onChange({ notice: { ...stop.notice, audioUrl } })}
+          onTitleChange={(audioTitle) => onChange({ notice: { ...stop.notice, audioTitle } })}
           uploadPath={`memorial-church/audio/tours/${tourId}/notice_${stop.id}`}
           onUploadFile={onUploadPhoto}
         />
@@ -793,7 +797,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
             checked={stop.wonder !== null}
             onChange={(e) => {
               if (e.target.checked) {
-                onChange({ wonder: { question: '', photos: [], audioUrl: null } });
+                onChange({ wonder: { question: '', photos: [], audioUrl: null, audioTitle: null } });
               } else {
                 onChange({ wonder: null });
               }
@@ -822,7 +826,9 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
             />
             <AudioUpload
               audioUrl={stop.wonder!.audioUrl ?? null}
+              audioTitle={stop.wonder!.audioTitle ?? null}
               onChange={(audioUrl) => onChange({ wonder: { ...stop.wonder!, audioUrl } })}
+              onTitleChange={(audioTitle) => onChange({ wonder: { ...stop.wonder!, audioTitle } })}
               uploadPath={`memorial-church/audio/tours/${tourId}/wonder_${stop.id}`}
               onUploadFile={onUploadPhoto}
             />
@@ -856,7 +862,9 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
         />
         <AudioUpload
           audioUrl={stop.reveal.audioUrl ?? null}
+          audioTitle={stop.reveal.audioTitle ?? null}
           onChange={(audioUrl) => onChange({ reveal: { ...stop.reveal, audioUrl } })}
+          onTitleChange={(audioTitle) => onChange({ reveal: { ...stop.reveal, audioTitle } })}
           uploadPath={`memorial-church/audio/tours/${tourId}/reveal_${stop.id}`}
           onUploadFile={onUploadPhoto}
         />
@@ -893,7 +901,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
                       checked={round.wonder !== null}
                       onChange={(e) => {
                         const next = [...(stop.extraRounds || [])];
-                        next[i] = { ...next[i], wonder: e.target.checked ? { question: '', photos: [], audioUrl: null } : null };
+                        next[i] = { ...next[i], wonder: e.target.checked ? { question: '', photos: [], audioUrl: null, audioTitle: null } : null };
                         onChange({ extraRounds: next });
                       }}
                       className="rounded"
@@ -944,7 +952,7 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
                       checked={round.reveal !== null}
                       onChange={(e) => {
                         const next = [...(stop.extraRounds || [])];
-                        next[i] = { ...next[i], reveal: e.target.checked ? { text: '', photos: [], audioUrl: null } : null };
+                        next[i] = { ...next[i], reveal: e.target.checked ? { text: '', photos: [], audioUrl: null, audioTitle: null } : null };
                         onChange({ extraRounds: next });
                       }}
                       className="rounded"
@@ -994,8 +1002,8 @@ function StopEditor({ stop: rawStop, tourId, onChange, onUploadPhoto }: StopEdit
         <button
           onClick={() => onChange({
             extraRounds: [...(stop.extraRounds || []), {
-              wonder: { question: '', photos: [], audioUrl: null },
-              reveal: { text: '', photos: [], audioUrl: null },
+              wonder: { question: '', photos: [], audioUrl: null, audioTitle: null },
+              reveal: { text: '', photos: [], audioUrl: null, audioTitle: null },
             }],
           })}
           className="text-xs text-blue-700 hover:underline"

@@ -97,7 +97,7 @@ export function createSession(tour: Tour): TourSession {
     tourId: tour.id,
     currentStopIndex: 0,
     currentRound: 0,
-    currentPhase: tour.essentialQuestion ? 'eq_opening' : 'seed',
+    currentPhase: 'intro',
     completedStops: [],
     reflections: [],
     bankedQuestions: [],
@@ -173,6 +173,13 @@ export function recordDetourVisit(
   return {
     ...session,
     detourVisits: [...session.detourVisits, { stopId, detourId, timestamp: new Date().toISOString() }],
+  };
+}
+
+export function completeIntro(session: TourSession, tour: Tour): TourSession {
+  return {
+    ...session,
+    currentPhase: tour.essentialQuestion ? 'eq_opening' : 'seed',
   };
 }
 

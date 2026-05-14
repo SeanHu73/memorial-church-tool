@@ -50,7 +50,7 @@ export default function EqQuestionsCard() {
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="What are you still wondering about?"
               rows={3}
-              className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[15px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
+              className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[18px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
             />
             <button
               onClick={handleAddQuestion}

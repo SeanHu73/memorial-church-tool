@@ -12,6 +12,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { useTour } from '@/context/TourContext';
+import IntroScreens from './cards/IntroScreens';
 import EqOpeningCard from './cards/EqOpeningCard';
 import EqClosingCard from './cards/EqClosingCard';
 import EqFinalReflectCard from './cards/EqFinalReflectCard';
@@ -41,6 +42,7 @@ export default function Journal({ onMapPeek }: JournalProps) {
     advanceStop,
     enterBranch,
     addReflection,
+    completeIntro,
     completeEqOpening,
     completeEqClosing,
     completeEqFinalReflect,
@@ -129,6 +131,10 @@ export default function Journal({ onMapPeek }: JournalProps) {
 
       {/* Card area — scrollable */}
       <div className="flex-1 overflow-y-auto px-5 py-6">
+        {phase === 'intro' && (
+          <IntroScreens tour={tour} onComplete={completeIntro} />
+        )}
+
         {phase === 'eq_opening' && tour.essentialQuestion && (
           <EqOpeningCard tour={tour} onComplete={completeEqOpening} />
         )}
@@ -173,6 +179,7 @@ export default function Journal({ onMapPeek }: JournalProps) {
               bridgeText: '',
               bridgePhotos: [],
               audioUrl: extra.reveal.audioUrl ?? null,
+              audioTitle: extra.reveal.audioTitle ?? null,
             },
           };
           return <RevealCard key={`reveal-${round}`} stop={virtualStop} onContinue={advancePhase} />;

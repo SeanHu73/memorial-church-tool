@@ -36,7 +36,8 @@
       "Bash(echo \"TSC EXIT: $?\")",
       "Bash(node --input-type=module -e ':*)",
       "Bash(ls D:/Provenance/memorial-church-tool/.env*)",
-      "Bash(node --env-file=.env.local scripts/patch-missaved-photos.mjs)"
+      "Bash(node --env-file=.env.local scripts/patch-missaved-photos.mjs)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

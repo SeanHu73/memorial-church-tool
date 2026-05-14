@@ -2,17 +2,19 @@
 
 /**
  * Audio upload field for the admin tour editor.
- * Shows URL input + upload button + preview player.
+ * Shows URL input + upload button + title field + preview player.
  */
 
 interface Props {
   audioUrl: string | null;
+  audioTitle?: string | null;
   onChange: (url: string | null) => void;
+  onTitleChange?: (title: string | null) => void;
   uploadPath: string;
   onUploadFile: (file: File, path: string) => Promise<string>;
 }
 
-export default function AudioUpload({ audioUrl, onChange, uploadPath, onUploadFile }: Props) {
+export default function AudioUpload({ audioUrl, audioTitle, onChange, onTitleChange, uploadPath, onUploadFile }: Props) {
   return (
     <div className="space-y-1">
       <span className="text-xs text-stone-500">Audio narration (optional)</span>
@@ -39,13 +41,21 @@ export default function AudioUpload({ audioUrl, onChange, uploadPath, onUploadFi
         </label>
         {audioUrl && (
           <button
-            onClick={() => onChange(null)}
+            onClick={() => { onChange(null); onTitleChange?.(null); }}
             className="text-xs text-red-600 hover:underline shrink-0"
           >
             Remove
           </button>
         )}
       </div>
+      {audioUrl && onTitleChange && (
+        <input
+          value={audioTitle || ''}
+          onChange={(e) => onTitleChange(e.target.value || null)}
+          className="w-full px-2 py-1 border border-stone-300 rounded text-xs"
+          placeholder="Audio title (shown to explorers)"
+        />
+      )}
       {audioUrl && (
         <audio controls src={audioUrl} className="w-full h-8 mt-1" style={{ maxHeight: 32 }} />
       )}

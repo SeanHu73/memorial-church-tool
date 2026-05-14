@@ -45,7 +45,7 @@ export default function EqClosingCard({ tour, onComplete }: Props) {
           onChange={(e) => setReflection(e.target.value)}
           placeholder={eq.finalReflectionPlaceholder}
           rows={4}
-          className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[15px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
+          className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[18px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
         />
       </div>
 
@@ -59,7 +59,7 @@ export default function EqClosingCard({ tour, onComplete }: Props) {
           onChange={(e) => setReasoning(e.target.value)}
           placeholder={eq.finalReasoningPlaceholder}
           rows={4}
-          className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[15px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
+          className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[18px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
         />
       </div>
 

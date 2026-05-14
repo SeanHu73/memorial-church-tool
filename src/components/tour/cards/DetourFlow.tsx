@@ -147,7 +147,7 @@ export default function DetourFlow({ detour, onReturn }: Props) {
 
           {askResult && (
             <div className="p-3 rounded-lg bg-[#C4923A]/10 border border-[#C4923A]/20 animate-fade-in">
-              <p className="text-[15px] font-serif text-[#2C2418] leading-relaxed">{askResult}</p>
+              <p className="text-[18px] font-serif text-[#2C2418] leading-relaxed">{askResult}</p>
               <button
                 onClick={() => setAskResult(null)}
                 className="text-xs text-[#6B5D4F] hover:underline mt-2"

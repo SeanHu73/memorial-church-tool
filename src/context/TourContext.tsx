@@ -21,6 +21,7 @@ import {
   returnFromBranch as returnFromBranchImpl,
   addReflection as addReflectionImpl,
   recordDetourVisit as recordDetourVisitImpl,
+  completeIntro as completeIntroImpl,
   completeEqOpening as completeEqOpeningImpl,
   completeEqClosing as completeEqClosingImpl,
   completeEqFinalReflect as completeEqFinalReflectImpl,
@@ -46,6 +47,7 @@ interface TourContextValue {
   bankQuestion: (q: BankedQuestion) => void;
   recordDetourVisit: (detourId: string) => void;
   isDetourVisited: (detourId: string) => boolean;
+  completeIntro: () => void;
   completeEqOpening: (theory: string, reasoning: string) => void;
   completeEqClosing: (finalReflection: string, finalReasoning: string) => void;
   completeEqFinalReflect: (cognitive: number, perceptual: number | null, whatShifted: string[] | null, reasoningSource: string[] | null) => void;
@@ -170,6 +172,11 @@ export function TourProvider({ children }: { children: ReactNode }) {
     return session.detourVisits.some((v) => v.detourId === detourId);
   }, [session]);
 
+  const completeIntroFn = useCallback(() => {
+    if (!session || !tour) return;
+    persist(completeIntroImpl(session, tour));
+  }, [session, tour, persist]);
+
   const completeEqOpeningFn = useCallback((theory: string, reasoning: string) => {
     if (!session || !tour) return;
     persist(completeEqOpeningImpl(session, theory, reasoning));
@@ -215,6 +222,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
       bankQuestion: bankQuestionFn,
       recordDetourVisit: recordDetourVisitFn,
       isDetourVisited,
+      completeIntro: completeIntroFn,
       completeEqOpening: completeEqOpeningFn,
       completeEqClosing: completeEqClosingFn,
       completeEqFinalReflect: completeEqFinalReflectFn,

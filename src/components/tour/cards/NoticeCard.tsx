@@ -29,13 +29,13 @@ export default function NoticeCard({ stop, onContinue }: Props) {
 
   return (
     <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
-      {/* Title + audio */}
-      <div className="flex items-center justify-between">
-        <p className="text-xl uppercase tracking-[0.14em] text-[#2B4C5E] font-semibold">
-          Look around...
-        </p>
-        {stop.notice.audioUrl && <AudioButton audioUrl={stop.notice.audioUrl} />}
-      </div>
+      {/* Title */}
+      <p className="text-xl uppercase tracking-[0.14em] text-[#2B4C5E] font-semibold">
+        Look around...
+      </p>
+
+      {/* Audio player */}
+      {stop.notice.audioUrl && <AudioButton audioUrl={stop.notice.audioUrl} title={stop.notice.audioTitle} />}
 
       {/* Prompt + photos interleaved via [photo:N] markers */}
       <PhotoContent
@@ -43,7 +43,7 @@ export default function NoticeCard({ stop, onContinue }: Props) {
         photos={stop.notice.photos || []}
         legacyPhotoUrl={stop.notice.photoUrl}
         legacyPhotoCaption={stop.notice.photoCaption}
-        textClass="text-[19px] leading-relaxed font-serif text-[#2C2418]"
+        textClass="text-[22px] leading-relaxed font-serif text-[#2C2418]"
       />
 
       {/* Timer ring */}

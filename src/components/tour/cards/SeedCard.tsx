@@ -26,13 +26,13 @@ export default function SeedCard({ stop, onContinue }: Props) {
 
   return (
     <div className="animate-fade-in space-y-4 min-h-full flex flex-col justify-center">
-      {/* Title + audio */}
-      <div className="flex items-center justify-between">
-        <p className="text-xl uppercase tracking-[0.14em] text-[#7A7A5E] font-semibold">
-          Background...
-        </p>
-        {stop.seed.audioUrl && <AudioButton audioUrl={stop.seed.audioUrl} />}
-      </div>
+      {/* Title */}
+      <p className="text-xl uppercase tracking-[0.14em] text-[#7A7A5E] font-semibold">
+        Background...
+      </p>
+
+      {/* Audio player */}
+      {stop.seed.audioUrl && <AudioButton audioUrl={stop.seed.audioUrl} title={stop.seed.audioTitle} />}
 
       {/* Text + photos interleaved via [photo:N] markers */}
       <PhotoContent

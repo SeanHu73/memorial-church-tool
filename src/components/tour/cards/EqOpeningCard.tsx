@@ -5,7 +5,7 @@
  * Captures the group's initial theory and reasoning before the tour begins.
  */
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Tour } from '@/lib/types';
 
 interface Props {
@@ -19,6 +19,7 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
   const [reasoning, setReasoning] = useState('');
   const [theoryCommitted, setTheoryCommitted] = useState(false);
   const [reasoningCommitted, setReasoningCommitted] = useState(false);
+  const [framingOpen, setFramingOpen] = useState(false);
 
   return (
     <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
@@ -32,10 +33,19 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
         &ldquo;{eq.question}&rdquo;
       </p>
 
-      {/* Framing */}
-      <p className="text-sm text-[#6B5D4F] italic leading-relaxed">
-        {eq.openingFraming}
-      </p>
+      {/* Framing — collapsible */}
+      <button
+        onClick={() => setFramingOpen(!framingOpen)}
+        className="text-sm text-[#6B5D4F] italic flex items-center gap-1"
+      >
+        <span className="text-[10px]">{framingOpen ? '▼' : '▶'}</span>
+        {framingOpen ? 'Hide instructions' : 'Read instructions'}
+      </button>
+      {framingOpen && (
+        <p className="text-sm text-[#6B5D4F] italic leading-relaxed animate-fade-in">
+          {eq.openingFraming}
+        </p>
+      )}
 
       {/* Theory input */}
       <div className="space-y-2">
@@ -47,7 +57,7 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
           onChange={(e) => { setTheory(e.target.value); if (theoryCommitted) setTheoryCommitted(false); }}
           placeholder={eq.theoryPlaceholder}
           rows={3}
-          className={`w-full px-4 py-3 rounded-lg text-[15px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none transition-all border-2 ${
+          className={`w-full px-4 py-3 rounded-lg text-[18px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none transition-all border-2 ${
             theoryCommitted
               ? 'border-[#C4923A]/40 bg-[#C4923A]/5'
               : 'border-[#D4BFA0] bg-white'
@@ -78,7 +88,7 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
             onChange={(e) => { setReasoning(e.target.value); if (reasoningCommitted) setReasoningCommitted(false); }}
             placeholder={eq.reasoningPlaceholder}
             rows={3}
-            className={`w-full px-4 py-3 rounded-lg text-[15px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none transition-all border-2 ${
+            className={`w-full px-4 py-3 rounded-lg text-[18px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none transition-all border-2 ${
               reasoningCommitted
                 ? 'border-[#C4923A]/40 bg-[#C4923A]/5'
                 : 'border-[#D4BFA0] bg-white'

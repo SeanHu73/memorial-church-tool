@@ -14,26 +14,25 @@ export default function WonderCard({ stop, onContinue }: Props) {
 
   return (
     <div className="animate-fade-in space-y-6 min-h-full flex flex-col justify-center">
-      {/* Title + audio */}
-      <div className="flex items-center justify-between">
-        <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A] font-semibold">
-          Wonder together...
-        </p>
-        {stop.wonder?.audioUrl && <AudioButton audioUrl={stop.wonder.audioUrl} />}
-      </div>
+      {/* Title */}
+      <p className="text-3xl uppercase tracking-[0.14em] text-[#C4923A] font-bold">
+        WONDER
+      </p>
+
+      {/* Audio player */}
+      {stop.wonder?.audioUrl && <AudioButton audioUrl={stop.wonder.audioUrl} title={stop.wonder.audioTitle} />}
+
+      {/* Subtitle */}
+      <p className="text-xl uppercase tracking-[0.14em] text-[#C4923A]/70 font-semibold -mt-3">
+        Talk to each other...
+      </p>
 
       {/* Discussion prompt + photos */}
       <PhotoContent
         text={stop.wonder.question}
         photos={stop.wonder.photos || []}
-        textClass="text-[19px] leading-relaxed font-serif text-[#2C2418]"
+        textClass="text-[22px] leading-relaxed font-serif text-[#2C2418]"
       />
-
-      {/* Explicit group instruction */}
-      <p className="text-sm text-[#6B5D4F] italic">
-        Talk together about this before continuing. There are no right or wrong
-        answers &mdash; the next card will add context to your thinking.
-      </p>
 
       {/* Continue */}
       <button
