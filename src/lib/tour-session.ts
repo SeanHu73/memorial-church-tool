@@ -57,11 +57,17 @@ function nextPhaseAndRound(
   const extras = stop.extraRounds || [];
 
   switch (current) {
-    case 'seed':
-      return { phase: 'notice', round: currentRound };
+    case 'seed': {
+      // Seed + Notice are merged into one screen.
+      // Skip notice, go directly to wonder or reveal.
+      const wonder = stop.wonder;
+      return wonder !== null
+        ? { phase: 'wonder', round: 0 }
+        : { phase: 'reveal', round: 0 };
+    }
 
     case 'notice': {
-      // Round 0 uses the main wonder
+      // Legacy — shouldn't be reached, but handle gracefully
       const wonder = stop.wonder;
       return wonder !== null
         ? { phase: 'wonder', round: 0 }
