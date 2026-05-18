@@ -112,16 +112,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
     if (!session || !tour) return;
     const next = advanceToNextStopImpl(session, tour);
     persist(next);
-    if (next.currentPhase === 'end') {
-      logTourComplete({
-        tourId: tour.id,
-        sessionId: session.id,
-        tourTitle: tour.title,
-        stopsCompleted: next.completedStops.length,
-        totalStops: tour.stops.length,
-        startedAt: session.startedAt,
-      });
-    }
+    // Completion is logged by finishTour (called from EqQuestionsCard)
   }, [session, tour, persist]);
 
   const enterBranch = useCallback(() => {
@@ -196,9 +187,17 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, [session, tour, persist]);
 
   const finishTourFn = useCallback(() => {
-    if (!session) return;
+    if (!session || !tour) return;
     persist(finishTourImpl(session));
-  }, [session, persist]);
+    logTourComplete({
+      tourId: tour.id,
+      sessionId: session.id,
+      tourTitle: tour.title,
+      stopsCompleted: session.completedStops.length,
+      totalStops: tour.stops.length,
+      startedAt: session.startedAt,
+    });
+  }, [session, tour, persist]);
 
   const endTour = useCallback(() => {
     setTour(null);
