@@ -38,6 +38,8 @@ export default function Journal({ onMapPeek }: JournalProps) {
     session,
     currentStop,
     isLastStop,
+    goBack,
+    canGoBack,
     advancePhase,
     advanceStop,
     enterBranch,
@@ -97,14 +99,27 @@ export default function Journal({ onMapPeek }: JournalProps) {
         className="shrink-0 flex items-center justify-between px-4 py-3 border-b"
         style={{ borderColor: '#D4BFA0' }}
       >
-        <div>
-          <p className="text-sm font-semibold text-[#2C2418]">{tour.title}</p>
-          {phase !== 'end' && currentStop && (
-            <p className="text-[11px] text-[#6B5D4F] uppercase tracking-wide">
-              Stop {stopNum} of {tour.stops.length}
-              {currentStop.title && <> &middot; {currentStop.title}</>}
-            </p>
+        <div className="flex items-center gap-2">
+          {canGoBack && phase !== 'end' && (
+            <button
+              onClick={goBack}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B5D4F] hover:bg-[#D4BFA0]/30"
+              title="Go back"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
           )}
+          <div>
+            <p className="text-sm font-semibold text-[#2C2418]">{tour.title}</p>
+            {phase !== 'end' && currentStop && (
+              <p className="text-[11px] text-[#6B5D4F] uppercase tracking-wide">
+                Stop {stopNum} of {tour.stops.length}
+                {currentStop.title && <> &middot; {currentStop.title}</>}
+              </p>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-1">
           {onMapPeek && phase !== 'end' && (

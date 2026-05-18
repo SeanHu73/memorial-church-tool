@@ -7,13 +7,13 @@
  * a single group visit.
  */
 
-import type { Tour, Stop, TourSession, BankedQuestion } from './types';
+import type { Tour, Stop, TourSession, TourPhase, BankedQuestion } from './types';
+
+export type { TourPhase };
 
 const STORAGE_KEY = 'mc_tour_session_v1';
 
 // ── Phase state machine ─────────────────────────────────────────
-
-export type TourPhase = TourSession['currentPhase'];
 
 /**
  * Advance to the next phase within a stop, handling extra rounds.
@@ -95,12 +95,36 @@ function nextPhaseAndRound(
   }
 }
 
+/** Push current state onto the phase history before a transition. */
+function pushHistory(session: TourSession): TourSession['phaseHistory'] {
+  return [...(session.phaseHistory || []), {
+    phase: session.currentPhase,
+    round: session.currentRound,
+    stopIndex: session.currentStopIndex,
+  }];
+}
+
+/** Go back to the previous screen. Returns null if no history. */
+export function goBack(session: TourSession): TourSession | null {
+  const history = session.phaseHistory || [];
+  if (history.length === 0) return null;
+  const prev = history[history.length - 1];
+  return {
+    ...session,
+    phaseHistory: history.slice(0, -1),
+    currentPhase: prev.phase,
+    currentRound: prev.round,
+    currentStopIndex: prev.stopIndex,
+  };
+}
+
 // ── Session CRUD ────────────────────────────────────────────────
 
 export function createSession(tour: Tour): TourSession {
   return {
     id: `ts_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     tourId: tour.id,
+    phaseHistory: [],
     currentStopIndex: 0,
     currentRound: 0,
     currentPhase: 'intro',
@@ -116,7 +140,7 @@ export function createSession(tour: Tour): TourSession {
 
 export function advancePhase(session: TourSession, stop: Stop): TourSession {
   const { phase, round } = nextPhaseAndRound(session.currentPhase, session.currentRound, stop);
-  return { ...session, currentPhase: phase, currentRound: round };
+  return { ...session, phaseHistory: pushHistory(session), currentPhase: phase, currentRound: round };
 }
 
 export function advanceToNextStop(session: TourSession, tour: Tour): TourSession {
@@ -129,6 +153,7 @@ export function advanceToNextStop(session: TourSession, tour: Tour): TourSession
     const endPhase = tour.essentialQuestion ? 'eq_closing' : 'eq_questions';
     return {
       ...session,
+      phaseHistory: pushHistory(session),
       currentPhase: endPhase,
       completedStops: currentStop
         ? [...session.completedStops, currentStop.id]
@@ -138,6 +163,7 @@ export function advanceToNextStop(session: TourSession, tour: Tour): TourSession
   }
   return {
     ...session,
+    phaseHistory: pushHistory(session),
     currentStopIndex: nextIndex,
     currentRound: 0,
     currentPhase: 'seed',
@@ -148,11 +174,11 @@ export function advanceToNextStop(session: TourSession, tour: Tour): TourSession
 }
 
 export function enterBranch(session: TourSession): TourSession {
-  return { ...session, currentPhase: 'branch' };
+  return { ...session, phaseHistory: pushHistory(session), currentPhase: 'branch' };
 }
 
 export function enterOffPath(session: TourSession): TourSession {
-  return { ...session, currentPhase: 'off_path' };
+  return { ...session, phaseHistory: pushHistory(session), currentPhase: 'off_path' };
 }
 
 export function returnFromBranch(session: TourSession, tour: Tour): TourSession {
@@ -185,6 +211,7 @@ export function recordDetourVisit(
 export function completeIntro(session: TourSession, tour: Tour): TourSession {
   return {
     ...session,
+    phaseHistory: pushHistory(session),
     currentPhase: tour.essentialQuestion ? 'eq_opening' : 'seed',
   };
 }
@@ -196,6 +223,7 @@ export function completeEqOpening(
 ): TourSession {
   return {
     ...session,
+    phaseHistory: pushHistory(session),
     currentPhase: 'seed',
     essentialQuestionResponses: {
       initialTheory: theory,
@@ -217,6 +245,7 @@ export function completeEqClosing(
 ): TourSession {
   return {
     ...session,
+    phaseHistory: pushHistory(session),
     currentPhase: 'eq_final_reflect',
     essentialQuestionResponses: session.essentialQuestionResponses
       ? { ...session.essentialQuestionResponses, finalReflection, finalReasoning }
@@ -233,6 +262,7 @@ export function completeEqFinalReflect(
 ): TourSession {
   return {
     ...session,
+    phaseHistory: pushHistory(session),
     currentPhase: 'eq_questions',
     essentialQuestionResponses: session.essentialQuestionResponses
       ? {
@@ -249,6 +279,7 @@ export function completeEqFinalReflect(
 export function finishTour(session: TourSession): TourSession {
   return {
     ...session,
+    phaseHistory: pushHistory(session),
     currentPhase: 'end',
     completedAt: new Date().toISOString(),
   };

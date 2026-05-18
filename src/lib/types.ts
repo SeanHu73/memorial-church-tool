@@ -335,11 +335,14 @@ export interface WebNode {
   y: number;
 }
 
+export type TourPhase = 'intro' | 'eq_opening' | 'seed' | 'notice' | 'wonder' | 'reveal' | 'reflect' | 'whats_next' | 'branch' | 'off_path' | 'eq_closing' | 'eq_final_reflect' | 'eq_questions' | 'end';
+
 export interface TourSession {
   id: string;
+  phaseHistory: Array<{ phase: TourPhase; round: number; stopIndex: number }>;
   tourId: string;
   currentStopIndex: number;
-  currentPhase: 'intro' | 'eq_opening' | 'seed' | 'notice' | 'wonder' | 'reveal' | 'reflect' | 'whats_next' | 'branch' | 'off_path' | 'eq_closing' | 'eq_final_reflect' | 'eq_questions' | 'end';
+  currentPhase: TourPhase;
   currentRound: number;               // 0 = main wonder+reveal, 1+ = extra rounds
   completedStops: string[];
   reflections: Array<{

@@ -21,6 +21,7 @@ import {
   returnFromBranch as returnFromBranchImpl,
   addReflection as addReflectionImpl,
   recordDetourVisit as recordDetourVisitImpl,
+  goBack as goBackImpl,
   completeIntro as completeIntroImpl,
   completeEqOpening as completeEqOpeningImpl,
   completeEqClosing as completeEqClosingImpl,
@@ -39,6 +40,8 @@ interface TourContextValue {
   isActive: boolean;
   isLastStop: boolean;
   startTour: (tour: Tour) => void;
+  goBack: () => void;
+  canGoBack: boolean;
   advancePhase: () => void;
   advanceStop: () => void;
   enterBranch: () => void;
@@ -102,6 +105,14 @@ export function TourProvider({ children }: { children: ReactNode }) {
     setTour(t);
     persist(s);
   }, [persist]);
+
+  const canGoBack = !!(session?.phaseHistory && session.phaseHistory.length > 0);
+
+  const goBackFn = useCallback(() => {
+    if (!session) return;
+    const prev = goBackImpl(session);
+    if (prev) persist(prev);
+  }, [session, persist]);
 
   const advancePhase = useCallback(() => {
     if (!session || !currentStop) return;
@@ -213,6 +224,8 @@ export function TourProvider({ children }: { children: ReactNode }) {
       isActive: tour !== null && session !== null && !['end'].includes(session.currentPhase),
       isLastStop,
       startTour,
+      goBack: goBackFn,
+      canGoBack,
       advancePhase,
       advanceStop,
       enterBranch,
