@@ -5,6 +5,7 @@ import { Stop } from '@/lib/types';
 import PhotoContent from './PhotoContent';
 import FullscreenPhoto from './FullscreenPhoto';
 import AudioButton from './AudioButton';
+import BackButton from './BackButton';
 
 interface Props {
   stop: Stop;
@@ -84,13 +85,16 @@ export default function RevealCard({ stop, onContinue }: Props) {
         </div>
       )}
 
-      {/* Continue */}
-      <button
-        onClick={onContinue}
-        className="w-full py-3 rounded-lg text-base font-semibold bg-[#C4923A] text-white transition-colors"
-      >
-        Continue
-      </button>
+      {/* Continue + Back */}
+      <div className="flex gap-2">
+        <BackButton />
+        <button
+          onClick={onContinue}
+          className="flex-1 py-3 rounded-lg text-base font-semibold bg-[#C4923A] text-white transition-colors"
+        >
+          Continue
+        </button>
+      </div>
 
       {fullscreen && (
         <FullscreenPhoto url={fullscreen.url} caption={fullscreen.caption} onClose={() => setFullscreen(null)} />

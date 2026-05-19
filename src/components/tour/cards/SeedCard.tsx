@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { Stop } from '@/lib/types';
 import PhotoContent from './PhotoContent';
 import AudioButton from './AudioButton';
+import BackButton from './BackButton';
 
 interface Props {
   stop: Stop;
@@ -108,17 +109,20 @@ export default function SeedCard({ stop, onContinue }: Props) {
         </div>
       )}
 
-      {/* Continue */}
-      <button
-        onClick={onContinue}
-        className={`w-full py-3 rounded-lg text-base font-semibold transition-all ${
-          timerDone
-            ? 'bg-[#2B4C5E] text-white'
-            : 'bg-[#2B4C5E]/20 text-[#2B4C5E]'
-        }`}
-      >
-        We&apos;ve looked &mdash; continue
-      </button>
+      {/* Continue + Back */}
+      <div className="flex gap-2">
+        <BackButton />
+        <button
+          onClick={onContinue}
+          className={`flex-1 py-3 rounded-lg text-base font-semibold transition-all ${
+            timerDone
+              ? 'bg-[#2B4C5E] text-white'
+              : 'bg-[#2B4C5E]/20 text-[#2B4C5E]'
+          }`}
+        >
+          We&apos;ve looked &mdash; continue
+        </button>
+      </div>
     </div>
   );
 }

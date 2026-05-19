@@ -3,6 +3,7 @@
 import { Stop } from '@/lib/types';
 import PhotoContent from './PhotoContent';
 import AudioButton from './AudioButton';
+import BackButton from './BackButton';
 
 interface Props {
   stop: Stop;
@@ -34,14 +35,17 @@ export default function WonderCard({ stop, onContinue }: Props) {
         textClass="text-[23px] leading-relaxed font-serif text-[#2C2418]"
       />
 
-      {/* Continue */}
-      <button
-        onClick={onContinue}
-        className="w-full py-3 rounded-lg text-base font-semibold text-white transition-colors"
-        style={{ backgroundColor: '#C4923A' }}
-      >
-        We&apos;ve talked &mdash; show us
-      </button>
+      {/* Continue + Back */}
+      <div className="flex gap-2">
+        <BackButton />
+        <button
+          onClick={onContinue}
+          className="flex-1 py-3 rounded-lg text-base font-semibold text-white transition-colors"
+          style={{ backgroundColor: '#C4923A' }}
+        >
+          We&apos;ve talked &mdash; show us
+        </button>
+      </div>
     </div>
   );
 }

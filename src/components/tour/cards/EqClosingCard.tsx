@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import { Tour } from '@/lib/types';
+import BackButton from './BackButton';
 
 interface Props {
   tour: Tour;
@@ -63,14 +64,17 @@ export default function EqClosingCard({ tour, onComplete }: Props) {
         />
       </div>
 
-      {/* Submit */}
-      <button
-        onClick={() => onComplete(reflection.trim(), reasoning.trim())}
-        disabled={!reflection.trim()}
-        className="w-full py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white disabled:opacity-30"
-      >
-        Continue
-      </button>
+      {/* Submit + Back */}
+      <div className="flex gap-2">
+        <BackButton />
+        <button
+          onClick={() => onComplete(reflection.trim(), reasoning.trim())}
+          disabled={!reflection.trim()}
+          className="flex-1 py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white disabled:opacity-30"
+        >
+          Continue
+        </button>
+      </div>
     </div>
   );
 }

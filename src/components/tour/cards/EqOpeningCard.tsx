@@ -7,6 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { Tour } from '@/lib/types';
+import BackButton from './BackButton';
 
 interface Props {
   tour: Tour;
@@ -111,12 +112,15 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
 
       {/* Continue — appears after both are committed */}
       {theoryCommitted && reasoningCommitted && (
-        <button
-          onClick={() => onComplete(theory.trim(), reasoning.trim())}
-          className="w-full py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white animate-fade-in"
-        >
-          Let&apos;s find the first stop...
-        </button>
+        <div className="flex gap-2 animate-fade-in">
+          <BackButton />
+          <button
+            onClick={() => onComplete(theory.trim(), reasoning.trim())}
+            className="flex-1 py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white"
+          >
+            Let&apos;s find the first stop...
+          </button>
+        </div>
       )}
 
       {/* Skip */}

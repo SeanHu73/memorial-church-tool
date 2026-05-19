@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react';
+import BackButton from './BackButton';
 
 const WHAT_SHIFTED_OPTIONS = [
   'We learned something new',
@@ -127,18 +128,21 @@ export default function EqFinalReflectCard({ onComplete }: Props) {
             </div>
           </div>
 
-          {/* Continue */}
-          <button
-            onClick={() => onComplete(
-              cognitiveSlider,
-              perceptualSlider,
-              whatShifted.length > 0 ? whatShifted : null,
-              reasoningSource.length > 0 ? reasoningSource : null
-            )}
-            className="w-full py-3 rounded-lg text-base font-semibold bg-[#6B5D4F] text-white"
-          >
-            Continue
-          </button>
+          {/* Continue + Back */}
+          <div className="flex gap-2">
+            <BackButton />
+            <button
+              onClick={() => onComplete(
+                cognitiveSlider,
+                perceptualSlider,
+                whatShifted.length > 0 ? whatShifted : null,
+                reasoningSource.length > 0 ? reasoningSource : null
+              )}
+              className="flex-1 py-3 rounded-lg text-base font-semibold bg-[#6B5D4F] text-white"
+            >
+              Continue
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -6,6 +6,7 @@ import { useTour } from '@/context/TourContext';
 import WhatsNext from './WhatsNext';
 import FormattedText from './FormattedText';
 import FullscreenPhoto from './FullscreenPhoto';
+import BackButton from './BackButton';
 
 const DEFAULT_WHAT_SHIFTED = [
   'We learned something new',
@@ -206,14 +207,17 @@ export default function ReflectCard({
             </div>
           )}
 
-          {/* Continue */}
+          {/* Continue + Back */}
           {sliderReleased && (
-            <button
-              onClick={handleSubmit}
-              className="w-full py-3 rounded-lg text-base font-semibold bg-[#6B5D4F] text-white animate-fade-in"
-            >
-              Continue
-            </button>
+            <div className="flex gap-2 animate-fade-in">
+              <BackButton />
+              <button
+                onClick={handleSubmit}
+                className="flex-1 py-3 rounded-lg text-base font-semibold bg-[#6B5D4F] text-white"
+              >
+                Continue
+              </button>
+            </div>
           )}
 
           {/* Skip */}
@@ -232,12 +236,15 @@ export default function ReflectCard({
               <FormattedText text={stop.reveal.bridgeText} />
             </p>
           )}
-          <button
-            onClick={onContinue}
-            className="w-full py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white"
-          >
-            Continue
-          </button>
+          <div className="flex gap-2">
+            <BackButton />
+            <button
+              onClick={onContinue}
+              className="flex-1 py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white"
+            >
+              Continue
+            </button>
+          </div>
         </div>
       ) : (
         <WhatsNext

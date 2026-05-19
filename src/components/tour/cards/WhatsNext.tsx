@@ -6,6 +6,7 @@ import FormattedText from './FormattedText';
 import FullscreenPhoto from './FullscreenPhoto';
 import { useTour } from '@/context/TourContext';
 import DetourFlow from './DetourFlow';
+import BackButton from './BackButton';
 
 interface Props {
   stop: Stop;
@@ -77,13 +78,16 @@ export default function WhatsNext({ stop, isLastStop, onAskQuestion, onContinue 
         <p className="text-xs text-[#6B5D4F] text-center italic -mt-1">
           This could be something specific or an open-ended question to be posed to the community.
         </p>
-        <button
-          ref={continueRef}
-          onClick={onContinue}
-          className="w-full py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white"
-        >
-          {isLastStop ? 'Finish the tour' : 'Continue the tour'}
-        </button>
+        <div className="flex gap-2">
+          <BackButton />
+          <button
+            ref={continueRef}
+            onClick={onContinue}
+            className="flex-1 py-3 rounded-lg text-base font-semibold bg-[#7A7A5E] text-white"
+          >
+            {isLastStop ? 'Finish the tour' : 'Continue the tour'}
+          </button>
+        </div>
       </div>
 
       {/* Related artefacts */}
