@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTour } from '@/context/TourContext';
 import { routeQuestion, type RouteResult } from '@/lib/tour-question-router';
+import MicButton from '../MicButton';
 
 export default function BranchCard() {
   const { tour, session, currentStop, returnFromBranch, bankQuestion } = useTour();
@@ -62,14 +63,17 @@ export default function BranchCard() {
           What are you curious about?
         </p>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <textarea
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Type your question..."
-            rows={3}
-            className="w-full px-3 py-2 rounded-lg border border-[#D4BFA0] bg-white text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/50 focus:outline-none focus:border-[#C4923A]"
-            autoFocus
-          />
+          <div className="flex gap-2">
+            <textarea
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="Type or speak your question..."
+              rows={3}
+              className="flex-1 px-3 py-2 rounded-lg border border-[#D4BFA0] bg-white text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/50 focus:outline-none focus:border-[#C4923A]"
+              autoFocus
+            />
+            <MicButton onTranscript={(t) => setQuestion((prev) => prev ? prev + ' ' + t : t)} />
+          </div>
           <div className="flex gap-2">
             <button
               type="submit"

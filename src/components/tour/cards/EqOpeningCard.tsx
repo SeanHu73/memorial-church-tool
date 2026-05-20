@@ -8,6 +8,7 @@
 import { useState, useCallback } from 'react';
 import { Tour } from '@/lib/types';
 import BackButton from './BackButton';
+import MicButton from '../MicButton';
 
 interface Props {
   tour: Tour;
@@ -53,17 +54,20 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
         <p className="text-sm font-semibold text-[#2C2418]">
           {eq.theoryPrompt}
         </p>
-        <textarea
-          value={theory}
-          onChange={(e) => { setTheory(e.target.value); if (theoryCommitted) setTheoryCommitted(false); }}
-          placeholder={eq.theoryPlaceholder}
-          rows={3}
-          className={`w-full px-4 py-3 rounded-lg text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none transition-all border-2 ${
-            theoryCommitted
-              ? 'border-[#C4923A]/40 bg-[#C4923A]/5'
-              : 'border-[#D4BFA0] bg-white'
-          }`}
-        />
+        <div className="flex gap-2">
+          <textarea
+            value={theory}
+            onChange={(e) => { setTheory(e.target.value); if (theoryCommitted) setTheoryCommitted(false); }}
+            placeholder={eq.theoryPlaceholder}
+            rows={3}
+            className={`flex-1 px-4 py-3 rounded-lg text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none transition-all border-2 ${
+              theoryCommitted
+                ? 'border-[#C4923A]/40 bg-[#C4923A]/5'
+                : 'border-[#D4BFA0] bg-white'
+            }`}
+          />
+          <MicButton onTranscript={(t) => { setTheory((prev) => prev ? prev + ' ' + t : t); if (theoryCommitted) setTheoryCommitted(false); }} />
+        </div>
         {!theoryCommitted && (
           <button
             onClick={() => setTheoryCommitted(true)}
@@ -84,17 +88,20 @@ export default function EqOpeningCard({ tour, onComplete }: Props) {
           <p className="text-sm font-semibold text-[#2C2418]">
             {eq.reasoningPrompt}
           </p>
-          <textarea
-            value={reasoning}
-            onChange={(e) => { setReasoning(e.target.value); if (reasoningCommitted) setReasoningCommitted(false); }}
-            placeholder={eq.reasoningPlaceholder}
-            rows={3}
-            className={`w-full px-4 py-3 rounded-lg text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none transition-all border-2 ${
-              reasoningCommitted
-                ? 'border-[#C4923A]/40 bg-[#C4923A]/5'
-                : 'border-[#D4BFA0] bg-white'
-            }`}
-          />
+          <div className="flex gap-2">
+            <textarea
+              value={reasoning}
+              onChange={(e) => { setReasoning(e.target.value); if (reasoningCommitted) setReasoningCommitted(false); }}
+              placeholder={eq.reasoningPlaceholder}
+              rows={3}
+              className={`flex-1 px-4 py-3 rounded-lg text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none transition-all border-2 ${
+                reasoningCommitted
+                  ? 'border-[#C4923A]/40 bg-[#C4923A]/5'
+                  : 'border-[#D4BFA0] bg-white'
+              }`}
+            />
+            <MicButton onTranscript={(t) => { setReasoning((prev) => prev ? prev + ' ' + t : t); if (reasoningCommitted) setReasoningCommitted(false); }} />
+          </div>
           {!reasoningCommitted && (
             <button
               onClick={() => setReasoningCommitted(true)}

@@ -11,6 +11,7 @@ import { Detour } from '@/lib/types';
 import { routeQuestion } from '@/lib/tour-question-router';
 import { useTour } from '@/context/TourContext';
 import PhotoContent from './PhotoContent';
+import MicButton from '../MicButton';
 import FormattedText from './FormattedText';
 import NoticeCard from './NoticeCard';
 import WonderCard from './WonderCard';
@@ -132,9 +133,10 @@ export default function DetourFlow({ detour, onReturn }: Props) {
               <input
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Type a question..."
+                placeholder="Type or speak..."
                 className="flex-1 px-3 py-2 rounded-lg border border-[#D4BFA0] bg-white text-sm font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/50 focus:outline-none focus:border-[#C4923A]"
               />
+              <MicButton onTranscript={(t) => setQuestion((prev) => prev ? prev + ' ' + t : t)} size="sm" />
               <button
                 type="submit"
                 disabled={!question.trim() || askLoading}

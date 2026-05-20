@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { useTour } from '@/context/TourContext';
+import MicButton from '../MicButton';
 
 export default function EqQuestionsCard() {
   const { tour, session, bankQuestion, finishTour, currentStop } = useTour();
@@ -45,13 +46,16 @@ export default function EqQuestionsCard() {
 
           {/* Question input */}
           <div className="space-y-3">
-            <textarea
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="What are you still wondering about?"
-              rows={3}
-              className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
-            />
+            <div className="flex gap-2">
+              <textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="Type or speak your question..."
+                rows={3}
+                className="flex-1 px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
+              />
+              <MicButton onTranscript={(t) => setQuestion((prev) => prev ? prev + ' ' + t : t)} />
+            </div>
             <button
               onClick={handleAddQuestion}
               disabled={!question.trim()}

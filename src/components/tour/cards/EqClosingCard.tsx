@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { Tour } from '@/lib/types';
 import BackButton from './BackButton';
+import MicButton from '../MicButton';
 
 interface Props {
   tour: Tour;
@@ -41,13 +42,16 @@ export default function EqClosingCard({ tour, onComplete }: Props) {
         <p className="text-sm font-semibold text-[#2C2418]">
           {eq.finalReflectionPrompt}
         </p>
-        <textarea
-          value={reflection}
-          onChange={(e) => setReflection(e.target.value)}
-          placeholder={eq.finalReflectionPlaceholder}
-          rows={4}
-          className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
-        />
+        <div className="flex gap-2">
+          <textarea
+            value={reflection}
+            onChange={(e) => setReflection(e.target.value)}
+            placeholder={eq.finalReflectionPlaceholder}
+            rows={4}
+            className="flex-1 px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
+          />
+          <MicButton onTranscript={(t) => setReflection((prev) => prev ? prev + ' ' + t : t)} />
+        </div>
       </div>
 
       {/* Final reasoning */}
@@ -55,13 +59,16 @@ export default function EqClosingCard({ tour, onComplete }: Props) {
         <p className="text-sm font-semibold text-[#2C2418]">
           {eq.finalReasoningPrompt}
         </p>
-        <textarea
-          value={reasoning}
-          onChange={(e) => setReasoning(e.target.value)}
-          placeholder={eq.finalReasoningPlaceholder}
-          rows={4}
-          className="w-full px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
-        />
+        <div className="flex gap-2">
+          <textarea
+            value={reasoning}
+            onChange={(e) => setReasoning(e.target.value)}
+            placeholder={eq.finalReasoningPlaceholder}
+            rows={4}
+            className="flex-1 px-4 py-3 rounded-lg border-2 border-[#D4BFA0] bg-white text-[20px] font-serif text-[#2C2418] placeholder:text-[#6B5D4F]/40 focus:outline-none focus:border-[#C4923A]"
+          />
+          <MicButton onTranscript={(t) => setReasoning((prev) => prev ? prev + ' ' + t : t)} />
+        </div>
       </div>
 
       {/* Submit + Back */}
