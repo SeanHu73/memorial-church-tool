@@ -74,6 +74,30 @@ export default function Journal({ onMapPeek }: JournalProps) {
   const phase = session.currentPhase;
   const stopNum = session.currentStopIndex + 1;
 
+  // Calculate progress percentage
+  const totalStops = tour.stops.length;
+  const closingPhases = ['eq_closing', 'eq_final_reflect', 'eq_questions', 'end'];
+  const hasClosing = !!tour.essentialQuestion;
+  const totalSegments = totalStops + (hasClosing ? 1 : 0) + 1; // stops + closing + intro/eq_opening
+  let progressPct = 0;
+  if (phase === 'intro') {
+    progressPct = 0;
+  } else if (phase === 'eq_opening') {
+    progressPct = 2;
+  } else if (closingPhases.includes(phase)) {
+    const closingProgress = closingPhases.indexOf(phase) / closingPhases.length;
+    progressPct = ((totalStops + closingProgress) / totalSegments) * 100;
+  } else if (phase === 'end') {
+    progressPct = 100;
+  } else {
+    // Within a stop — estimate sub-progress
+    const phasesInStop = ['seed', 'wonder', 'reveal', 'reflect', 'whats_next', 'branch'];
+    const phaseIdx = phasesInStop.indexOf(phase);
+    const subProgress = phaseIdx >= 0 ? phaseIdx / phasesInStop.length : 0.5;
+    progressPct = ((session.currentStopIndex + subProgress) / totalSegments) * 100 + (1 / totalSegments) * 100 * 0.05;
+  }
+  progressPct = Math.min(Math.max(progressPct, 0), 100);
+
   // Pause overlay — dark screen, double-tap to return
   if (paused) {
     return (
@@ -94,19 +118,40 @@ export default function Journal({ onMapPeek }: JournalProps) {
       className="fixed inset-0 z-40 flex flex-col"
       style={{ backgroundColor: '#FFF8EE' }}
     >
+      {/* Progress bar */}
+      <div className="shrink-0 w-full h-1.5 bg-[#D4BFA0]/30">
+        <div
+          className="h-full bg-[#C4923A] transition-all duration-500 ease-out rounded-r-full"
+          style={{ width: `${progressPct}%` }}
+        />
+      </div>
+
       {/* Top bar */}
       <div
-        className="shrink-0 flex items-center justify-between px-4 py-3 border-b"
+        className="shrink-0 flex items-center justify-between px-4 py-2 border-b"
         style={{ borderColor: '#D4BFA0' }}
       >
-        <div>
-          <p className="text-sm font-semibold text-[#2C2418]">{tour.title}</p>
-          {phase !== 'end' && currentStop && (
-            <p className="text-[11px] text-[#6B5D4F] uppercase tracking-wide">
-              Stop {stopNum} of {tour.stops.length}
-              {currentStop.title && <> &middot; {currentStop.title}</>}
-            </p>
+        <div className="flex items-center gap-2">
+          {canGoBack && phase !== 'end' && (
+            <button
+              onClick={goBack}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B5D4F] hover:bg-[#D4BFA0]/30"
+              title="Go back"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
           )}
+          <div>
+            <p className="text-sm font-semibold text-[#2C2418]">{tour.title}</p>
+            {phase !== 'end' && currentStop && (
+              <p className="text-[11px] text-[#6B5D4F] uppercase tracking-wide">
+                Stop {stopNum} of {tour.stops.length}
+                {currentStop.title && <> &middot; {currentStop.title}</>}
+              </p>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-1">
           {onMapPeek && phase !== 'end' && (
