@@ -17,6 +17,7 @@ import EqOpeningCard from './cards/EqOpeningCard';
 import EqClosingCard from './cards/EqClosingCard';
 import EqFinalReflectCard from './cards/EqFinalReflectCard';
 import EqQuestionsCard from './cards/EqQuestionsCard';
+import ProgressBar from './ProgressBar';
 import SeedCard from './cards/SeedCard';
 import NoticeCard from './cards/NoticeCard';
 import WonderCard from './cards/WonderCard';
@@ -74,29 +75,8 @@ export default function Journal({ onMapPeek }: JournalProps) {
   const phase = session.currentPhase;
   const stopNum = session.currentStopIndex + 1;
 
-  // Calculate progress percentage
-  const totalStops = tour.stops.length;
-  const closingPhases = ['eq_closing', 'eq_final_reflect', 'eq_questions', 'end'];
-  const hasClosing = !!tour.essentialQuestion;
-  const totalSegments = totalStops + (hasClosing ? 1 : 0) + 1; // stops + closing + intro/eq_opening
-  let progressPct = 0;
-  if (phase === 'intro') {
-    progressPct = 0;
-  } else if (phase === 'eq_opening') {
-    progressPct = 2;
-  } else if (closingPhases.includes(phase)) {
-    const closingProgress = closingPhases.indexOf(phase) / closingPhases.length;
-    progressPct = ((totalStops + closingProgress) / totalSegments) * 100;
-  } else if (phase === 'end') {
-    progressPct = 100;
-  } else {
-    // Within a stop — estimate sub-progress
-    const phasesInStop = ['seed', 'wonder', 'reveal', 'reflect', 'whats_next', 'branch'];
-    const phaseIdx = phasesInStop.indexOf(phase);
-    const subProgress = phaseIdx >= 0 ? phaseIdx / phasesInStop.length : 0.5;
-    progressPct = ((session.currentStopIndex + subProgress) / totalSegments) * 100 + (1 / totalSegments) * 100 * 0.05;
-  }
-  progressPct = Math.min(Math.max(progressPct, 0), 100);
+  // Progress bar visibility — show during stops, hide on intro/end
+  const showProgress = !['intro', 'end'].includes(phase);
 
   // Pause overlay — dark screen, double-tap to return
   if (paused) {
@@ -119,12 +99,7 @@ export default function Journal({ onMapPeek }: JournalProps) {
       style={{ backgroundColor: '#FFF8EE' }}
     >
       {/* Progress bar */}
-      <div className="shrink-0 w-full h-1.5 bg-[#D4BFA0]/30">
-        <div
-          className="h-full bg-[#C4923A] transition-all duration-500 ease-out rounded-r-full"
-          style={{ width: `${progressPct}%` }}
-        />
-      </div>
+      {showProgress && <ProgressBar tour={tour} session={session} />}
 
       {/* Top bar */}
       <div

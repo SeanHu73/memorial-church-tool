@@ -81,6 +81,14 @@ body {
   animation: slideDown 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
+@keyframes slideDownEnter {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+.animate-slide-down-enter {
+  animation: slideDownEnter 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
 @keyframes blurReveal {
   from { filter: blur(4px); opacity: 0.6; }
   to { filter: blur(0); opacity: 1; }
