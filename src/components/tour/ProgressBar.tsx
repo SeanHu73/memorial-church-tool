@@ -40,7 +40,7 @@ export default function ProgressBar({ tour, session }: Props) {
       {/* Progress strip */}
       <div
         ref={scrollRef}
-        className="shrink-0 flex items-center gap-1 px-3 py-2 overflow-x-auto border-b cursor-pointer"
+        className="shrink-0 flex items-center gap-1.5 px-3 py-3 overflow-x-auto border-b cursor-pointer"
         style={{ borderColor: '#D4BFA0', backgroundColor: '#F0E0C8', scrollbarWidth: 'none' }}
         onClick={() => setTrackerOpen(true)}
       >
@@ -53,7 +53,7 @@ export default function ProgressBar({ tour, session }: Props) {
             <div
               key={stop.id}
               ref={isCurrent ? currentRef : undefined}
-              className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold transition-all ${
                 isCurrent
                   ? 'bg-[#C4923A] text-white shadow-sm'
                   : isCompleted
@@ -61,12 +61,12 @@ export default function ProgressBar({ tour, session }: Props) {
                     : 'bg-[#D4BFA0]/30 text-[#6B5D4F]/40'
               }`}
             >
-              <span className="text-[11px]">{i + 1}</span>
+              <span className="text-xs">{i + 1}</span>
               {(isCurrent || isCompleted) && stop.title && (
-                <span className="text-[11px] max-w-[80px] truncate">{stop.title}</span>
+                <span className="text-xs max-w-[80px] truncate">{stop.title}</span>
               )}
               {isUpcoming && (
-                <span className="text-[11px]">&middot;&middot;&middot;</span>
+                <span className="text-xs">&middot;&middot;&middot;</span>
               )}
             </div>
           );
@@ -75,7 +75,7 @@ export default function ProgressBar({ tour, session }: Props) {
         {/* Closing indicator */}
         {tour.essentialQuestion && (
           <div
-            className={`shrink-0 px-3 py-1.5 rounded-full text-[11px] font-semibold ${
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold ${
               isClosing
                 ? 'bg-[#C4923A] text-white shadow-sm'
                 : 'bg-[#D4BFA0]/30 text-[#6B5D4F]/40'

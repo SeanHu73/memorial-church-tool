@@ -18,6 +18,7 @@ import EqClosingCard from './cards/EqClosingCard';
 import EqFinalReflectCard from './cards/EqFinalReflectCard';
 import EqQuestionsCard from './cards/EqQuestionsCard';
 import ProgressBar from './ProgressBar';
+import JournalOverlay from './JournalOverlay';
 import SeedCard from './cards/SeedCard';
 import NoticeCard from './cards/NoticeCard';
 import WonderCard from './cards/WonderCard';
@@ -53,9 +54,7 @@ export default function Journal({ onMapPeek }: JournalProps) {
   } = useTour();
 
   const [paused, setPaused] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [showQuestionBank, setShowQuestionBank] = useState(false);
-  const [showTourTracker, setShowTourTracker] = useState(false);
+  const [showJournal, setShowJournal] = useState(false);
   const lastTapRef = useRef(0);
 
   // Double-tap handler: two taps within 400ms
@@ -267,155 +266,23 @@ export default function Journal({ onMapPeek }: JournalProps) {
 
       {/* Footer bar */}
       {phase !== 'end' && (
-        <div className="shrink-0 px-5 py-3 border-t flex items-center justify-between" style={{ borderColor: '#D4BFA0' }}>
+        <div className="shrink-0 px-5 py-2 border-t flex items-center justify-end" style={{ borderColor: '#D4BFA0' }}>
           <button
-            onClick={() => setPaused(true)}
-            className="px-4 py-2 rounded-lg text-xs text-[#6B5D4F]/70 hover:text-[#6B5D4F] hover:bg-[#D4BFA0]/20 transition-colors"
+            onClick={() => setShowJournal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-[#6B5D4F] hover:bg-[#D4BFA0]/20 transition-colors border border-[#D4BFA0]"
           >
-            We&apos;re taking it in...
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+            </svg>
+            Journal
           </button>
-
-          {/* Menu button — bottom right */}
-          <div className="relative">
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-[#6B5D4F] hover:bg-[#D4BFA0]/30 transition-colors"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="5" r="2" />
-                <circle cx="12" cy="12" r="2" />
-                <circle cx="12" cy="19" r="2" />
-              </svg>
-            </button>
-
-            {/* Pop-up menu */}
-            {menuOpen && (
-              <div className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-lg shadow-lg border border-[#D4BFA0] overflow-hidden animate-fade-in">
-                <button
-                  onClick={() => { setShowQuestionBank(true); setMenuOpen(false); }}
-                  className="w-full px-4 py-3 text-left text-xs text-[#2C2418] hover:bg-[#F0E0C8] border-b border-[#D4BFA0]/50 flex items-center gap-2"
-                >
-                  <span>📝</span> Question Bank
-                  {session.bankedQuestions.length > 0 && (
-                    <span className="ml-auto text-[10px] bg-[#C4923A]/20 text-[#C4923A] px-1.5 py-0.5 rounded-full font-semibold">
-                      {session.bankedQuestions.length}
-                    </span>
-                  )}
-                </button>
-                <button
-                  onClick={() => { setShowTourTracker(true); setMenuOpen(false); }}
-                  className="w-full px-4 py-3 text-left text-xs text-[#2C2418] hover:bg-[#F0E0C8] flex items-center gap-2"
-                >
-                  <span>🗺️</span> Tour Tracker
-                </button>
-              </div>
-            )}
-          </div>
         </div>
       )}
 
-      {/* Question Bank pop-up */}
-      {showQuestionBank && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowQuestionBank(false)}>
-          <div className="absolute inset-0 bg-black/30" />
-          <div
-            className="relative w-full max-w-md max-h-[70vh] bg-[#FFF8EE] rounded-t-2xl shadow-2xl animate-slide-up flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: '#D4BFA0' }}>
-              <h3 className="text-sm font-semibold text-[#2C2418]">Question Bank</h3>
-              <button onClick={() => setShowQuestionBank(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B5D4F] hover:bg-[#D4BFA0]/30">&times;</button>
-            </div>
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-              {session.bankedQuestions.length === 0 ? (
-                <p className="text-xs text-[#6B5D4F] italic text-center py-6">
-                  No questions yet. Questions you ask during the tour will appear here.
-                </p>
-              ) : (
-                session.bankedQuestions.map((q) => (
-                  <div key={q.id} className="p-3 rounded-lg bg-white border border-[#D4BFA0]">
-                    <p className="text-sm font-serif text-[#2C2418]">&ldquo;{q.questionText}&rdquo;</p>
-                    <p className="text-[10px] text-[#6B5D4F] mt-1">
-                      {q.aiResponse === 'coming_up' ? 'Coming up on the tour' : q.aiResponse === 'answered_off_path' ? 'Answered' : 'Saved for later'}
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Tour Tracker pop-up */}
-      {showTourTracker && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowTourTracker(false)}>
-          <div className="absolute inset-0 bg-black/30" />
-          <div
-            className="relative w-full max-w-md max-h-[70vh] bg-[#FFF8EE] rounded-t-2xl shadow-2xl animate-slide-up flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: '#D4BFA0' }}>
-              <h3 className="text-sm font-semibold text-[#2C2418]">Tour Tracker</h3>
-              <button onClick={() => setShowTourTracker(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B5D4F] hover:bg-[#D4BFA0]/30">&times;</button>
-            </div>
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-2">
-              {tour.stops.map((s, i) => {
-                const isCompleted = session.completedStops.includes(s.id);
-                const isCurrent = session.currentStopIndex === i;
-                const isUpcoming = !isCompleted && !isCurrent;
-                // First photo: seed photos, legacy photoUrl, or notice photos
-                const firstPhoto = (s.seed.photos || [])[0]?.url || s.seed.photoUrl || (s.notice.photos || [])[0]?.url || null;
-
-                return (
-                  <div
-                    key={s.id}
-                    className={`flex items-center gap-3 p-3 rounded-lg border ${
-                      isCurrent ? 'border-[#C4923A] bg-[#C4923A]/10' : isCompleted ? 'border-[#D4BFA0] bg-white' : 'border-[#D4BFA0]/50 bg-[#F0E0C8]/30'
-                    }`}
-                  >
-                    {/* Photo or placeholder */}
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#D4BFA0]/30 shrink-0">
-                      {isCompleted && firstPhoto ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={firstPhoto} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[10px] text-[#6B5D4F]/50">
-                          {i + 1}
-                        </div>
-                      )}
-                    </div>
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      {isUpcoming ? (
-                        <p className="text-xs text-[#6B5D4F]/50">Stop {i + 1}</p>
-                      ) : (
-                        <>
-                          <p className={`text-xs font-semibold truncate ${isCurrent ? 'text-[#C4923A]' : 'text-[#2C2418]'}`}>
-                            {s.title || `Stop ${i + 1}`}
-                          </p>
-                          <p className="text-[10px] text-[#6B5D4F]">
-                            {isCurrent ? 'In progress' : 'Completed'}
-                          </p>
-                        </>
-                      )}
-                    </div>
-                    {/* Status indicator */}
-                    {isCompleted && (
-                      <span className="text-[#7A7A5E] text-xs">&#10003;</span>
-                    )}
-                    {isCurrent && (
-                      <span className="w-2 h-2 rounded-full bg-[#C4923A] animate-pulse" />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+      {/* Journal overlay */}
+      {showJournal && (
+        <JournalOverlay tour={tour} session={session} onClose={() => setShowJournal(false)} />
       )}
     </div>
   );
